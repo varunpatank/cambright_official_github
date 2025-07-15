@@ -1,0 +1,14 @@
+{
+  "name": "Canadian International School Toronto",
+  "description": "Diverse international school offering Canadian curriculum with global perspectives. We emphasize inclusivity, innovation, and academic achievement.",
+  "location": "Toronto, Canada",
+  "website": "https://cis-toronto.ca",
+  "email": "info@cis-toronto.ca",
+  "phone": "+1 416 123 4567",
+  "imageUrl": "https://images.unsplash.com/photo-1562774053-701939374585?w=500&h=300&fit=crop",
+  "isActive": true,
+  "createdBy": "system",
+  "id": "school_1752383386210_8yvglizzg",
+  "createdAt": "2025-07-13T05:09:46.210Z",
+  "updatedAt": "2025-07-13T05:09:46.210Z"
+}

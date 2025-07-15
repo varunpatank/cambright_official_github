@@ -1,0 +1,14 @@
+{
+  "name": "Tokyo International School",
+  "description": "Modern international school in Japan combining Eastern and Western educational philosophies. We foster creativity, critical thinking, and global mindedness.",
+  "location": "Tokyo, Japan",
+  "website": "https://tokyo-international.ac.jp",
+  "email": "info@tokyo-international.ac.jp",
+  "phone": "+81 3 1234 5678",
+  "imageUrl": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=500&h=300&fit=crop",
+  "isActive": true,
+  "createdBy": "system",
+  "id": "school_1752383386195_dnyds8ih7",
+  "createdAt": "2025-07-13T05:09:46.195Z",
+  "updatedAt": "2025-07-13T05:09:46.195Z"
+}

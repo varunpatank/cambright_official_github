@@ -1,0 +1,21 @@
+.cl-internal-17wmim4 {
+  visibility: hidden; /* Hide original text */
+}
+.cl-internal-17wmim4::before {
+  content: "Choose Study Group"; /* The new text */
+  position: absolute;
+  margin: auto;
+  width: max-content;
+  left: 50%; /* Position it at 50% from the left of the container */
+  transform: translateX(-50%); /* Center it horizontally */
+  visibility: visible;
+  text-align: center; /* Ensure the text inside the pseudo-element is centered */
+}
+
+.cl-internal-r26unt {
+  visibility: hidden !important;
+}
+.centered-text {
+  text-align: center !important;
+  padding-left: 1rem !important;
+}

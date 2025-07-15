@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - cambright
+
+  cambright:
+    # For development: build locally
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
+    # For production: use pre-built image
+    # image: ghcr.io/not-varram/cambright:latest
+    
+    container_name: cambright
+    restart: unless-stopped
+    ports:
+      - "3010:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      # Watchtower auto-update support
+      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      - redis
+    networks:
+      - cambright
+
+volumes:
+  redis_data:
+
+networks:
+  cambright:
+    driver: bridge

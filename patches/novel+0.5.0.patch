@@ -1,0 +1,19 @@
+diff --git a/node_modules/novel/dist/index.d.ts b/node_modules/novel/dist/index.d.ts
+index bffb974..4f9f1b2 100644
+--- a/node_modules/novel/dist/index.d.ts
++++ b/node_modules/novel/dist/index.d.ts
+@@ -12,12 +12,12 @@ declare const EditorRoot: FC<EditorRootProps>;
+ type EditorContentProps = Omit<EditorProviderProps, "content"> & {
+     readonly children?: ReactNode;
+     readonly className?: string;
+-    readonly initialContent?: JSONContent;
++    readonly initialContent?: string;
+ };
+ declare const EditorContent: react.ForwardRefExoticComponent<Omit<EditorProviderProps, "content"> & {
+     readonly children?: ReactNode;
+     readonly className?: string | undefined;
+-    readonly initialContent?: JSONContent | undefined;
++    readonly initialContent?: string | undefined;
+ } & react.RefAttributes<HTMLDivElement>>;
+ 
+ interface EditorBubbleProps extends Omit<BubbleMenuProps, "editor"> {

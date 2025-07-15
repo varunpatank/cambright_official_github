@@ -1,0 +1,14 @@
+{
+  "name": "Cambridge International School",
+  "description": "A prestigious international school offering world-class education with a focus on academic excellence and character development. Our curriculum combines the best of British and international educational practices.",
+  "location": "London, United Kingdom",
+  "website": "https://cambridge-international.edu",
+  "email": "admissions@cambridge-international.edu",
+  "phone": "+44 20 7123 4567",
+  "imageUrl": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=500&h=300&fit=crop",
+  "isActive": false,
+  "createdBy": "system",
+  "id": "school_1752383386171_9wdtgn9e2",
+  "createdAt": "2025-07-13T05:09:46.172Z",
+  "updatedAt": "2025-07-13T05:33:46.460Z"
+}

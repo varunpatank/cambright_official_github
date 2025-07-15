@@ -1,0 +1,61 @@
+/* Add this to your global CSS or the component's CSS module */
+.card-container {
+  user-select: none !important;
+  perspective: 1000px; /* Enable 3D space for the card flip effect */
+}
+
+.card {
+  width: 250px;
+  user-select: none !important;
+  height: 350px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 5s ease-in-out; /* Smooth animation */
+}
+
+.card.flipped {
+  transform: rotateY(90deg);
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden; /* Hide the back face during flip */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.card-front {
+  border-radius: 8px;
+}
+
+.card-back {
+  background: #3498db;
+  color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  transform: rotateY(180deg); /* Show back face when flipped */
+}
+
+/* Responsive card list styling */
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.card-list .card {
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-list .card:hover {
+  transform: translateY(-5px); /* Add hover effect */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}

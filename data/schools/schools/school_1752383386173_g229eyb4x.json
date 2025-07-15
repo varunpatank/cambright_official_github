@@ -1,0 +1,14 @@
+{
+  "name": "Singapore International Academy",
+  "description": "Leading international school in Asia providing innovative education with state-of-the-art facilities. We prepare students for global citizenship through our comprehensive curriculum.",
+  "location": "Singapore",
+  "website": "https://singapore-international.edu.sg",
+  "email": "info@singapore-international.edu.sg",
+  "phone": "+65 6234 5678",
+  "imageUrl": "https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=500&h=300&fit=crop",
+  "isActive": true,
+  "createdBy": "system",
+  "id": "school_1752383386173_g229eyb4x",
+  "createdAt": "2025-07-13T05:09:46.173Z",
+  "updatedAt": "2025-07-13T05:09:46.173Z"
+}

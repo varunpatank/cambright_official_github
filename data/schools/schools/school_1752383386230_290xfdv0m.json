@@ -1,0 +1,14 @@
+{
+  "name": "São Paulo International College",
+  "description": "Premier international school in Brazil offering bilingual education in Portuguese and English. We prepare students for global citizenship and academic excellence.",
+  "location": "São Paulo, Brazil",
+  "website": "https://saopaulo-international.edu.br",
+  "email": "info@saopaulo-international.edu.br",
+  "phone": "+55 11 3456 7890",
+  "imageUrl": "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=500&h=300&fit=crop",
+  "isActive": true,
+  "createdBy": "system",
+  "id": "school_1752383386230_290xfdv0m",
+  "createdAt": "2025-07-13T05:09:46.230Z",
+  "updatedAt": "2025-07-13T05:09:46.230Z"
+}
