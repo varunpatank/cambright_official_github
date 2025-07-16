@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --n-1: #FFFFFF; /* white */
+  --n-2: #F9F9F9; /* off-white */
+  --n-3: #F2F2F2; /* light gray */
+  --n-4: #E6E6E6; /* lighter gray */
+  --n-5: #D9D9D9; /* light gray */
+  --n-6: #CCCCCC; /* medium gray */
+  --n-7: #1A1A1A; /* dark gray */
+  --n-8: #13051e; /* dark purple-black */
+  --n-9: #0A0A0A; /* very dark gray */
+  --n-10: #070707; /* nearly black */
+  --n-11: #030303; /* almost black */
+  --n-12: #000000; /* pure black */
+}
+
+body {
+  background-color: #1a1a2e; /* Cambridge-style dark blue-gray */
+  color: white;
+}
+
+/* Hide scrollbar for webkit browsers */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

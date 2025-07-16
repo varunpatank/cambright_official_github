@@ -6,25 +6,27 @@ import {
   CheckCircle,
   XCircle,
   FileText,
+  AlertTriangle,
 } from "lucide-react";
-import { QuizQuestion, UserAnswer } from "@/types";
-import { checkAnswer } from "../utils/quizGenerator";
+import { GeneratedQuizQuestion, UserAnswer } from "../types/quiz";
 
 interface QuizInterfaceProps {
-  questions: QuizQuestion[];
+  questions: GeneratedQuizQuestion[];
   onComplete: (answers: UserAnswer[]) => void;
   onBack: () => void;
+  timeLimit: number; // in minutes
 }
 
 export function QuizInterface({
   questions,
   onComplete,
   onBack,
+  timeLimit,
 }: QuizInterfaceProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
   const [currentAnswer, setCurrentAnswer] = useState("");
-  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(timeLimit * 60); // convert to seconds
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedback, setFeedback] = useState<{
     isCorrect: boolean;
@@ -32,16 +34,45 @@ export function QuizInterface({
     feedback: string;
     keywords?: string[];
   } | null>(null);
+  const [isTimeUp, setIsTimeUp] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
 
+  // Scroll to top when component mounts or question changes
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentQuestionIndex]);
+  useEffect(() => {
+    if (timeRemaining <= 0) {
+      setIsTimeUp(true);
+      handleTimeUp();
+      return;
+    }
+
     const timer = setInterval(() => {
-      setTimeElapsed((prev) => prev + 1);
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          setIsTimeUp(true);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [timeRemaining]);
+
+  const handleTimeUp = () => {
+    // Auto-submit current answer if any
+    if (currentAnswer.trim() && !showFeedback) {
+      handleAnswerSubmit();
+    }
+    
+    // Complete quiz with current answers
+    setTimeout(() => {
+      onComplete(userAnswers);
+    }, 1000);
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -49,6 +80,54 @@ export function QuizInterface({
     return `${mins.toString().padStart(2, "0")}:${secs
       .toString()
       .padStart(2, "0")}`;
+  };
+
+  const getTimeColor = () => {
+    if (timeRemaining <= 60) return "text-red-400"; // Last minute
+    if (timeRemaining <= 300) return "text-yellow-400"; // Last 5 minutes
+    return "text-white";
+  };
+
+  const checkAnswer = (userAnswer: string, question: GeneratedQuizQuestion) => {
+    const maxMarks = question.marks;
+    
+    if (question.questionType === 'MCQ') {
+      const isCorrect = userAnswer.toUpperCase() === question.options?.correct;
+      return {
+        isCorrect,
+        marksAwarded: isCorrect ? maxMarks : 0,
+        feedback: isCorrect 
+          ? 'Correct! Well done.' 
+          : `Incorrect. The correct answer is ${question.options?.correct}. ${question.options?.[question.options.correct]}`,
+        keywords: isCorrect ? [] : [question.options?.[question.options.correct] || '']
+      };
+    } else {
+      // FRQ answer checking
+      const userAnswerLower = userAnswer.toLowerCase();
+      const keywords = question.markScheme.keywords.map(k => k.toLowerCase());
+      
+      let matchedKeywords = 0;
+      const matchedTerms: string[] = [];
+      
+      keywords.forEach(keyword => {
+        if (keyword && userAnswerLower.includes(keyword)) {
+          matchedKeywords++;
+          matchedTerms.push(keyword);
+        }
+      });
+      
+      const marksAwarded = Math.min(Math.round((matchedKeywords / keywords.length) * maxMarks), maxMarks);
+      const isCorrect = marksAwarded >= maxMarks * 0.7;
+      
+      return {
+        isCorrect,
+        marksAwarded,
+        feedback: isCorrect 
+          ? `Excellent answer! You included key terms: ${matchedTerms.join(', ')}`
+          : `Partial credit awarded (${marksAwarded}/${maxMarks}). ${question.markScheme.guidance}`,
+        keywords: keywords
+      };
+    }
   };
 
   const handleAnswerSubmit = () => {
@@ -59,7 +138,7 @@ export function QuizInterface({
     setShowFeedback(true);
 
     const userAnswer: UserAnswer = {
-      questionId: currentQuestion.question.id,
+      questionId: currentQuestion.id,
       answer: currentAnswer,
       isCorrect: result.isCorrect,
       marksAwarded: result.marksAwarded,
@@ -91,21 +170,21 @@ export function QuizInterface({
 
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
-  const getSubjectColor = (subject: string) => {
-    switch (subject) {
-      case "Biology":
-        return "text-green-400";
-      case "Chemistry":
-        return "text-blue-400";
-      case "Physics":
-        return "text-orange-400";
-      default:
-        return "text-purple-400";
-    }
-  };
+  if (isTimeUp) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          <h2 className="text-3xl font-bold mb-4">Time's Up!</h2>
+          <p className="text-gray-400 mb-6">Your quiz has been automatically submitted.</p>
+          <div className="w-8 h-8 border-4 border-purple-700 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-n-8 text-white">
+    <div className="min-h-screen bg-black text-white">
       <div className="flex justify-between items-center p-6 border-b border-gray-800">
         <button
           onClick={onBack}
@@ -115,10 +194,10 @@ export function QuizInterface({
           <span>Back to Setup</span>
         </button>
 
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Clock className="w-5 h-5 text-gray-400" />
-            <span className="text-lg font-mono">{formatTime(timeElapsed)}</span>
+        <div className="flex items-center space-x-6">
+          <div className={`flex items-center space-x-2 ${getTimeColor()}`}>
+            <Clock className="w-5 h-5" />
+            <span className="text-lg font-mono font-bold">{formatTime(timeRemaining)}</span>
           </div>
           <div className="text-lg">
             Question {currentQuestionIndex + 1} of {questions.length}
@@ -136,7 +215,7 @@ export function QuizInterface({
       </div>
 
       <div className="max-w-4xl mx-auto p-8">
-        <div className="bg-n-7 rounded-xl p-8 mb-8">
+        <div className="bg-gray-900 rounded-xl p-8 mb-8">
           <div className="flex items-start justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold mb-2">
@@ -145,66 +224,44 @@ export function QuizInterface({
               <div className="flex items-center space-x-4 text-sm text-gray-400">
                 <div className="flex items-center space-x-1">
                   <FileText className="w-4 h-4" />
-                  <span>IGCSE O Level</span>
+                  <span>IGCSE</span>
                 </div>
-                <div
-                  className={getSubjectColor(
-                    currentQuestion.paper?.subject || "Biology"
-                  )}
-                >
-                  {currentQuestion.paper?.subject || "Biology"}
+                <div className="text-purple-400">
+                  {currentQuestion.topic}
+                </div>
+                <div className="text-yellow-400">
+                  {currentQuestion.difficulty}
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2 bg-n-6 px-3 py-1 rounded-lg">
+            <div className="flex items-center space-x-2 bg-green-800 px-3 py-1 rounded-lg text-white">
               <span className="text-sm">Marks:</span>
-              <span className="font-bold">
-                {currentQuestion.question.marks || "1"}
-              </span>
+              <span className="font-bold">{currentQuestion.marks}</span>
             </div>
           </div>
 
           <p className="text-lg leading-relaxed mb-8">
-            {currentQuestion.question.questionText}
+            {currentQuestion.questionText}
           </p>
 
-          {(currentQuestion.question.questionText
-            .toLowerCase()
-            .includes("diagram") ||
-            currentQuestion.question.questionText
-              .toLowerCase()
-              .includes("graph") ||
-            currentQuestion.question.questionText
-              .toLowerCase()
-              .includes("chart")) && (
-            <div className="bg-purple-900/30 border border-purple-600/50 rounded-lg p-4 mb-6">
-              <p className="text-purple-300 text-sm">
-                📊 This question contains a diagram. Please search up the
-                question online to view the diagram.
-              </p>
-            </div>
-          )}
-
-          {currentQuestion.question.questionType === "MCQ" &&
-          currentQuestion.options &&
-          currentQuestion.options.length > 0 ? (
-            <div className="space-y-3">
-              {currentQuestion.options.map((option) => (
+          {currentQuestion.questionType === "MCQ" && currentQuestion.options ? (
+            <div className="space-y-3 mt-4">
+              {Object.entries(currentQuestion.options).filter(([key]) => key !== 'correct').map(([key, value]) => (
                 <label
-                  key={option.id}
+                  key={key}
                   className="flex items-center space-x-3 p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition-colors"
                 >
                   <input
                     type="radio"
                     name="mcq-answer"
-                    value={option.optionLetter}
-                    checked={currentAnswer === option.optionLetter}
+                    value={key}
+                    checked={currentAnswer === key}
                     onChange={(e) => setCurrentAnswer(e.target.value)}
                     className="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 focus:ring-purple-600"
                     disabled={showFeedback}
                   />
-                  <span className="font-medium">{option.optionLetter}.</span>
-                  <span>{option.optionText}</span>
+                  <span className="font-medium">{key}.</span>
+                  <span>{value}</span>
                 </label>
               ))}
             </div>
@@ -214,7 +271,7 @@ export function QuizInterface({
                 Your Answer:
               </label>
               <textarea
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-600 resize-none mt-2"
                 rows={4}
                 value={currentAnswer}
                 onChange={(e) => setCurrentAnswer(e.target.value)}
@@ -229,12 +286,10 @@ export function QuizInterface({
               <h4 className="font-medium text-sm text-gray-300 mb-2">
                 Your Answer:
               </h4>
-              {currentQuestion.question.questionType === "MCQ" ? (
+              {currentQuestion.questionType === "MCQ" ? (
                 <p className="text-white">
                   {currentAnswer}.{" "}
-                  {currentQuestion.options?.find(
-                    (opt) => opt.optionLetter === currentAnswer
-                  )?.optionText || "Selected option"}
+                  {currentQuestion.options?.[currentAnswer as keyof typeof currentQuestion.options] || "Selected option"}
                 </p>
               ) : (
                 <p className="text-white">{currentAnswer}</p>
@@ -260,8 +315,7 @@ export function QuizInterface({
                   {feedback.isCorrect ? "Correct!" : "Incorrect"}
                 </span>
                 <span className="text-sm">
-                  ({feedback.marksAwarded}/
-                  {currentQuestion.question.marks || "1"} marks)
+                  ({feedback.marksAwarded}/{currentQuestion.marks} marks)
                 </span>
               </div>
               <p className="text-sm mb-3">{feedback.feedback}</p>
@@ -272,7 +326,7 @@ export function QuizInterface({
                     Key terms needed:
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {feedback.keywords.map((keyword, index) => (
+                    {feedback.keywords.slice(0, 5).map((keyword, index) => (
                       <span
                         key={index}
                         className="bg-gray-800 text-purple-300 px-2 py-1 rounded text-sm"
@@ -301,7 +355,7 @@ export function QuizInterface({
                 <button
                   onClick={handleAnswerSubmit}
                   disabled={!currentAnswer.trim()}
-                  className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+                  className="px-6 py-2 bg-purple-700 hover:bg-purple-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
                 >
                   Submit Answer
                 </button>
@@ -310,7 +364,7 @@ export function QuizInterface({
               {showFeedback && (
                 <button
                   onClick={handleNext}
-                  className="flex items-center space-x-2 px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors"
+                  className="flex items-center space-x-2 px-6 py-2 bg-purple-700 hover:bg-purple-800 rounded-lg font-medium transition-colors"
                 >
                   <span>
                     {isLastQuestion ? "Finish Quiz" : "Next Question"}

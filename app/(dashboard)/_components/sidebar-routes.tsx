@@ -1,5 +1,3 @@
-// v.0.0.01 salah
-
 "use client";
 import {
   BarChart,
@@ -70,7 +68,7 @@ const guestRoutes: RouteItem[] = [
   },
   {
     icon: Compass,
-    label: "Browse",
+    label: "Classes",
     href: "/search",
   },
   {
@@ -78,6 +76,11 @@ const guestRoutes: RouteItem[] = [
     label: "Leaderboard",
     href: "/leaderboard",
   },
+  {
+        icon: Award,
+        label: "Our Schools",
+        href: "/school-hub",
+      },
 ];
 
 const tutorRoutes: RouteItem[] = [
@@ -114,19 +117,7 @@ const communityRoutes: RouteItem[] = [
     href: "/tutor/analytics",
   },
 ];
-// Admin routes (only shown to admin users)
-const adminRoutes: RouteItem[] = [
-  {
-    icon: Shield,
-    label: "Admin Panel",
-    href: "/admin/tutors",
-  },
-  {
-    icon: School,
-    label: "Schools",
-    href: "/admin/schools",
-  },
-];
+
 
 const nextroutes: RouteItem[] = [
   {
@@ -135,9 +126,24 @@ const nextroutes: RouteItem[] = [
     href: "1",
     children: [
       {
+        icon: CheckCheck,
+        label: "MCQ Mock Exam",
+        href: "/mcq-solver",
+      },
+      {
+        icon: Calculator,
+        label: "Question Quizzer",
+        href: "/quizzer",
+      },
+      {
         icon: Bot,
         label: "Tuto AI",
         href: "/tuto-ai",
+      },
+      {
+        icon: Timer,
+        label: "Marks Predictor",
+        href: "/predictor",
       },
       // {
       //   icon: Calculator,
@@ -154,17 +160,7 @@ const nextroutes: RouteItem[] = [
         label: "Progress Tracker",
         href: "/tracker/select-group",
       },
-      {
-        icon: CheckCheck,
-        label: "MCQ Mock Exams",
-        href: "/mcq-solver",
-      },
 
-      {
-        icon: Award,
-        label: "School Hub",
-        href: "/school-hub",
-      },
       // {
       //   icon: ScanSearch,
       //   label: "Question Finder",
@@ -176,7 +172,7 @@ const nextroutes: RouteItem[] = [
       //   href: "/quizzer",
       // },
 
-      
+
     ],
   },
   {
@@ -245,13 +241,31 @@ const nextroutes: RouteItem[] = [
   },
 ];
 
+// Admin routes as a dropdown section
+const adminSection: RouteItem = {
+  icon: Shield,
+  label: "Admin",
+  href: "admin",
+  children: [
+    {
+      icon: Shield,
+      label: "Admin Panel",
+      href: "/admin/tutors",
+    },
+    {
+      icon: School,
+      label: "School Admin",
+      href: "/admin/schools",
+    },
+  ],
+};
+
 export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
   const pathname = usePathname();
   const { userId } = useAuth();
   const { hasAdminAccess } = useAdminStatus(userId);
   
   const isTutorPage = pathname?.includes("/tutor");
-
 
   const [openItem, setOpenItem] = useState<string | null>(null);
 
@@ -260,6 +274,9 @@ export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
   };
 
   const routes: RouteItem[] = isTutorPage ? tutorRoutes : guestRoutes;
+
+  // Create accordion routes array that includes admin section if user has access
+  const accordionRoutes = hasAdminAccess ? [...nextroutes, adminSection] : nextroutes;
 
   return (
     <div className="flex flex-col w-full">
@@ -273,19 +290,8 @@ export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
         />
       ))}
       
-      {/* Admin Routes - Only shown to admin users */}
-      {hasAdminAccess && adminRoutes.map((route) => (
-        <SidebarItem
-          key={route.href}
-          icon={route.icon}
-          label={route.label}
-          href={route.href}
-          onClick={onClose}
-        />
-      ))}
-      
       <Accordion type="single" collapsible className="w-full">
-        {nextroutes.map((route) => (
+        {accordionRoutes.map((route) => (
           <AccordionItem key={route.href} value={route.href} className="w-full">
             <AccordionTrigger
               className="w-full"

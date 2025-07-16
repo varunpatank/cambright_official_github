@@ -442,7 +442,7 @@ const PredictorPage = () => {
         {/* Title at Top */}
         <div className="text-center mb-8">
           <h1 className="text-6xl font-bold text-white mb-3">
-            IGCSE GRADE PREDICTOR.
+            IGCSE Grade Predictor.
           </h1>
           <p className="text-lg font-normal text-purple-300 mb-2">
             Most Reliable IGCSE Predictor - Based on 10-Year Averaged Cambridge Thresholds
