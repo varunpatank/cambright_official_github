@@ -161,7 +161,7 @@ const ChapterIdPage = async ({
                 <div className="p-4">
                   {attachments.map((attachment) => (
                     <a
-                      href={attachment.url}
+                      href={`/api/courses/${params.courseId}/attachments/${attachment.id}`}
                       target="_blank"
                       key={attachment.id}
                       className="flex items-center p-3 w-full border-[rgb(30, 41, 59)] border text-slate-400 rounded-md hover:underline"

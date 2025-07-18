@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { isTutor } from '@/lib/tutor'
 import { uploadFile, BUCKET_NAME } from '@/lib/minio'
 import { nanoid } from 'nanoid'
+import crypto from 'crypto'
 
 // Supported file types and size limits
 const FILE_TYPES = {
@@ -129,18 +130,18 @@ export async function POST(request: NextRequest) {
         }, { status: 400 })
       }
 
-      // Generate unique filename
+      // Generate random 32-character hex key
+      const randomKey = crypto.randomBytes(16).toString('hex') // 32 hex chars
       const fileExtension = getFileExtension(file.type)
-      const fileName = `${nanoid()}_${Date.now()}${fileExtension}`
       const folderPath = getFolderPath(endpoint)
-      const objectName = `${folderPath}${fileName}`
+      const objectName = `${folderPath}${randomKey}${fileExtension}`
 
       // Convert file to buffer
       const buffer = Buffer.from(await file.arrayBuffer())
 
-      // Use 'public' bucket for courseImage, courseAttachment, and chapterVideo, else default
-      const publicEndpoints = ['courseImage', 'courseAttachment', 'chapterVideo']
-      const bucketToUse = publicEndpoints.includes(endpoint) ? 'public' : BUCKET_NAME
+      // Always use 'cambright' bucket for courseImage, courseAttachment, chapterVideo
+      const cambrightEndpoints = ['courseImage', 'courseAttachment', 'chapterVideo']
+      const bucketToUse = cambrightEndpoints.includes(endpoint) ? 'cambright' : BUCKET_NAME
 
       // Upload to MinIO
       const result = await uploadFile(bucketToUse, objectName, buffer, {
