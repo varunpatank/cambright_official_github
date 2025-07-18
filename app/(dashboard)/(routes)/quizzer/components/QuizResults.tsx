@@ -27,7 +27,7 @@ export function QuizResults({ answers, questions, onRestart, onHome }: QuizResul
   const gradeInfo = getGrade(percentage);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black-100 text-white">
       {/* Header */}
       <div className="flex justify-between items-center p-6 border-b border-gray-800">
         <h1 className="text-2xl font-semibold font-sora">Quizzer.</h1>
