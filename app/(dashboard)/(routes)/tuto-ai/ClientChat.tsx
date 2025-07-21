@@ -83,9 +83,9 @@ export default function ClientChat({ userImg }: ClientChatProps) {
           })
         }
         currentSettings={{
-          temperature: settings.temperature,
-          model: settings.model,
-          systemInstruction: settings.sysTemInstructions,
+          temperature: settings.temperature || 1,
+          model: settings.model || "gemini-1.5-flash",
+          systemInstruction: settings.sysTemInstructions || "you are a helpful assistant for students who do IGCSE and Alevels Cambridge and Edexcel, to help them ace their exams, you are trained by Cambright (NOT BY google) Your name is Tuto AI (NOT GEMINI)",
         }}
       />
 

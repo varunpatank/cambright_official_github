@@ -2,17 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { hasAdminAccess } from '@/lib/admin'
-import { db } from '@/lib/db'
+import { SchoolService } from '@/lib/school-service'
 
 const CreateSchoolSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
-  imageUrl: z.string().url().optional(),
   location: z.string().optional(),
   website: z.string().url().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
-  isActive: z.boolean().default(true),
+  imageAssetKey: z.string().optional(),
+  bannerAssetKey: z.string().optional(),
   volunteerHours: z.number().min(0).default(0),
   activeMembers: z.number().min(0).default(0)
 })
@@ -20,44 +20,32 @@ const CreateSchoolSchema = z.object({
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
-    const query = searchParams.get('search')
+    const query = searchParams.get('search') || undefined
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    // Build where clause for search
-    let whereClause: any = {}
-    
-    if (query) {
-      whereClause = {
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { description: { contains: query, mode: 'insensitive' } },
-          { location: { contains: query, mode: 'insensitive' } }
-        ]
-      }
-    }
-
-    // Filter only active schools for public access
-    whereClause.isActive = true
-
-    // Get total count for pagination
-    const totalCount = await db.school.count({ where: whereClause })
-
-    // Get paginated schools
-    const schools = await db.school.findMany({
-      where: whereClause,
-      orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit
+    // Use SchoolService to get schools with asset relations
+    const result = await SchoolService.getAllSchools({
+      search: query,
+      page,
+      limit,
+      includeInactive: false
     })
 
+    // Transform schools to include asset URLs
+    const schoolsWithUrls = result.schools.map(school => ({
+      ...school,
+      imageUrl: school.imageAsset ? `/api/assets/${school.imageAsset.key}` : null,
+      bannerUrl: school.bannerAsset ? `/api/assets/${school.bannerAsset.key}` : null
+    }))
+
     return NextResponse.json({
-      schools,
+      schools: schoolsWithUrls,
       pagination: {
-        page,
-        limit,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / limit)
+        page: result.page,
+        limit: result.limit,
+        total: result.total,
+        totalPages: result.totalPages
       }
     })
   } catch (error) {
@@ -91,14 +79,20 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const validatedData = CreateSchoolSchema.parse(body)
 
-    const school = await db.school.create({
-      data: {
-        ...validatedData,
-        createdBy: userId
-      }
+    // Use SchoolService to create school with asset relations
+    const school = await SchoolService.createSchool({
+      ...validatedData,
+      createdBy: userId
     })
 
-    return NextResponse.json(school, { status: 201 })
+    // Transform response to include asset URLs
+    const schoolWithUrls = {
+      ...school,
+      imageUrl: school.imageAsset ? `/api/assets/${school.imageAsset.key}` : null,
+      bannerUrl: school.bannerAsset ? `/api/assets/${school.bannerAsset.key}` : null
+    }
+
+    return NextResponse.json(schoolWithUrls, { status: 201 })
   } catch (error) {
     console.error('Error creating school:', error)
     

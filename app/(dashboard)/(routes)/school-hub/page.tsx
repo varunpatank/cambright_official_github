@@ -62,9 +62,10 @@ export default function SchoolHubPage() {
     try {
       const response = await fetch(`/api/chapter-admins?userId=${user.id}`)
       if (response.ok) {
-        const adminData = await response.json()
+        const responseData = await response.json()
+        const adminData = responseData.admins || []
         const managedSchools = adminData.map((admin: any) => admin.schoolId)
-        const isSuperAdmin = adminData.some((admin: any) => admin.role === 'chapter_super_admin')
+        const isSuperAdmin = adminData.some((admin: any) => admin.role === 'CHAPTER_SUPER_ADMIN')
         const isAdmin = adminData.length > 0
 
         setChapterAdminAccess({
@@ -494,20 +495,27 @@ export default function SchoolHubPage() {
                   </div>
                 </div>
 
-                {/* Chapter Admin Info */}
-                {(school.chapterSuperAdmin || (school.chapterAdmins && school.chapterAdmins.length > 0)) && (
+                {/* Chapter Admin Info - Show if user manages this school */}
+                {canManageSchool(school.id) && (
                   <div className="border-t border-n-6 pt-4">
-                    <h4 className="text-n-2 font-medium mb-2">Chapter Leadership</h4>
+                    <h4 className="text-n-2 font-medium mb-2">Your Role</h4>
                     <div className="space-y-1">
-                      {school.chapterSuperAdmin && (
-                        <Badge variant="secondary" className="text-xs">
+                      {hasAdminAccess && (
+                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
                           <Shield className="w-3 h-3 mr-1" />
                           Super Admin
                         </Badge>
                       )}
-                      {school.chapterAdmins && school.chapterAdmins.length > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          {school.chapterAdmins.length} Admin{school.chapterAdmins.length > 1 ? 's' : ''}
+                      {!hasAdminAccess && getUserRole(school.id) === 'chapter_super_admin' && (
+                        <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/20">
+                          <UserCheck className="w-3 h-3 mr-1" />
+                          Chapter Super Admin
+                        </Badge>
+                      )}
+                      {!hasAdminAccess && getUserRole(school.id) === 'chapter_admin' && (
+                        <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-400 border-green-500/20">
+                          <Settings className="w-3 h-3 mr-1" />
+                          Chapter Admin
                         </Badge>
                       )}
                     </div>

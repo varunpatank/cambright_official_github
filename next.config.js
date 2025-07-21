@@ -7,6 +7,11 @@ const nextConfig = {
     });
     return config;
   },
+  
+  // Ensure server startup initialization runs
+  experimental: {
+    instrumentationHook: true,
+  },
 
   images: {
     remotePatterns: [

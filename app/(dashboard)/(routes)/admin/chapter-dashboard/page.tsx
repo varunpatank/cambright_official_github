@@ -55,22 +55,32 @@ export default function ChapterAdminDashboard() {
       setIsLoading(true)
       setError(null)
 
-      // Get chapter admin data
+      // Get chapter admin data for current user
       const adminResponse = await fetch(`/api/chapter-admins?userId=${user.id}`)
       if (!adminResponse.ok) {
         throw new Error('Failed to fetch chapter admin data')
       }
       
-      const adminData: ChapterAdminData[] = await adminResponse.json()
-      setChapterAdminData(adminData)
+      const adminResponseData = await adminResponse.json()
+      const adminData = adminResponseData.admins || []
+      
+      // Transform admin data to match expected format
+      const transformedAdminData = adminData.map((admin: any) => ({
+        schoolId: admin.schoolId,
+        role: admin.role.toLowerCase(), // Convert CHAPTER_ADMIN to chapter_admin
+        assignedAt: admin.createdAt,
+        assignedBy: admin.assignedBy
+      }))
+      
+      setChapterAdminData(transformedAdminData)
 
-      if (adminData.length === 0) {
+      if (transformedAdminData.length === 0) {
         setError('You are not assigned as a chapter admin for any schools')
         return
       }
 
       // Get school details for managed schools
-      const schoolsResponse = await fetch('/api/schools')
+      const schoolsResponse = await fetch('/api/schools?limit=1000')
       if (!schoolsResponse.ok) {
         throw new Error('Failed to fetch schools')
       }
@@ -80,9 +90,9 @@ export default function ChapterAdminDashboard() {
       
       // Filter and enhance schools with admin role
       const managed = allSchools
-        .filter(school => adminData.some(admin => admin.schoolId === school.id))
+        .filter(school => transformedAdminData.some((admin: ChapterAdminData) => admin.schoolId === school.id))
         .map(school => {
-          const adminInfo = adminData.find(admin => admin.schoolId === school.id)
+          const adminInfo = transformedAdminData.find((admin: ChapterAdminData) => admin.schoolId === school.id)
           return {
             ...school,
             adminRole: adminInfo?.role || 'chapter_admin'

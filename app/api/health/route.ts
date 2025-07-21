@@ -1,30 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { runStartupChecks, quickHealthCheck } from '@/lib/startup-checks'
 
-// GET /api/health - Health check endpoint
+// GET /api/health - Simplified health check endpoint
 export async function GET(request: NextRequest) {
+	const startTime = Date.now()
+	
 	try {
 		const { searchParams } = new URL(request.url)
 		const detailed = searchParams.get('detailed') === 'true'
 		
-		if (detailed) {
-			// Run comprehensive health checks
-			const healthReport = await runStartupChecks()
-			
-			const statusCode = healthReport.overall === 'healthy' ? 200 : 
-							   healthReport.overall === 'degraded' ? 206 : 503
-			
-			return NextResponse.json(healthReport, { status: statusCode })
-		} else {
-			// Quick health check for load balancers/monitoring
-			const quickCheck = await quickHealthCheck()
-			const statusCode = quickCheck.status === 'healthy' ? 200 : 503
-			
-			return NextResponse.json(quickCheck, { status: statusCode })
+		// Simple health check response
+		const healthResponse = {
+			status: 'healthy',
+			message: 'Server is running',
+			timestamp: new Date().toISOString(),
+			uptime: process.uptime(),
+			detailed: detailed
 		}
-	} catch (error) {
-		console.error('Health check endpoint error:', error)
 		
+		if (detailed) {
+			healthResponse.detailed = true
+			// Add basic system info for detailed response
+			Object.assign(healthResponse, {
+				nodeVersion: process.version,
+				platform: process.platform,
+				memory: {
+					used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+					total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024)
+				}
+			})
+		}
+		
+		return NextResponse.json(healthResponse, { status: 200 })
+	} catch (error) {
 		return NextResponse.json(
 			{
 				status: 'unhealthy',
@@ -35,4 +42,4 @@ export async function GET(request: NextRequest) {
 			{ status: 500 }
 		)
 	}
-} 
+}

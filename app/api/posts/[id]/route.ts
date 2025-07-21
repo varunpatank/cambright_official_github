@@ -3,11 +3,13 @@ import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { hasAdminAccess } from '@/lib/admin'
+import { canDeleteSchoolPost } from '@/lib/chapter-admin-permissions'
+import { assetManager } from '@/lib/asset-manager'
 
 const UpdatePostSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   content: z.string().min(1, 'Content is required').optional(),
-  imageUrl: z.string().url().optional(),
+  imageAssetKey: z.string().optional(),
   postType: z.enum(['ANNOUNCEMENT', 'EVENT']).optional(),
   isActive: z.boolean().optional()
 })
@@ -29,6 +31,13 @@ export async function GET(
           select: {
             name: true,
             imageUrl: true
+          }
+        },
+        imageAsset: {
+          select: {
+            key: true,
+            fileName: true,
+            mimeType: true
           }
         }
       }
@@ -79,16 +88,14 @@ export async function PATCH(
       )
     }
 
-    // Check permissions - either global admin or post author
+    // Check permissions - global admin, post author, or chapter admin with delete permissions
     const isGlobalAdmin = await hasAdminAccess(userId)
     const isAuthor = existingPost.authorId === userId
+    const hasChapterDeleteAccess = await canDeleteSchoolPost(userId, existingPost.schoolId)
     
-    // TODO: Add chapter admin check once we have the function available
-    // const hasChapterAccess = await hasChapterAdminAccess(userId, existingPost.schoolId)
-    
-    if (!isGlobalAdmin && !isAuthor) {
+    if (!isGlobalAdmin && !isAuthor && !hasChapterDeleteAccess) {
       return NextResponse.json(
-        { error: 'Permission denied' },
+        { error: 'Permission denied. Requires global admin, post author, or chapter super admin access.' },
         { status: 403 }
       )
     }
@@ -96,11 +103,30 @@ export async function PATCH(
     const body = await req.json()
     const validatedData = UpdatePostSchema.parse(body)
 
+    // If imageAssetKey is being changed, delete the old asset
+    if (validatedData.imageAssetKey !== undefined && existingPost.imageAssetKey && validatedData.imageAssetKey !== existingPost.imageAssetKey) {
+      try {
+        await assetManager.deleteAsset(existingPost.imageAssetKey)
+      } catch (assetError) {
+        console.warn(`Failed to delete old asset ${existingPost.imageAssetKey} for post ${postId}:`, assetError)
+        // Continue with post update even if asset deletion fails
+      }
+    }
+
     const updatedPost = await db.schoolPost.update({
       where: { id: postId },
       data: {
         ...validatedData,
         updatedAt: new Date()
+      },
+      include: {
+        imageAsset: {
+          select: {
+            key: true,
+            fileName: true,
+            mimeType: true
+          }
+        }
       }
     })
 
@@ -150,18 +176,26 @@ export async function DELETE(
       )
     }
 
-    // Check permissions - either global admin or post author
+    // Check permissions - global admin, post author, or chapter admin with delete permissions
     const isGlobalAdmin = await hasAdminAccess(userId)
     const isAuthor = existingPost.authorId === userId
+    const hasChapterDeleteAccess = await canDeleteSchoolPost(userId, existingPost.schoolId)
     
-    // TODO: Add chapter admin check once we have the function available
-    // const hasChapterAccess = await hasChapterAdminAccess(userId, existingPost.schoolId)
-    
-    if (!isGlobalAdmin && !isAuthor) {
+    if (!isGlobalAdmin && !isAuthor && !hasChapterDeleteAccess) {
       return NextResponse.json(
-        { error: 'Permission denied' },
+        { error: 'Permission denied. Requires global admin, post author, or chapter super admin access.' },
         { status: 403 }
       )
+    }
+
+    // Delete associated asset if it exists
+    if (existingPost.imageAssetKey) {
+      try {
+        await assetManager.deleteAsset(existingPost.imageAssetKey)
+      } catch (assetError) {
+        console.warn(`Failed to delete asset ${existingPost.imageAssetKey} for post ${postId}:`, assetError)
+        // Continue with post deletion even if asset deletion fails
+      }
     }
 
     // Soft delete the post

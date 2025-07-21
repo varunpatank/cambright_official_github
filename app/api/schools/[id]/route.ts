@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { hasAdminAccess } from '@/lib/admin'
-import { db } from '@/lib/db'
+import { SchoolService } from '@/lib/school-service'
 
 const UpdateSchoolSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
   description: z.string().optional(),
-  imageUrl: z.string().url().optional(),
   location: z.string().optional(),
   website: z.string().url().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
+  imageAssetKey: z.string().optional(),
+  bannerAssetKey: z.string().optional(),
   isActive: z.boolean().optional(),
   volunteerHours: z.number().min(0).optional(),
   activeMembers: z.number().min(0).optional()
@@ -22,9 +23,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const school = await db.school.findUnique({
-      where: { id: params.id }
-    })
+    const school = await SchoolService.getSchoolById(params.id)
     
     if (!school) {
       return NextResponse.json(
@@ -33,7 +32,14 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(school)
+    // Transform response to include asset URLs
+    const schoolWithUrls = {
+      ...school,
+      imageUrl: school.imageAsset ? `/api/assets/${school.imageAsset.key}` : null,
+      bannerUrl: school.bannerAsset ? `/api/assets/${school.bannerAsset.key}` : null
+    }
+
+    return NextResponse.json(schoolWithUrls)
   } catch (error) {
     console.error('Error fetching school:', error)
     return NextResponse.json(
@@ -70,13 +76,27 @@ export async function PUT(
     
     const validatedData = UpdateSchoolSchema.parse(body)
 
-    const school = await db.school.update({
-      where: { id: params.id },
-      data: validatedData
-    })
+    // Check if school exists first
+    const existingSchool = await SchoolService.getSchoolById(params.id)
+    if (!existingSchool) {
+      return NextResponse.json(
+        { error: 'School not found' },
+        { status: 404 }
+      )
+    }
 
-    console.log(`School ${params.id} updated successfully:`, school)
-    return NextResponse.json(school)
+    // Use SchoolService to update school with asset relations
+    const school = await SchoolService.updateSchool(params.id, validatedData)
+
+    // Transform response to include asset URLs
+    const schoolWithUrls = {
+      ...school,
+      imageUrl: school.imageAsset ? `/api/assets/${school.imageAsset.key}` : null,
+      bannerUrl: school.bannerAsset ? `/api/assets/${school.bannerAsset.key}` : null
+    }
+
+    console.log(`School ${params.id} updated successfully:`, schoolWithUrls)
+    return NextResponse.json(schoolWithUrls)
   } catch (error) {
     console.error('Error updating school:', error)
     
@@ -119,12 +139,26 @@ export async function PATCH(
     const body = await req.json()
     const validatedData = UpdateSchoolSchema.parse(body)
 
-    const school = await db.school.update({
-      where: { id: params.id },
-      data: validatedData
-    })
+    // Check if school exists first
+    const existingSchool = await SchoolService.getSchoolById(params.id)
+    if (!existingSchool) {
+      return NextResponse.json(
+        { error: 'School not found' },
+        { status: 404 }
+      )
+    }
 
-    return NextResponse.json(school)
+    // Use SchoolService to update school with asset relations
+    const school = await SchoolService.updateSchool(params.id, validatedData)
+
+    // Transform response to include asset URLs
+    const schoolWithUrls = {
+      ...school,
+      imageUrl: school.imageAsset ? `/api/assets/${school.imageAsset.key}` : null,
+      bannerUrl: school.bannerAsset ? `/api/assets/${school.bannerAsset.key}` : null
+    }
+
+    return NextResponse.json(schoolWithUrls)
   } catch (error) {
     console.error('Error updating school:', error)
     
@@ -164,9 +198,17 @@ export async function DELETE(
       )
     }
 
-    await db.school.delete({
-      where: { id: params.id }
-    })
+    // Check if school exists first
+    const existingSchool = await SchoolService.getSchoolById(params.id)
+    if (!existingSchool) {
+      return NextResponse.json(
+        { error: 'School not found' },
+        { status: 404 }
+      )
+    }
+
+    // Use SchoolService to delete school (soft delete)
+    await SchoolService.deleteSchool(params.id)
 
     return NextResponse.json({ message: 'School deleted successfully' })
   } catch (error) {

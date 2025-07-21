@@ -15,18 +15,21 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/components/ui/use-toast'
-import { FileUpload } from '@/components/file-upload'
 import { useAdminStatus } from '@/hooks/use-admin-status'
+import { AssetUpload } from '@/components/asset-upload'
 
 interface School {
   id: string
   name: string
   description?: string
   imageUrl?: string
+  bannerUrl?: string
   location?: string
   website?: string
   email?: string
   phone?: string
+  volunteerHours: number
+  activeMembers: number
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -37,7 +40,12 @@ interface SchoolPost {
   schoolId: string
   title: string
   content: string
-  imageUrl?: string
+  imageAssetKey?: string
+  imageAsset?: {
+    key: string
+    fileName: string
+    mimeType: string
+  }
   authorId: string
   authorName: string
   postType: 'ANNOUNCEMENT' | 'EVENT'
@@ -47,14 +55,16 @@ interface SchoolPost {
 }
 
 interface ChapterAdmin {
+  id: string
   userId: string
-  userName: string
-  userEmail: string
-  role: 'chapter_super_admin' | 'chapter_admin'
   schoolId: string
-  schoolName: string
-  assignedAt: string
-  assignedBy: string
+  role: 'CHAPTER_ADMIN' | 'CHAPTER_SUPER_ADMIN'
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  // User info will be fetched separately
+  userName?: string
+  userEmail?: string
 }
 
 export default function SchoolDetailPage() {
@@ -75,7 +85,7 @@ export default function SchoolDetailPage() {
   const [newPost, setNewPost] = useState({
     title: '',
     content: '',
-    imageUrl: '',
+    imageAssetKey: '',
     postType: 'ANNOUNCEMENT' as 'ANNOUNCEMENT' | 'EVENT'
   })
 
@@ -116,8 +126,33 @@ export default function SchoolDetailPage() {
     try {
       const response = await fetch(`/api/chapter-admins?schoolId=${schoolId}`)
       if (response.ok) {
-        const adminsData = await response.json()
-        setAdmins(adminsData)
+        const data = await response.json()
+        // Handle the response format from the API
+        const adminsData = data.admins || data || []
+        
+        // Fetch user details for each admin
+        const adminsWithUserInfo = await Promise.all(
+          adminsData.map(async (admin: ChapterAdmin) => {
+            try {
+              // For now, we'll use placeholder data since we don't have a user info endpoint
+              // In a real implementation, you'd fetch user details from Clerk or a user API
+              return {
+                ...admin,
+                userName: `User ${admin.userId.substring(0, 8)}`, // Placeholder
+                userEmail: `user@example.com` // Placeholder
+              }
+            } catch (err) {
+              console.error('Error fetching user info for admin:', admin.userId, err)
+              return {
+                ...admin,
+                userName: `User ${admin.userId.substring(0, 8)}`,
+                userEmail: 'unknown@example.com'
+              }
+            }
+          })
+        )
+        
+        setAdmins(adminsWithUserInfo)
       }
     } catch (err) {
       console.error('Error fetching admins:', err)
@@ -169,7 +204,7 @@ export default function SchoolDetailPage() {
         setNewPost({
           title: '',
           content: '',
-          imageUrl: '',
+          imageAssetKey: '',
           postType: 'ANNOUNCEMENT'
         })
         fetchPosts()
@@ -245,7 +280,14 @@ export default function SchoolDetailPage() {
     <div className="min-h-screen bg-n-8">
       {/* Hero Banner */}
       <div className="relative h-80 overflow-hidden">
-        {school.imageUrl ? (
+        {school.bannerUrl ? (
+          <Image
+            src={school.bannerUrl}
+            alt={`${school.name} banner`}
+            fill
+            className="object-cover"
+          />
+        ) : school.imageUrl ? (
           <Image
             src={school.imageUrl}
             alt={school.name}
@@ -274,7 +316,7 @@ export default function SchoolDetailPage() {
         {/* School Info */}
         <Card className="bg-n-7 border-n-6 text-n-1">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
               {school.location && (
                 <div className="flex items-center space-x-2">
                   <MapPin className="w-5 h-5 text-color-1" />
@@ -305,6 +347,31 @@ export default function SchoolDetailPage() {
                 </div>
               )}
             </div>
+            
+            {/* School Statistics */}
+            <div className="border-t border-n-6 pt-6">
+              <h3 className="text-lg font-semibold text-n-1 mb-4">School Statistics</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex items-center space-x-3 p-4 bg-n-6 rounded-lg">
+                  <div className="p-2 bg-color-1/10 rounded-lg">
+                    <Users className="w-6 h-6 text-color-1" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-n-1">{school.activeMembers}</p>
+                    <p className="text-sm text-n-3">Active Members</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-4 bg-n-6 rounded-lg">
+                  <div className="p-2 bg-color-2/10 rounded-lg">
+                    <Calendar className="w-6 h-6 text-color-2" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-n-1">{school.volunteerHours}</p>
+                    <p className="text-sm text-n-3">Volunteer Hours</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -322,13 +389,13 @@ export default function SchoolDetailPage() {
                 {admins.map((admin) => (
                   <div key={admin.userId} className="flex items-center space-x-3 p-3 rounded-lg bg-n-6">
                     <Avatar>
-                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${admin.userName}`} />
-                      <AvatarFallback className="bg-n-5 text-n-1">{admin.userName.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${admin.userName || admin.userId}`} />
+                      <AvatarFallback className="bg-n-5 text-n-1">{(admin.userName || admin.userId).substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="font-medium text-n-1">{admin.userName}</div>
-                      <Badge variant={admin.role === 'chapter_super_admin' ? 'destructive' : 'secondary'} className="text-xs">
-                        {admin.role === 'chapter_super_admin' ? (
+                      <div className="font-medium text-n-1">{admin.userName || admin.userId}</div>
+                      <Badge variant={admin.role === 'CHAPTER_SUPER_ADMIN' ? 'destructive' : 'secondary'} className="text-xs">
+                        {admin.role === 'CHAPTER_SUPER_ADMIN' ? (
                           <>
                             <Crown className="w-3 h-3 mr-1" />
                             Super Admin
@@ -406,13 +473,13 @@ export default function SchoolDetailPage() {
                       </div>
                       <div>
                         <Label className="text-n-1">Image (Optional)</Label>
-                        <FileUpload
-                          endpoint="schoolPostImage"
-                          onChange={(url) => setNewPost({ ...newPost, imageUrl: url || '' })}
+                        <AssetUpload
+                          assetType="POST_IMAGE"
+                          onChange={(assetKey) => setNewPost({ ...newPost, imageAssetKey: assetKey || '' })}
                         />
-                        {newPost.imageUrl && (
+                        {newPost.imageAssetKey && (
                           <div className="mt-2">
-                            <img src={newPost.imageUrl} alt="Preview" className="max-w-full h-32 object-cover rounded" />
+                            <img src={`/api/assets/${newPost.imageAssetKey}`} alt="Preview" className="max-w-full h-32 object-cover rounded" />
                           </div>
                         )}
                       </div>
@@ -464,10 +531,10 @@ export default function SchoolDetailPage() {
                       </div>
                       <h3 className="text-lg font-semibold mb-2 text-n-1">{post.title}</h3>
                       <p className="text-n-3 mb-3">{post.content}</p>
-                      {post.imageUrl && (
+                      {(post.imageAssetKey || post.imageAsset?.key) && (
                         <div className="mb-3">
                           <img 
-                            src={post.imageUrl} 
+                            src={`/api/assets/${post.imageAssetKey || post.imageAsset?.key}`} 
                             alt={post.title}
                             className="max-w-full h-48 object-cover rounded-lg"
                           />

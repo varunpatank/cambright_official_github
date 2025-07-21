@@ -33,9 +33,20 @@ model Course {
   sessiondate  String?
   sessiontime  String? 
   attachmentLink String?
+  
+  // Asset reference
+  imageAssetKey String?
+  imageAsset    AssetManager? @relation("CourseImageAsset", fields: [imageAssetKey], references: [key])
+  
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  
   @@index([subjectId])
+  @@index([boardId])
+  @@index([userId])
+  @@index([isPublished])
+  @@index([createdAt])
+  @@index([imageAssetKey])
 }
 
 model Subject {
@@ -84,6 +95,9 @@ model Chapter {
   updatedAt  DateTime  @updatedAt
 
   @@index([courseId])
+  @@index([isPublished])
+  @@index([position])
+  @@index([courseId, position])
 }
 model CloudinaryData{
   id String @id @default(uuid())
@@ -105,6 +119,8 @@ model UserProgress{
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   @@index([chapterId])
+  @@index([userId])
+  @@index([userId, isCompleted])
   @@unique([userId, chapterId])
 }
 
@@ -119,6 +135,8 @@ model Enrollment{
   updatedAt  DateTime  @updatedAt
   @@unique([userId, courseId])
   @@index([courseId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Profile {
@@ -290,7 +308,12 @@ model Note {
   attachmentLink String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+  
   @@index([notesubjectId])
+  @@index([noteboardId])
+  @@index([userId])
+  @@index([isPublished])
+  @@index([createdAt])
 }
 model NoteAttachment {
   id         String    @id @default(uuid()) 
@@ -495,7 +518,16 @@ model School {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   createdBy      String
+  
+  // Asset references
+  imageAssetKey    String?
+  bannerAssetKey   String?
+  imageAsset       AssetManager? @relation("SchoolImageAsset", fields: [imageAssetKey], references: [key])
+  bannerAsset      AssetManager? @relation("SchoolBannerAsset", fields: [bannerAssetKey], references: [key])
+  
+  // Relations
   posts          SchoolPost[]
+  chapterAdmins  ChapterAdmin[]
 
   @@index([isActive])
   @@index([createdAt])
@@ -513,6 +545,11 @@ model SchoolPost {
   authorName  String
   postType    PostType    @default(ANNOUNCEMENT)
   isActive    Boolean     @default(true)
+  
+  // Asset reference
+  imageAssetKey String?
+  imageAsset    AssetManager? @relation("PostImageAsset", fields: [imageAssetKey], references: [key])
+  
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -524,6 +561,61 @@ model SchoolPost {
 enum PostType {
   ANNOUNCEMENT
   EVENT
+}
+
+model AssetManager {
+  id          String      @id @default(uuid())
+  key         String      @unique  // Public-facing unique key
+  fileName    String      // Original filename
+  mimeType    String      // File MIME type
+  fileSize    Int         // File size in bytes
+  minioPath   String      // Internal MinIO path
+  uploadedBy  String      // User ID who uploaded
+  assetType   AssetType   // Type of asset
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relations to entities using this asset
+  schoolImages    School[]     @relation("SchoolImageAsset")
+  schoolBanners   School[]     @relation("SchoolBannerAsset") 
+  postImages      SchoolPost[] @relation("PostImageAsset")
+  courseImages    Course[]     @relation("CourseImageAsset")
+  
+  @@index([key])
+  @@index([assetType])
+  @@index([uploadedBy])
+}
+
+enum AssetType {
+  SCHOOL_IMAGE
+  SCHOOL_BANNER
+  POST_IMAGE
+  COURSE_IMAGE
+  CHAPTER_VIDEO
+  NOTE_ATTACHMENT
+}
+
+model ChapterAdmin {
+  id          String              @id @default(uuid())
+  userId      String              // Clerk user ID
+  schoolId    String
+  school      School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  role        ChapterAdminRole    @default(CHAPTER_ADMIN)
+  assignedBy  String              // User ID who assigned this role
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  
+  @@unique([userId, schoolId])
+  @@index([userId])
+  @@index([schoolId])
+  @@index([role])
+}
+
+enum ChapterAdminRole {
+  CHAPTER_ADMIN
+  CHAPTER_SUPER_ADMIN
 }
 
 

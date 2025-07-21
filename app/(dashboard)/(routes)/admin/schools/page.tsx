@@ -71,7 +71,7 @@ export default function AdminSchoolsPage() {
   const [userSearchResults, setUserSearchResults] = useState<User[]>([])
   const [isSearchingUsers, setIsSearchingUsers] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [selectedRole, setSelectedRole] = useState<'chapter_super_admin' | 'chapter_admin'>('chapter_admin')
+  const [selectedRole, setSelectedRole] = useState<'CHAPTER_SUPER_ADMIN' | 'CHAPTER_ADMIN'>('CHAPTER_ADMIN')
 
   // Stats editing state
   const [isStatsDialogOpen, setIsStatsDialogOpen] = useState(false)
@@ -158,8 +158,8 @@ export default function AdminSchoolsPage() {
       if (!response.ok) {
         throw new Error('Failed to fetch chapter admins')
       }
-      const admins = await response.json()
-      setChapterAdmins(admins)
+      const data = await response.json()
+      setChapterAdmins(data.admins || [])
     } catch (error) {
       console.error('Error fetching chapter admins:', error)
       toast({
@@ -383,11 +383,11 @@ export default function AdminSchoolsPage() {
     }
   }
 
-  const handleRemoveChapterAdmin = async (userId: string) => {
+  const handleRemoveChapterAdmin = async (adminId: string) => {
     if (!selectedSchoolForAdmin) return
 
     try {
-      const response = await fetch(`/api/chapter-admins?schoolId=${selectedSchoolForAdmin.id}&userId=${userId}`, {
+      const response = await fetch(`/api/chapter-admins?adminId=${adminId}`, {
         method: 'DELETE',
       })
 
@@ -910,13 +910,13 @@ export default function AdminSchoolsPage() {
                   </div>
                   <div>
                     <Label>Role</Label>
-                    <Select value={selectedRole} onValueChange={(value: 'chapter_super_admin' | 'chapter_admin') => setSelectedRole(value)}>
+                    <Select value={selectedRole} onValueChange={(value: 'CHAPTER_SUPER_ADMIN' | 'CHAPTER_ADMIN') => setSelectedRole(value)}>
                       <SelectTrigger className="bg-n-7 border-n-6">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="chapter_admin">Chapter Admin</SelectItem>
-                        <SelectItem value="chapter_super_admin">Chapter Super Admin</SelectItem>
+                        <SelectItem value="CHAPTER_ADMIN">Chapter Admin</SelectItem>
+                        <SelectItem value="CHAPTER_SUPER_ADMIN">Chapter Super Admin</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -951,7 +951,7 @@ export default function AdminSchoolsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRemoveChapterAdmin(admin.userId)}
+                          onClick={() => handleRemoveChapterAdmin(`${admin.userId}-${admin.schoolId}`)}
                           className="text-destructive hover:text-destructive/90"
                         >
                           <UserMinus className="w-4 h-4" />

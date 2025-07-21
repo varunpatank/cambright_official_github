@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
-import { isAdmin } from '@/lib/admin'
+import { hasAdminAccess } from '@/lib/admin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if user is admin
-    if (!isAdmin(userId)) {
+    if (!hasAdminAccess(userId)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

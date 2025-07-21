@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
-import { hasAdminAccess } from '@/lib/admin'
+import { canCreateSchoolPost } from '@/lib/chapter-admin-permissions'
 
 const CreatePostSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
-  imageUrl: z.string().url().optional(),
+  imageAssetKey: z.string().optional(),
   postType: z.enum(['ANNOUNCEMENT', 'EVENT']).default('ANNOUNCEMENT')
 })
 
@@ -23,6 +23,15 @@ export async function GET(
       where: {
         schoolId,
         isActive: true
+      },
+      include: {
+        imageAsset: {
+          select: {
+            key: true,
+            fileName: true,
+            mimeType: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'
@@ -55,15 +64,12 @@ export async function POST(
 
     const schoolId = params.id
     
-    // Check if user has admin access or chapter admin access to this school
-    const isGlobalAdmin = await hasAdminAccess(userId)
+    // Check if user can create posts for this school
+    const canCreatePost = await canCreateSchoolPost(userId, schoolId)
     
-    // TODO: Add chapter admin check once we have the function available
-    // const hasChapterAccess = await hasChapterAdminAccess(userId, schoolId)
-    
-    if (!isGlobalAdmin) {
+    if (!canCreatePost) {
       return NextResponse.json(
-        { error: 'Admin access required' },
+        { error: 'Insufficient permissions. Chapter admin access required for this school.' },
         { status: 403 }
       )
     }
@@ -94,6 +100,15 @@ export async function POST(
         schoolId,
         authorId: userId,
         authorName
+      },
+      include: {
+        imageAsset: {
+          select: {
+            key: true,
+            fileName: true,
+            mimeType: true
+          }
+        }
       }
     })
 

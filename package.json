@@ -17,8 +17,15 @@
     "health:check": "tsx scripts/startup-health-check.ts",
     "health:check:prod": "NODE_ENV=production tsx scripts/startup-health-check.ts",
     "health:check:json": "STRUCTURED_LOGGING=true tsx scripts/startup-health-check.ts",
+    "test:startup": "tsx scripts/test-startup-flow.ts",
     "migrate:schools": "tsx scripts/migrate-schools-to-database.ts",
     "migrate:uploadthing": "tsx scripts/migrate-uploadthing-to-minio.ts",
+    "migrate:school-data": "tsx scripts/migrate-school-data-to-asset-manager.ts",
+    "migrate:assets": "tsx scripts/migrate-assets-to-asset-manager.ts",
+    "migrate:complete": "tsx scripts/run-complete-migration.ts",
+    "migrate:validate": "tsx scripts/migration-validation-and-rollback.ts validate",
+    "migrate:snapshot": "tsx scripts/migration-validation-and-rollback.ts snapshot",
+    "migrate:report": "tsx scripts/migration-validation-and-rollback.ts report",
     "postinstall": "prisma generate && patch-package"
   },
   "dependencies": {

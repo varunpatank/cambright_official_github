@@ -175,7 +175,7 @@ export function QuizInterface({
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold mb-4">Time's Up!</h2>
+          <h2 className="text-3xl font-bold mb-4">Time&apos;s Up!</h2>
           <p className="text-gray-400 mb-6">Your quiz has been automatically submitted.</p>
           <div className="w-8 h-8 border-4 border-purple-700 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
