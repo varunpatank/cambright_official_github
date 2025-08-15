@@ -32,19 +32,45 @@ const Player = (props: PlayerProps) => {
     const player = videojs(videoEl, {
       ...props,
       controlBar: {},
+      // Add better error handling for MinIO videos
+      html5: {
+        vhs: {
+          overrideNative: true,
+        },
+        nativeVideoTracks: false,
+        nativeAudioTracks: false,
+        nativeTextTracks: false,
+      },
+      // Handle CORS and loading issues
+      preload: 'metadata',
+      responsive: true,
+      fluid: true,
     });
 
     player.on("loadeddata", () => {
+      console.log("Video loaded successfully");
       if (props.onReady) {
         props.onReady(); // Call the onReady callback
       }
     });
+    
+    player.on("error", (e: any) => {
+      console.error("Video player error:", e);
+      console.error("Error details:", player.error());
+    });
+    
     player.on("ended", () => {
       if (props.onEnded) {
         props.onEnded(); // Call the onEnded callback
       }
     });
+    
     // Handle player cleanup and reset when props change
+    return () => {
+      if (player && !player.isDisposed()) {
+        player.dispose();
+      }
+    };
   }, [props, videoEl]);
 
   useEffect(() => {

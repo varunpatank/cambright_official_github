@@ -15,6 +15,7 @@ import { FaMouse } from "react-icons/fa";
 import { BackgroundBeams } from "./ui/background-beams";
 import { StarsBackground } from "./ui/shooting-stars";
 import { Banner } from "./banner";
+import { AnimatedCounter } from "./ui/AnimatedCounter";
 
 interface HeroProps {
   showThem?: boolean | true;
@@ -31,7 +32,7 @@ const Hero = ({ showThem }: HeroProps) => {
   };
 
   return (
-    <div className="pb-20 pt-32 relative">
+    <div className="pb-10 pt-32 relative">
       <div
         className="h-screen w-full bg-grid-white/[0.03]
         absolute top-0 left-0 flex items-center justify-center"
@@ -118,17 +119,19 @@ const Hero = ({ showThem }: HeroProps) => {
         <div className="max-w-[89vw] md:max-w-2xl lg:max-w-[60vw] flex flex-col items-center justify-center">
           <Image src={"/logo.png"} alt="logo" height={400} width={400} />
 
-          <TextGenerateEffect
-            words="Achieve IGCSE Excellence with Our Comprehensive Platform"
-            className="uppercase tracking-widest text-xs text-center text-blue-100 max-w-80"
-          />
+          <p className="uppercase tracking-widest text-xs text-center text-blue-100 max-w-80">
+            IGCSE Excellence Made Simple
+          </p>
 
-          <TextGenerateEffect
-            className="text-center md:tracking-wider mb-0 text-sm md:text-lg lg:text-2xl"
-            words="Welcome! We are a non-profit that helps students ace their IGCSEs with expert tutors, top resources, and free courses"
-          />
+          <div className="mt-2">
+            <TextGenerateEffect
+              className="text-center md:tracking-wider mb-4 text-sm md:text-lg lg:text-2xl"
+              words="Welcome! We are a 501c3 non-profit that helps students and teachers ace IGCSEs with free courses, resources, and school chapters across the globe."
+            />
+          </div>
+
           <div className="flex flex-col items-center space-y-4 mt-2">
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-12 ">
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 ">
               {showThem ? (
                 <>
                   <a href="/sign-up">
@@ -159,9 +162,30 @@ const Hero = ({ showThem }: HeroProps) => {
                 </a>
               )}
             </div>
+
+            {/* Statistics Box */}
+            <div className="bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 mb-2">
+              <div className="flex flex-wrap justify-center gap-8 text-center">
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl font-bold text-cyan-400 mb-1">2000+</span>
+                  <span className="text-sm text-white font-medium">Total Users</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <AnimatedCounter 
+                    baseValue={156} 
+                    className="text-3xl font-bold text-emerald-400 mb-1"
+                  />
+                  <span className="text-sm text-white font-medium">Active Users</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-3xl font-bold text-violet-400 mb-1">5+</span>
+                  <span className="text-sm text-white font-medium">Schools</span>
+                </div>
+              </div>
+            </div>
             <button
               onClick={scrollToNextSection}
-              className="flex flex-col items-center justify-center p-4 bg-slate-800 opacity-70 text-white rounded-full shadow-lg backdrop-blur-md hover:bg-opacity-60 transition-all mt-4 mb-12 animate-pulse"
+              className="flex flex-col items-center justify-center p-4 bg-slate-800 opacity-70 text-white rounded-full shadow-lg backdrop-blur-md hover:bg-opacity-60 transition-all mt-2 mb-2 animate-pulse"
               aria-label="Scroll Down"
             >
               <FaMouse className="text-xl mb-1" />

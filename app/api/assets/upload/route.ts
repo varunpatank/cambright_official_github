@@ -1,34 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AssetType } from '@prisma/client'
 import { assetManager } from '@/lib/asset-manager'
-import { currentProfile } from '@/lib/current-profile'
+import { auth } from '@clerk/nextjs/server'
 
 // Maximum file size: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024
 
 // Allowed MIME types for different asset types
-const ALLOWED_MIME_TYPES: Record<AssetType, string[]> = {
-  [AssetType.SCHOOL_IMAGE]: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-  [AssetType.SCHOOL_BANNER]: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-  [AssetType.POST_IMAGE]: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-  [AssetType.COURSE_IMAGE]: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
-  [AssetType.CHAPTER_VIDEO]: ['video/mp4', 'video/webm', 'video/ogg'],
-  [AssetType.NOTE_ATTACHMENT]: [
+const ALLOWED_MIME_TYPES: Record<string, string[]> = {
+  'SCHOOL_IMAGE': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  'SCHOOL_BANNER': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  'POST_IMAGE': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  'COURSE_IMAGE': ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  'GENERAL_FILE': [
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'text/plain',
     'image/jpeg',
     'image/jpg',
-    'image/png'
+    'image/png',
+    'video/mp4',
+    'video/webm',
+    'video/ogg'
   ]
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const profile = await currentProfile()
-    if (!profile) {
+    // Check authentication with Clerk
+    const { userId } = auth()
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -56,9 +58,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate asset type
-    if (!Object.values(AssetType).includes(assetTypeStr as AssetType)) {
+    const validAssetTypes = ['SCHOOL_IMAGE', 'SCHOOL_BANNER', 'POST_IMAGE', 'COURSE_IMAGE', 'GENERAL_FILE']
+    if (!validAssetTypes.includes(assetTypeStr)) {
       return NextResponse.json(
-        { error: 'Invalid asset type' },
+        { error: `Invalid asset type. Valid types: ${validAssetTypes.join(', ')}` },
         { status: 400 }
       )
     }
@@ -104,21 +107,31 @@ export async function POST(request: NextRequest) {
     const fileBuffer = Buffer.from(await file.arrayBuffer())
 
     // Upload asset using AssetManager
+    console.log('About to upload asset with AssetManager...', {
+      fileName: file.name,
+      mimeType: file.type,
+      fileSize: file.size,
+      assetType,
+      userId
+    })
+    
     const assetRecord = await assetManager.uploadAsset({
       file: fileBuffer,
       fileName: file.name,
       mimeType: file.type,
       fileSize: file.size,
       assetType,
-      uploadedBy: profile.userId
+      uploadedBy: userId
     })
+    
+    console.log('AssetManager returned:', assetRecord)
 
     // Return success response with asset key and API URL
     return NextResponse.json({
       success: true,
       asset: {
         key: assetRecord.key,
-        url: `/api/assets/${assetRecord.key}`,
+        url: assetRecord.url,
         fileName: assetRecord.fileName,
         mimeType: assetRecord.mimeType,
         fileSize: assetRecord.fileSize
@@ -127,6 +140,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Asset upload error:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    })
     
     // Return appropriate error response
     if (error instanceof Error) {
@@ -139,10 +157,38 @@ export async function POST(request: NextRequest) {
       
       if (error.message.includes('Failed to upload')) {
         return NextResponse.json(
-          { error: 'Failed to upload asset. Please try again.' },
+          { error: `Failed to upload asset: ${error.message}` },
           { status: 500 }
         )
       }
+      
+      // Check for specific error types
+      if (error.message.includes('MINIO')) {
+        return NextResponse.json(
+          { error: 'Storage service unavailable. Please try again later.' },
+          { status: 503 }
+        )
+      }
+      
+      if (error.message.includes('File size exceeds')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 400 }
+        )
+      }
+      
+      if (error.message.includes('Invalid file type')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 400 }
+        )
+      }
+      
+      // Return the actual error message for debugging
+      return NextResponse.json(
+        { error: `Upload failed: ${error.message}` },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json(

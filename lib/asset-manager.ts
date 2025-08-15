@@ -55,7 +55,7 @@ export class AssetManagerService {
       POST_IMAGE: `assets/posts/images/${key}.${extension}`,
       COURSE_IMAGE: `assets/courses/images/${key}.${extension}`,
       CHAPTER_VIDEO: `assets/chapters/videos/${key}.${extension}`,
-      NOTE_ATTACHMENT: `assets/notes/attachments/${key}.${extension}`,
+      GENERAL_FILE: `assets/general/${key}.${extension}`,
     }
     
     return pathMap[assetType]
@@ -67,16 +67,28 @@ export class AssetManagerService {
    */
   async uploadAsset(request: UploadAssetRequest): Promise<AssetResponse> {
     try {
+      console.log('AssetManager: Starting upload process...', {
+        fileName: request.fileName,
+        mimeType: request.mimeType,
+        fileSize: request.fileSize,
+        assetType: request.assetType,
+        uploadedBy: request.uploadedBy
+      })
+
       // Validate file before upload
       this.validateFile(request.fileName, request.mimeType, request.fileSize, request.assetType)
+      console.log('AssetManager: File validation passed')
       
       // Generate unique key
       const key = this.generateUniqueKey()
+      console.log('AssetManager: Generated key:', key)
       
       // Generate MinIO path
       const minioPath = this.getMinioPath(request.assetType, key, request.fileName)
+      console.log('AssetManager: MinIO path:', minioPath)
       
       // Upload to MinIO
+      console.log('AssetManager: Uploading to MinIO...')
       await minioClient.putObject(
         BUCKET_NAME,
         minioPath,
@@ -89,30 +101,41 @@ export class AssetManagerService {
           'Asset-Type': request.assetType,
         }
       )
+      console.log('AssetManager: MinIO upload successful')
       
       // Create database record
-      const assetRecord = await db.assetManager.create({
+      console.log('AssetManager: Creating database record...')
+      const assetRecord = await db.assets.create({
         data: {
+          id: key, // Use key as id in the new schema
           key,
-          fileName: request.fileName,
+          originalName: request.fileName,
           mimeType: request.mimeType,
-          fileSize: request.fileSize,
-          minioPath,
+          size: request.fileSize,
+          url: `/api/assets/${key}`,
+          type: request.assetType,
           uploadedBy: request.uploadedBy,
-          assetType: request.assetType,
         },
+      })
+      console.log('AssetManager: Database record created:', {
+        id: assetRecord.id,
+        key: assetRecord.key,
+        url: assetRecord.url
       })
       
       // Return response with API URL
-      return {
+      const response = {
         key: assetRecord.key,
-        fileName: assetRecord.fileName,
+        fileName: assetRecord.originalName,
         mimeType: assetRecord.mimeType,
-        fileSize: assetRecord.fileSize,
-        url: `/api/assets/${assetRecord.key}`,
+        fileSize: assetRecord.size,
+        url: assetRecord.url,
       }
+      console.log('AssetManager: Returning response:', response)
+      return response
     } catch (error) {
-      console.error('Error uploading asset:', error)
+      console.error('AssetManager: Error during upload:', error)
+      console.error('AssetManager: Error stack:', error instanceof Error ? error.stack : 'No stack trace')
       throw new Error(`Failed to upload asset: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
@@ -124,7 +147,7 @@ export class AssetManagerService {
   async getAsset(key: string): Promise<AssetStreamResponse> {
     try {
       // Look up asset in database
-      const assetRecord = await db.assetManager.findUnique({
+      const assetRecord = await db.assets.findUnique({
         where: { 
           key,
           isActive: true 
@@ -135,14 +158,15 @@ export class AssetManagerService {
         throw new Error('Asset not found or inactive')
       }
       
-      // Get file stream from MinIO
-      const stream = await minioClient.getObject(BUCKET_NAME, assetRecord.minioPath)
+      // Get file stream from MinIO - we need to construct the path
+      const minioPath = this.getMinioPath(assetRecord.type, assetRecord.key, assetRecord.originalName)
+      const stream = await minioClient.getObject(BUCKET_NAME, minioPath)
       
       return {
         stream,
         mimeType: assetRecord.mimeType,
-        fileName: assetRecord.fileName,
-        fileSize: assetRecord.fileSize,
+        fileName: assetRecord.originalName,
+        fileSize: assetRecord.size,
       }
     } catch (error) {
       console.error('Error retrieving asset:', error)
@@ -157,7 +181,7 @@ export class AssetManagerService {
   async deleteAsset(key: string): Promise<void> {
     try {
       // Look up asset in database
-      const assetRecord = await db.assetManager.findUnique({
+      const assetRecord = await db.assets.findUnique({
         where: { key },
       })
       
@@ -167,13 +191,14 @@ export class AssetManagerService {
       
       // Delete from MinIO
       try {
-        await minioClient.removeObject(BUCKET_NAME, assetRecord.minioPath)
+        const minioPath = this.getMinioPath(assetRecord.type, assetRecord.key, assetRecord.originalName)
+        await minioClient.removeObject(BUCKET_NAME, minioPath)
       } catch (minioError) {
         console.warn('Failed to delete from MinIO, continuing with database cleanup:', minioError)
       }
       
       // Mark as inactive in database (soft delete for audit trail)
-      await db.assetManager.update({
+      await db.assets.update({
         where: { key },
         data: { 
           isActive: false,
@@ -193,7 +218,7 @@ export class AssetManagerService {
    */
   async getAssetMetadata(key: string) {
     try {
-      const assetRecord = await db.assetManager.findUnique({
+      const assetRecord = await db.assets.findUnique({
         where: { 
           key,
           isActive: true 
@@ -206,13 +231,13 @@ export class AssetManagerService {
       
       return {
         key: assetRecord.key,
-        fileName: assetRecord.fileName,
+        fileName: assetRecord.originalName,
         mimeType: assetRecord.mimeType,
-        fileSize: assetRecord.fileSize,
-        assetType: assetRecord.assetType,
+        fileSize: assetRecord.size,
+        assetType: assetRecord.type,
         uploadedBy: assetRecord.uploadedBy,
         createdAt: assetRecord.createdAt,
-        url: `/api/assets/${assetRecord.key}`,
+        url: assetRecord.url,
       }
     } catch (error) {
       console.error('Error getting asset metadata:', error)
@@ -233,7 +258,7 @@ export class AssetManagerService {
       const where: any = { isActive: true }
       
       if (assetType) {
-        where.assetType = assetType
+        where.type = assetType
       }
       
       if (uploadedBy) {
@@ -241,27 +266,33 @@ export class AssetManagerService {
       }
       
       const [assets, total] = await Promise.all([
-        db.assetManager.findMany({
+        db.assets.findMany({
           where,
           orderBy: { createdAt: 'desc' },
           skip: (page - 1) * limit,
           take: limit,
           select: {
             key: true,
-            fileName: true,
+            originalName: true,
             mimeType: true,
-            fileSize: true,
-            assetType: true,
+            size: true,
+            type: true,
             uploadedBy: true,
             createdAt: true,
           },
         }),
-        db.assetManager.count({ where }),
+        db.assets.count({ where }),
       ])
       
       return {
         assets: assets.map(asset => ({
-          ...asset,
+          key: asset.key,
+          fileName: asset.originalName,
+          mimeType: asset.mimeType,
+          fileSize: asset.size,
+          assetType: asset.type,
+          uploadedBy: asset.uploadedBy,
+          createdAt: asset.createdAt,
           url: `/api/assets/${asset.key}`,
         })),
         total,
@@ -285,8 +316,8 @@ export class AssetManagerService {
       SCHOOL_BANNER: 10 * 1024 * 1024, // 10MB
       POST_IMAGE: 5 * 1024 * 1024, // 5MB
       COURSE_IMAGE: 5 * 1024 * 1024, // 5MB
-      CHAPTER_VIDEO: 100 * 1024 * 1024, // 100MB
-      NOTE_ATTACHMENT: 20 * 1024 * 1024, // 20MB
+      CHAPTER_VIDEO: 10 * 1024 * 1024 * 1024, // 10GB for videos
+      GENERAL_FILE: 20 * 1024 * 1024, // 20MB
     }
 
     // Allowed MIME types
@@ -295,8 +326,8 @@ export class AssetManagerService {
       SCHOOL_BANNER: ['image/jpeg', 'image/png', 'image/webp'],
       POST_IMAGE: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
       COURSE_IMAGE: ['image/jpeg', 'image/png', 'image/webp'],
-      CHAPTER_VIDEO: ['video/mp4', 'video/webm', 'video/quicktime'],
-      NOTE_ATTACHMENT: ['application/pdf', 'image/jpeg', 'image/png', 'text/plain'],
+      CHAPTER_VIDEO: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/ogg'],
+      GENERAL_FILE: ['application/pdf', 'image/jpeg', 'image/png', 'text/plain', 'video/mp4', 'video/webm', 'video/quicktime'],
     }
 
     // Check file size
@@ -322,14 +353,14 @@ export class AssetManagerService {
   async cleanupOrphanedAssets(): Promise<{ deletedCount: number }> {
     try {
       // Find assets that are not referenced by any entity
-      const orphanedAssets = await db.assetManager.findMany({
+      const orphanedAssets = await db.assets.findMany({
         where: {
           isActive: true,
           AND: [
-            { schoolImages: { none: {} } },
-            { schoolBanners: { none: {} } },
-            { postImages: { none: {} } },
-            { courseImages: { none: {} } },
+            { School_School_imageAssetIdToAssets: { none: {} } },
+            { School_School_bannerAssetIdToAssets: { none: {} } },
+            { SchoolPost: { none: {} } },
+            { Course: { none: {} } },
           ],
         },
         select: { key: true },
@@ -351,6 +382,32 @@ export class AssetManagerService {
     } catch (error) {
       console.error('Error cleaning up orphaned assets:', error)
       throw new Error(`Failed to cleanup orphaned assets: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Generate a presigned URL for accessing an asset
+   */
+  async generatePresignedUrl(key: string, expirySeconds: number = 3600): Promise<{ url: string } | null> {
+    try {
+      // Get asset info from database
+      const asset = await db.assets.findUnique({
+        where: { key },
+        select: { key: true, originalName: true, isActive: true }
+      })
+
+      if (!asset || !asset.isActive) {
+        return null
+      }
+
+      // Generate presigned URL for the asset
+      const { getPresignedUrl } = await import('./minio')
+      const presignedUrl = await getPresignedUrl(BUCKET_NAME, asset.key, expirySeconds)
+
+      return { url: presignedUrl }
+    } catch (error) {
+      console.error(`Error generating presigned URL for ${key}:`, error)
+      return null
     }
   }
 }

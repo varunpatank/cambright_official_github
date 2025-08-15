@@ -34,8 +34,10 @@ const SprintIdPage = async ({ params }: SprintIdPageProps) => {
   });
 
   return (
-    <div className="p-4 h-full overflow-x-auto">
-      <ListContainer sprintId={params.sprintId} data={lists} />
+    <div className="p-4 h-full overflow-x-auto w-full flex justify-center">
+      <div className="w-full max-w-7xl">
+        <ListContainer sprintId={params.sprintId} data={lists} />
+      </div>
     </div>
   );
 };

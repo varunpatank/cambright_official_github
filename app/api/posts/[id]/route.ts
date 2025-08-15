@@ -9,7 +9,7 @@ import { assetManager } from '@/lib/asset-manager'
 const UpdatePostSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   content: z.string().min(1, 'Content is required').optional(),
-  imageAssetKey: z.string().optional(),
+  imageAssetId: z.string().optional(),
   postType: z.enum(['ANNOUNCEMENT', 'EVENT']).optional(),
   isActive: z.boolean().optional()
 })
@@ -36,7 +36,7 @@ export async function GET(
         imageAsset: {
           select: {
             key: true,
-            fileName: true,
+            originalName: true,
             mimeType: true
           }
         }
@@ -103,12 +103,12 @@ export async function PATCH(
     const body = await req.json()
     const validatedData = UpdatePostSchema.parse(body)
 
-    // If imageAssetKey is being changed, delete the old asset
-    if (validatedData.imageAssetKey !== undefined && existingPost.imageAssetKey && validatedData.imageAssetKey !== existingPost.imageAssetKey) {
+    // If imageAssetId is being changed, delete the old asset
+    if (validatedData.imageAssetId !== undefined && existingPost.imageAssetId && validatedData.imageAssetId !== existingPost.imageAssetId) {
       try {
-        await assetManager.deleteAsset(existingPost.imageAssetKey)
+        await assetManager.deleteAsset(existingPost.imageAssetId)
       } catch (assetError) {
-        console.warn(`Failed to delete old asset ${existingPost.imageAssetKey} for post ${postId}:`, assetError)
+        console.warn(`Failed to delete old asset ${existingPost.imageAssetId} for post ${postId}:`, assetError)
         // Continue with post update even if asset deletion fails
       }
     }
@@ -123,7 +123,7 @@ export async function PATCH(
         imageAsset: {
           select: {
             key: true,
-            fileName: true,
+            originalName: true,
             mimeType: true
           }
         }
@@ -189,11 +189,11 @@ export async function DELETE(
     }
 
     // Delete associated asset if it exists
-    if (existingPost.imageAssetKey) {
+    if (existingPost.imageAssetId) {
       try {
-        await assetManager.deleteAsset(existingPost.imageAssetKey)
+        await assetManager.deleteAsset(existingPost.imageAssetId)
       } catch (assetError) {
-        console.warn(`Failed to delete asset ${existingPost.imageAssetKey} for post ${postId}:`, assetError)
+        console.warn(`Failed to delete asset ${existingPost.imageAssetId} for post ${postId}:`, assetError)
         // Continue with post deletion even if asset deletion fails
       }
     }

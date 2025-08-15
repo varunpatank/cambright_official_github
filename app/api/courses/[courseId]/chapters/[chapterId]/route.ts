@@ -79,7 +79,7 @@ export async function PATCH(
 ) {
   try {
     const { userId } = auth();
-    const { isPublished, ...values } = await req.json();
+    const { isPublished, videoAssetKey, ...values } = await req.json();
     if (!userId) {
       return new NextResponse("Unauthorized!", { status: 401 });
     }
@@ -90,16 +90,24 @@ export async function PATCH(
       return new NextResponse("Unauthorized!", { status: 401 });
     }
 
+    // Prepare the update data
+    const updateData: any = { ...values };
+    
+    // Handle video asset key for MinIO videos
+    if (videoAssetKey) {
+      updateData.videoAssetKey = videoAssetKey;
+    }
+
     const chapter = await db.chapter.update({
       where: {
         id: params.chapterId,
         courseId: params.courseId,
       },
-      data: {
-        ...values,
-      },
+      data: updateData,
     });
-    if (values.videoUrl) {
+
+    // Only process Cloudinary uploads if videoUrl is provided and it's NOT a MinIO URL
+    if (values.videoUrl && !values.videoUrl.includes('minio') && !values.videoUrl.includes('cambright')) {
       const existingCloudinaryData = await db.cloudinaryData.findFirst({
         where: { chapterId: params.chapterId },
       });
@@ -125,9 +133,11 @@ export async function PATCH(
         },
       });
     }
+    // For MinIO videos, we don't need to create Cloudinary data since the URL is already stored
+    
     return NextResponse.json(chapter);
   } catch (error) {
-    console.error("Chapter title ERROR:", error);
+    console.error("Chapter update ERROR:", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }

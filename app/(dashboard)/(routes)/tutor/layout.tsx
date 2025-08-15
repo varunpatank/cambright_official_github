@@ -1,14 +1,17 @@
 // v.0.0.01 salah
+// NOTE: Modified to allow all authenticated users access to tutor features
 
-import { isTutor } from "@/lib/tutor";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 const TutorLayout = ({ children }: { children: React.ReactNode }) => {
   const { userId } = auth();
-  if (!isTutor(userId)) {
-    return redirect("/dashboard");
+  
+  // Only require authentication, not tutor status
+  if (!userId) {
+    return redirect("/sign-in");
   }
+  
   return <>{children} </>;
 };
 

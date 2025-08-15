@@ -157,7 +157,7 @@ async function checkDatabase(): Promise<HealthCheckResult> {
     })
     
     // Test asset manager table access
-    const assetCount = await db.assetManager.count({
+    const assetCount = await db.assets.count({
       where: { isActive: true }
     })
 
@@ -296,7 +296,7 @@ async function checkAssetManager(): Promise<HealthCheckResult> {
   
   try {
     // Check asset records vs actual files
-    const recentAssets = await db.assetManager.findMany({
+    const recentAssets = await db.assets.findMany({
       where: { 
         isActive: true,
         createdAt: {
@@ -313,8 +313,8 @@ async function checkAssetManager(): Promise<HealthCheckResult> {
     
     for (const asset of recentAssets.slice(0, 3)) { // Check only first 3 for performance
       try {
-        const stat = await minioClient.statObject(bucketName, asset.minioPath)
-        if (stat.size !== asset.fileSize) {
+        const stat = await minioClient.statObject(bucketName, asset.key)
+        if (stat.size !== asset.size) {
           integrityIssues++
         }
       } catch {
@@ -323,10 +323,10 @@ async function checkAssetManager(): Promise<HealthCheckResult> {
     }
 
     // Check asset type distribution
-    const assetTypeStats = await db.assetManager.groupBy({
-      by: ['assetType'],
+    const assetTypeStats = await db.assets.groupBy({
+      by: ['type'],
       where: { isActive: true },
-      _count: { assetType: true }
+      _count: { type: true }
     })
 
     const responseTime = Date.now() - startTime
@@ -339,7 +339,7 @@ async function checkAssetManager(): Promise<HealthCheckResult> {
         totalActiveAssets: recentAssets.length,
         integrityIssues,
         assetTypeDistribution: assetTypeStats.reduce((acc, stat) => {
-          acc[stat.assetType] = stat._count.assetType
+          acc[stat.type] = stat._count.type
           return acc
         }, {} as Record<string, number>),
         recentAssetKeys: recentAssets.map(a => a.key)
@@ -366,8 +366,8 @@ async function checkSchoolSystem(): Promise<HealthCheckResult> {
       include: {
         chapterAdmins: { where: { isActive: true } },
         posts: { take: 1 },
-        imageAsset: true,
-        bannerAsset: true
+        Assets_School_imageAssetIdToAssets: true,
+        Assets_School_bannerAssetIdToAssets: true
       },
       take: 10
     })
@@ -377,8 +377,8 @@ async function checkSchoolSystem(): Promise<HealthCheckResult> {
     
     // Check for broken asset references
     const schoolsWithBrokenAssets = schools.filter(school => 
-      (school.imageAssetKey && !school.imageAsset) ||
-      (school.bannerAssetKey && !school.bannerAsset)
+      (school.imageAssetId && !school.Assets_School_imageAssetIdToAssets) ||
+      (school.bannerAssetId && !school.Assets_School_bannerAssetIdToAssets)
     )
 
     const responseTime = Date.now() - startTime

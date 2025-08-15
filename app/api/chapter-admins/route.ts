@@ -17,16 +17,12 @@ export async function GET(request: NextRequest) {
     const targetUserId = searchParams.get('userId')
     
     if (schoolId) {
-      // Check if user has admin access for this specific request
-      if (!hasAdminAccess(userId)) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-      }
-      
-      // Get chapter admins for specific school
+      // Get chapter admins for specific school - This should be publicly viewable
+      // so students can see who their school administrators are
       const admins = await ChapterAdminService.getAdminsBySchool(schoolId)
       return NextResponse.json({ admins })
     } else if (targetUserId) {
-      // Allow users to query their own admin assignments
+      // Allow users to query their own admin assignments, or admins to query others
       if (targetUserId !== userId && !hasAdminAccess(userId)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }

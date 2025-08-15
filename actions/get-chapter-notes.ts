@@ -70,8 +70,10 @@ export const getChapter = async ({
     }
     const userProgress = await db.noteUserProgress.findUnique({
       where: {
-        userId,
-        notechapterId,
+        userId_notechapterId: {
+          userId,
+          notechapterId,
+        },
       },
     });
     const vidUrl = chapter.videoUrl;

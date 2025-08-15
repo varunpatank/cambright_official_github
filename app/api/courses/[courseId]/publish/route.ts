@@ -26,14 +26,9 @@ export async function PATCH(
     if (!course) {
       return new NextResponse("not found!", { status: 401 });
     }
-    if (
-      !course.title ||
-      !course.description ||
-      !course.imageUrl ||
-      !course.subjectId
-    ) {
-      return new NextResponse("Please fill all required fields", {
-        status: 401,
+    if (!course.title) {
+      return new NextResponse("Course title is required to publish", {
+        status: 400,
       });
     }
     const publishedCourse = await db.course.update({

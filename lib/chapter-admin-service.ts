@@ -27,6 +27,12 @@ interface ChapterAdminWithSchool {
 		location: string | null
 		isActive: boolean
 	}
+	user?: {
+		id: string
+		name: string
+		email: string
+		imageUrl: string | null
+	}
 }
 
 interface SchoolWithAdmins {
@@ -66,6 +72,9 @@ export class ChapterAdminService {
 			if (!school) {
 				throw new Error('School not found or inactive')
 			}
+
+			// Ensure user exists in UserModel table by fetching from Clerk
+			await this.ensureUserInDatabase(targetUserId)
 
 			// Check if admin assignment already exists
 			const existingAdmin = await db.chapterAdmin.findUnique({
@@ -217,8 +226,38 @@ export class ChapterAdminService {
 			})
 		)
 
-		await cache.setex(cacheKey, CACHE_TTL, JSON.stringify(admins))
-		return admins as ChapterAdminWithSchool[]
+		// Manually fetch user information for each admin
+		const adminsWithUserInfo = await Promise.all(
+			admins.map(async (admin) => {
+				try {
+					const user = await db.userModel.findUnique({
+						where: { userId: admin.userId },
+						select: {
+							id: true,
+							userId: true,
+							name: true,
+							email: true,
+							imageUrl: true
+						}
+					})
+					return {
+						...admin,
+						user: user ? {
+							id: user.userId,
+							name: user.name,
+							email: user.email,
+							imageUrl: user.imageUrl
+						} : undefined
+					}
+				} catch (error) {
+					console.error(`Error fetching user ${admin.userId}:`, error)
+					return admin
+				}
+			})
+		)
+
+		await cache.setex(cacheKey, CACHE_TTL, JSON.stringify(adminsWithUserInfo))
+		return adminsWithUserInfo as ChapterAdminWithSchool[]
 	}
 
 	/**
@@ -474,6 +513,48 @@ export class ChapterAdminService {
 				schoolsWithoutAdmins: -1,
 				adminsByRole: {}
 			}
+		}
+	}
+
+	/**
+	 * Ensure user exists in UserModel table by fetching from Clerk if needed
+	 */
+	private static async ensureUserInDatabase(userId: string): Promise<void> {
+		try {
+			// Check if user already exists in UserModel
+			const existingUser = await db.userModel.findUnique({
+				where: { userId: userId }
+			})
+
+			if (existingUser) {
+				return // User already exists
+			}
+
+			// Fetch user from Clerk
+			const { clerkClient } = await import('@clerk/nextjs/server')
+			const clerkUser = await clerkClient.users.getUser(userId)
+
+			if (!clerkUser) {
+				throw new Error(`User ${userId} not found in Clerk`)
+			}
+
+			// Create user in UserModel table
+			await db.userModel.create({
+				data: {
+					userId: clerkUser.id,
+					name: clerkUser.firstName && clerkUser.lastName 
+						? `${clerkUser.firstName} ${clerkUser.lastName}` 
+						: clerkUser.username || 'Unknown User',
+					email: clerkUser.emailAddresses[0]?.emailAddress || 'unknown@example.com',
+					imageUrl: clerkUser.imageUrl || '',
+					biog: `User profile for ${clerkUser.firstName || clerkUser.username || 'Unknown'}`
+				}
+			})
+
+			console.log(`Created UserModel entry for user ${userId}`)
+		} catch (error) {
+			console.error(`Error ensuring user ${userId} exists in database:`, error)
+			throw new Error(`Failed to ensure user exists in database: ${error}`)
 		}
 	}
 }

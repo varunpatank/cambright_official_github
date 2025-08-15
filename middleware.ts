@@ -6,12 +6,14 @@ import { hasAdminAccess } from '@/lib/admin'
 
 // Define protected admin routes
 const isAdminRoute = createRouteMatcher(['/admin(.*)'])
+const isTrackerRoute = createRouteMatcher(['/tracker(.*)'])
 const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/webhooks(.*)',
   '/api/health(.*)',
+  '/api/assets(.*)',
   '/home(.*)'
 ])
 
@@ -22,6 +24,13 @@ export default clerkMiddleware(async (auth, request) => {
   // Allow public routes
   if (isPublicRoute(request)) {
     return NextResponse.next()
+  }
+
+  // Redirect to sign-in if not authenticated for tracker routes
+  if (isTrackerRoute(request) && !userId) {
+    const signInUrl = new URL('/sign-in', request.url)
+    signInUrl.searchParams.set('redirect_url', request.url)
+    return NextResponse.redirect(signInUrl)
   }
 
   // Redirect to sign-in if not authenticated

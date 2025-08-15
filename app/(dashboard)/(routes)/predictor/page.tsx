@@ -7,13 +7,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { FloatingDock } from "./_components/floating-dock";
-import {
-  IconCalculator,
-  IconExchange,
-  IconHome,
-  IconTerminal2,
-} from "@tabler/icons-react";
 import React from "react";
 import {
   FcCalculator,
@@ -51,29 +44,6 @@ import {
 import { Subject } from "@prisma/client";
 import SubjectIcon from "../tutor/courses/_components/subject-icon";
 import { calculateGradeFromAveragedThresholds } from "./_components/thresholdData";
-
-const links = [
-  {
-    title: "Main",
-    icon: <IconHome className="h-full w-full text-neutral-300" />,
-    href: "#",
-  },
-  {
-    title: "Predictor",
-    icon: <IconTerminal2 className="h-full w-full text-neutral-300" />,
-    href: "predictor",
-  },
-  {
-    title: "Calculator",
-    icon: <IconCalculator className="h-full w-full text-neutral-300" />,
-    href: "#",
-  },
-  {
-    title: "Generator",
-    icon: <IconExchange className="h-full w-full text-neutral-300" />,
-    href: "quizzer",
-  },
-];
 
 const iconMap: Record<Subject["name"], IconType> = {
   "Accounting": FcCurrencyExchange,
@@ -275,7 +245,6 @@ const sessionmap = {
 };
 
 const PredictorPage = () => {
-  const [isDockVisible, setIsDockVisible] = useState(true);
   const [selectedSubjects, setSelectedSubjects] = useState<number[]>([]);
   const [subjectInfo, setSubjectInfo] = useState<Record<number, SubjectInfo>>({});
   const [session, setSession] = useState<string | null>(null);
@@ -441,27 +410,27 @@ const PredictorPage = () => {
       <div className="p-6 mx-auto max-w-7xl">
         {/* Title at Top */}
         <div className="text-center mb-8">
-          <h1 className="text-6xl font-bold text-white mb-3">
+          <h1 className="text-6xl font-sora font-bold text-white mb-3">
             IGCSE Grade Predictor.
           </h1>
-          <p className="text-lg font-normal text-purple-300 mb-2">
+          <p className="text-lg font-sora font-normal text-purple-300 mb-2">
             Most Reliable IGCSE Predictor - Based on 10-Year Averaged Cambridge Thresholds
           </p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm font-code text-gray-400">
             Threshold data averaged from 2015-2024 Cambridge grade boundaries
           </p>
         </div>
 
         {/* Configuration Panel */}
         <div className="bg-purple-950 rounded-lg p-6 mb-6 border border-purple-800">
-          <h2 className="text-lg font-medium text-white mb-4">
+          <h2 className="text-lg font-sora font-medium text-white mb-4">
             Exam Configuration
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             {/* Session Selection */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Exam Session</label>
+              <label className="block text-sm font-code text-gray-300 mb-2">Exam Session</label>
               <Select onValueChange={(value) => setSession(value)}>
                 <SelectTrigger className="bg-purple-900 border-purple-700 text-white">
                   {session || "Select Session"}
@@ -478,7 +447,7 @@ const PredictorPage = () => {
 
             {/* Variant Selection */}
             <div>
-              <label className="block text-sm text-gray-300 mb-2">Paper Variant</label>
+              <label className="block text-sm font-code text-gray-300 mb-2">Paper Variant</label>
               <Select onValueChange={(value) => setVariant(value)}>
                 <SelectTrigger className="bg-purple-900 border-purple-700 text-white">
                   {variant || "Select Variant"}
@@ -548,8 +517,8 @@ const PredictorPage = () => {
                 <div key={subjectId} className="bg-purple-950 rounded-lg p-6 border border-purple-800">
                   <div className="flex items-center gap-3 mb-4">
                     <SubjectIcon icon={iconMap[subject?.name || "Mathematics"]} />
-                    <h3 className="text-lg font-medium text-white">{subject?.name}</h3>
-                    <span className="text-sm text-gray-400">
+                    <h3 className="text-lg font-sora font-medium text-white">{subject?.name}</h3>
+                    <span className="text-sm font-code text-gray-400">
                       ({gradingsystemwithcode(subjectDetail.gradingSystem, subjectDetail.code)})
                     </span>
                   </div>
@@ -557,7 +526,7 @@ const PredictorPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     {/* Level Selection */}
                     <div>
-                      <label className="block text-sm text-gray-300 mb-2">Level</label>
+                      <label className="block text-sm font-code text-gray-300 mb-2">Level</label>
                       <Select onValueChange={(value) => handleExtendedCoreChange(subjectId, value)}>
                         <SelectTrigger className="bg-purple-900 border-purple-700 text-white">
                           {subjectDetail.extendedCore || "Select Level"}
@@ -574,7 +543,7 @@ const PredictorPage = () => {
 
                     {/* Grading System */}
                     <div>
-                      <label className="block text-sm text-gray-300 mb-2">Grading System</label>
+                      <label className="block text-sm font-code text-gray-300 mb-2">Grading System</label>
                       <Select onValueChange={(value) => handleGradingSystemChange(subjectId, value)}>
                         <SelectTrigger className="bg-purple-900 border-purple-700 text-white">
                           {subjectDetail.gradingSystem || "9-1"}
@@ -593,7 +562,7 @@ const PredictorPage = () => {
                   {/* Paper Marks Input */}
                   {subjectDetail.papers.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-white mb-3">Paper Marks</h4>
+                      <h4 className="text-sm font-sora font-medium text-white mb-3">Paper Marks</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {subjectDetail.papers.map((paper) => (
                           <div key={paper} className="bg-purple-900 rounded p-3">
@@ -628,7 +597,7 @@ const PredictorPage = () => {
             <Button
               onClick={handlePredict}
               disabled={!canPredict() || isLoading}
-              className="bg-purple-700 hover:bg-purple-600 text-white px-8 py-3 text-lg font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-purple-700 hover:bg-purple-600 text-white px-8 py-3 text-lg font-sora font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -646,7 +615,7 @@ const PredictorPage = () => {
         {showResults && Object.keys(predictions).length > 0 && (
           <div className="bg-purple-950 rounded-lg p-6 border border-purple-800">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-medium text-white">
+              <h2 className="text-xl font-sora font-medium text-white">
                 Predicted Results: {session && sessionmap[session as keyof typeof sessionmap]}
               </h2>
               <div className="no-print">
@@ -658,10 +627,10 @@ const PredictorPage = () => {
               <table className="w-full bg-purple-900 rounded-lg overflow-hidden">
                 <thead>
                   <tr className="bg-purple-800">
-                    <th className="px-6 py-3 text-left text-white font-medium">Subject</th>
-                    <th className="px-6 py-3 text-left text-white font-medium">Qualification</th>
-                    <th className="px-6 py-3 text-left text-white font-medium">Predicted Grade</th>
-                    <th className="px-6 py-3 text-left text-white font-medium">Total Marks</th>
+                    <th className="px-6 py-3 text-left text-white font-sora font-medium">Subject</th>
+                    <th className="px-6 py-3 text-left text-white font-sora font-medium">Qualification</th>
+                    <th className="px-6 py-3 text-left text-white font-sora font-medium">Predicted Grade</th>
+                    <th className="px-6 py-3 text-left text-white font-sora font-medium">Total Marks</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -710,17 +679,7 @@ const PredictorPage = () => {
           </div>
         )}
 
-        {/* Floating Dock */}
-        <div className="fixed bottom-4 left-20 right-0 flex items-center justify-center w-full">
-          {isDockVisible && (
-            <div className="mb-4 ml-4">
-              <FloatingDock
-                mobileClassName="translate-x-20"
-                items={links}
-              />
-            </div>
-          )}
-        </div>
+
       </div>
     </div>
   );

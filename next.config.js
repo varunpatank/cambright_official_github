@@ -11,6 +11,20 @@ const nextConfig = {
   // Ensure server startup initialization runs
   experimental: {
     instrumentationHook: true,
+    // Increase body size limit for file uploads
+    serverComponentsExternalPackages: ['minio'],
+    // For App Router, set large upload limits
+    serverActions: {
+      bodySizeLimit: '10gb',
+      allowedOrigins: ['*'],
+    },
+    // Enable large payload support
+    largePageDataBytes: 10 * 1024 * 1024 * 1024, // 10GB
+  },
+
+  // Configure for large file uploads in App Router
+  serverRuntimeConfig: {
+    maxRequestSize: '10gb',
   },
 
   images: {
@@ -159,7 +173,43 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.stci.uk',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+      },
+      {
+        protocol: 'https',
+        hostname: 'minio.varram.me',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn-icons-png.freepik.com',
+      },
     ],
+  },
+  
+  // Configure headers for MinIO video access
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods', 
+            value: 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
+          },
+        ],
+      },
+    ]
   },
 };
 

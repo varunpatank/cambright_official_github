@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useCallback } from 'react'
-import { Upload, X, File, Image, Video, FileText } from 'lucide-react'
+import { Upload, X, File, Image as ImageIcon, Video, FileText } from 'lucide-react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
@@ -9,7 +10,7 @@ import toast from 'react-hot-toast'
 
 interface AssetUploadProps {
   onChange: (assetKey?: string) => void
-  assetType: 'SCHOOL_IMAGE' | 'SCHOOL_BANNER' | 'POST_IMAGE' | 'COURSE_IMAGE' | 'CHAPTER_VIDEO' | 'NOTE_ATTACHMENT'
+  assetType: 'SCHOOL_IMAGE' | 'SCHOOL_BANNER' | 'POST_IMAGE' | 'COURSE_IMAGE' | 'CHAPTER_VIDEO' | 'GENERAL_FILE'
   className?: string
   disabled?: boolean
   accept?: string
@@ -22,12 +23,14 @@ interface UploadedAsset {
   mimeType: string
   fileSize: number
   url: string
+  presignedUrl?: string
+  presignedUrlExpiresAt?: string
 }
 
 const FILE_TYPE_ICONS = {
-  'image/jpeg': Image,
-  'image/png': Image,
-  'image/webp': Image,
+  'image/jpeg': ImageIcon,
+  'image/png': ImageIcon,
+  'image/webp': ImageIcon,
   'video/mp4': Video,
   'video/webm': Video,
   'video/avi': Video,
@@ -50,8 +53,7 @@ const getDefaultAccept = (assetType: string): string => {
     SCHOOL_BANNER: 'image/*',
     POST_IMAGE: 'image/*',
     COURSE_IMAGE: 'image/*',
-    CHAPTER_VIDEO: 'video/*',
-    NOTE_ATTACHMENT: 'image/*,video/*,application/pdf,text/plain'
+    GENERAL_FILE: 'image/*,video/*,application/pdf,text/plain'
   }
   return typeMap[assetType as keyof typeof typeMap] || '*/*'
 }
@@ -62,8 +64,7 @@ const getDefaultMaxSize = (assetType: string): number => {
     SCHOOL_BANNER: 4 * 1024 * 1024, // 4MB
     POST_IMAGE: 4 * 1024 * 1024, // 4MB
     COURSE_IMAGE: 4 * 1024 * 1024, // 4MB
-    CHAPTER_VIDEO: 512 * 1024 * 1024, // 512MB
-    NOTE_ATTACHMENT: 512 * 1024 * 1024 // 512MB
+    GENERAL_FILE: 512 * 1024 * 1024 // 512MB
   }
   return sizeMap[assetType as keyof typeof sizeMap] || 4 * 1024 * 1024
 }
@@ -120,20 +121,23 @@ export function AssetUpload({
 
       const result = await response.json()
       
-      if (result.key) {
+      if (result.success && result.asset && result.asset.key) {
         const asset: UploadedAsset = {
-          key: result.key,
+          key: result.asset.key,
           fileName: file.name,
           mimeType: file.type,
           fileSize: file.size,
-          url: result.url
+          url: result.asset.url,
+          presignedUrl: result.asset.presignedUrl,
+          presignedUrlExpiresAt: result.asset.presignedUrlExpiresAt
         }
         setUploadedAsset(asset)
-        onChange(result.key)
+        onChange(result.asset.key)
         toast.success('File uploaded successfully!')
+      } else {
+        throw new Error('Upload completed but response is missing expected data')
       }
     } catch (error) {
-      console.error('Upload error:', error)
       toast.error(error instanceof Error ? error.message : 'Upload failed')
     } finally {
       setIsUploading(false)
@@ -239,13 +243,29 @@ export function AssetUpload({
           <h4 className="text-sm font-medium text-gray-700 mb-2">Uploaded File:</h4>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-3">
-              {(() => {
-                const IconComponent = FILE_TYPE_ICONS[uploadedAsset.mimeType as keyof typeof FILE_TYPE_ICONS] || File
-                return <IconComponent className="w-5 h-5 text-gray-500" />
-              })()}
+              {uploadedAsset.mimeType.startsWith('image/') && uploadedAsset.presignedUrl ? (
+                <div className="w-10 h-10 rounded overflow-hidden">
+                  <Image 
+                    src={uploadedAsset.presignedUrl} 
+                    alt={uploadedAsset.fileName}
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                (() => {
+                  const IconComponent = FILE_TYPE_ICONS[uploadedAsset.mimeType as keyof typeof FILE_TYPE_ICONS] || File
+                  return <IconComponent className="w-5 h-5 text-gray-500" />
+                })()
+              )}
               <div>
                 <p className="text-sm font-medium text-gray-900">{uploadedAsset.fileName}</p>
                 <p className="text-xs text-gray-500">{formatFileSize(uploadedAsset.fileSize)}</p>
+                {uploadedAsset.presignedUrl && (
+                  <p className="text-xs text-green-600">Direct access enabled</p>
+                )}
               </div>
             </div>
             <Button

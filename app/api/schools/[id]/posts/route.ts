@@ -7,7 +7,7 @@ import { canCreateSchoolPost } from '@/lib/chapter-admin-permissions'
 const CreatePostSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
-  imageAssetKey: z.string().optional(),
+  imageAssetId: z.string().optional(),
   postType: z.enum(['ANNOUNCEMENT', 'EVENT']).default('ANNOUNCEMENT')
 })
 
@@ -27,9 +27,11 @@ export async function GET(
       include: {
         imageAsset: {
           select: {
+            id: true,
             key: true,
-            fileName: true,
-            mimeType: true
+            originalName: true,
+            mimeType: true,
+            url: true
           }
         }
       },
@@ -104,9 +106,11 @@ export async function POST(
       include: {
         imageAsset: {
           select: {
+            id: true,
             key: true,
-            fileName: true,
-            mimeType: true
+            originalName: true,
+            mimeType: true,
+            url: true
           }
         }
       }

@@ -14,7 +14,7 @@ import {
 import { redirect } from "next/navigation";
 import { TitleForm } from "./_components/title-form";
 import { DescriptionForm } from "./_components/description-form";
-import { ImageForm } from "./_components/image-form";
+import { ImageForm } from "./_components/image-form-new";
 import { SubjectForm } from "./_components/subject-form";
 import { SessionlinkForm } from "./_components/sessionlink-form";
 import { SessiontimeForm } from "./_components/sessiontime";
@@ -67,29 +67,25 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
 
   const requiredFields = [
     course.title,
+  ];
+
+  const optionalFields = [
     course.description,
-    course.imageUrl,
+    course.imageUrl || course.imageAssetId, // Accept either imageUrl or imageAssetId
     course.subjectId,
     course.boardId,
   ];
 
-  const allRequiredFieldsFilled = requiredFields.every(
-    (field) => Boolean(field) && publishedChapters.length > 0
-  );
+  const allRequiredFieldsFilled = requiredFields.every(Boolean);
+  const hasPublishedChapters = publishedChapters.length > 0;
 
-  const optionalFieldsFilled =
-    course.sessionlink !== null ||
-    course.sessiondate !== null ||
-    course.sessiontime !== null ||
-    publishedChapters.length > 0;
+  // A course is complete when required fields are filled and has at least one published chapter
+  const isComplete = allRequiredFieldsFilled && hasPublishedChapters;
 
-  const isComplete = optionalFieldsFilled && allRequiredFieldsFilled;
+  const totalFields = requiredFields.length + optionalFields.length + 1; // +1 for chapters
 
-  const totalFields = requiredFields.length + 1;
-
-  const completedFields =
-    requiredFields.filter(Boolean).length +
-    (publishedChapters.length > 0 ? 1 : 0);
+  const completedOptionalFields = optionalFields.filter(Boolean).length;
+  const completedFields = requiredFields.filter(Boolean).length + completedOptionalFields + (hasPublishedChapters ? 1 : 0);
 
   const completionText = `(${completedFields} / ${totalFields})`;
 

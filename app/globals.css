@@ -17,6 +17,16 @@ body,
   height: 100%;
 }
 
+/* Hide scrollbars utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @layer base {
   :root {
     --sky-300: #87ceeb;
@@ -501,4 +511,22 @@ textarea:not([data-radix-dialog-content] *):focus {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+/* Text shadow utilities for better contrast */
+.text-shadow {
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.text-shadow-strong {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9), 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.text-shadow-outline {
+  text-shadow: 
+    -1px -1px 0 rgba(0, 0, 0, 0.9),
+    1px -1px 0 rgba(0, 0, 0, 0.9),
+    -1px 1px 0 rgba(0, 0, 0, 0.9),
+    1px 1px 0 rgba(0, 0, 0, 0.9),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
 }

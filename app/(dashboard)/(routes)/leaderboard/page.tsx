@@ -33,6 +33,24 @@ interface LeaderboardUser {
   following: number;
   biog: string;
   XP: number;
+  clerkData?: {
+    firstName: string | null;
+    lastName: string | null;
+    username: string | null;
+    profileImageUrl: string;
+    lastSignInAt: number | null;
+    createdAt: number;
+  } | null;
+}
+
+interface LeaderboardResponse {
+  leaderboard: LeaderboardUser[];
+  total: number;
+  clerkUserCount: number | string;
+  databaseUserCount: number;
+  newUserCount: number;
+  timestamp: string;
+  error?: string;
 }
 export const dynamic = "force-dynamic";
 // export const maxDuration = 300;
@@ -41,6 +59,12 @@ const LeaderBoardPage = () => {
   const { user, isLoaded } = useUser(); // Logged-in user
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+  const [leaderboardStats, setLeaderboardStats] = useState<{
+    total: number;
+    clerkUserCount: number | string;
+    databaseUserCount: number;
+    newUserCount: number;
+  } | null>(null);
   const [followingState, setFollowingState] = useState<Map<string, boolean>>(
     new Map()
   );
@@ -48,15 +72,31 @@ const LeaderBoardPage = () => {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      setLoading(true); // Start loading indicator
-      const response = await fetch("/api/leaderboard");
-      if (response.ok) {
-        const data: LeaderboardUser[] = await response.json();
-        setLeaderboard(data);
-      } else {
-        console.error("Failed to fetch leaderboard data");
+      setLoading(true);
+      try {
+        const response = await fetch("/api/leaderboard");
+        if (response.ok) {
+          const data: LeaderboardResponse = await response.json();
+          setLeaderboard(data.leaderboard);
+          setLeaderboardStats({
+            total: data.total,
+            clerkUserCount: data.clerkUserCount,
+            databaseUserCount: data.databaseUserCount,
+            newUserCount: data.newUserCount
+          });
+          console.log(`Loaded ${data.total} users from leaderboard:`, {
+            clerkUsers: data.clerkUserCount,
+            databaseUsers: data.databaseUserCount,
+            newUsers: data.newUserCount
+          });
+        } else {
+          console.error("Failed to fetch leaderboard data");
+        }
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false); // Set loading to false after fetching
     };
 
     fetchLeaderboard();
@@ -157,10 +197,34 @@ const LeaderBoardPage = () => {
     <TooltipProvider delayDuration={100}>
       <div className="max-w-4xl mx-auto p-6">
         <StarsBackground />
-        <h1 className="text-4xl sm:text-5xl md:text-5xl text-white font-extrabold text-center text-gradient bg-clip-text text-transparent mb-12 sm:mb-16 relative">
+        <h1 className="text-4xl sm:text-5xl md:text-5xl text-white font-extrabold text-center text-gradient bg-clip-text text-transparent mb-8 sm:mb-12 relative">
           Leaderboard.
           <p className="text-lg text-gray-500">Why not beat the toppers?</p>
         </h1>
+        
+        {/* Leaderboard Stats */}
+        {leaderboardStats && (
+          <div className="flex justify-center mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="bg-n-7/50 rounded-lg p-3">
+                <div className="text-2xl font-bold text-purple-400">{leaderboardStats.total}</div>
+                <div className="text-sm text-gray-400">Total Users</div>
+              </div>
+              <div className="bg-n-7/50 rounded-lg p-3">
+                <div className="text-2xl font-bold text-blue-400">{leaderboardStats.clerkUserCount}</div>
+                <div className="text-sm text-gray-400">Clerk Users</div>
+              </div>
+              <div className="bg-n-7/50 rounded-lg p-3">
+                <div className="text-2xl font-bold text-green-400">{leaderboardStats.databaseUserCount}</div>
+                <div className="text-sm text-gray-400">With XP</div>
+              </div>
+              <div className="bg-n-7/50 rounded-lg p-3">
+                <div className="text-2xl font-bold text-yellow-400">{leaderboardStats.newUserCount}</div>
+                <div className="text-sm text-gray-400">New Users</div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Loading state */}
         {loading ? (
           <div className="text-center text-xl">Loading...</div>
@@ -246,6 +310,19 @@ const LeaderBoardPage = () => {
                             </TooltipContent>
                           </Tooltip>
                         )}
+                      {/* New User Badge for top 3 users */}
+                      {leaderboardUser.XP === 0 && leaderboardUser.clerkData && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <span className="ml-1 px-1 py-0.5 text-xs bg-blue-500/20 text-blue-300 rounded border border-blue-500/40">
+                              NEW
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">New user from Clerk</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
                     </span>
                   </div>
 
@@ -349,6 +426,19 @@ const LeaderBoardPage = () => {
                               </TooltipContent>
                             </Tooltip>
                           )}
+                        {/* New User Badge for users with 0 XP and Clerk data */}
+                        {leaderboardUser.XP === 0 && leaderboardUser.clerkData && (
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span className="ml-2 px-1.5 py-0.5 text-xs bg-blue-500/20 text-blue-300 rounded-md border border-blue-500/40">
+                                NEW
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-sm">New user from Clerk - no XP yet</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
                       </div>
                       <span className="text-sm text-gray-400">
                         {leaderboardUser.XP} XP

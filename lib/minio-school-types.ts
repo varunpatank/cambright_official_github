@@ -3,6 +3,8 @@ export interface School {
   name: string
   description?: string
   imageUrl?: string
+  imageAssetId?: string
+  bannerAssetId?: string
   location?: string
   website?: string
   email?: string

@@ -152,7 +152,7 @@ function App() {
   }
 
   if (appState === 'setup') {
-    return <QuizSetup onStartQuiz={handleStartQuiz} availableSubjects={['Biology', 'Chemistry', 'Physics']} />;
+    return <QuizSetup onStartQuiz={handleStartQuiz} availableSubjects={['Biology', 'Chemistry', 'Physics', 'Mathematics']} />;
   }
 
   if (appState === 'quiz') {

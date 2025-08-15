@@ -53,7 +53,8 @@ export const CoursesList = async ({ items, prevImage = true }: CoursesListProps)
               key={item.id}
               id={item.id}
               title={item.title}
-              imageUrl={item.imageUrl!}
+              imageUrl={item.imageUrl || ""}
+              imageAssetId={item.imageAssetId}
               chaptersLength={item.chapters.length}
               progress={item.progress}
               subject={item.subject?.name!}

@@ -17,6 +17,38 @@ interface QuizInterfaceProps {
   timeLimit: number; // in minutes
 }
 
+// Helper function to render mathematical notation better
+const renderMathText = (text: string) => {
+  if (!text) return text;
+  
+  // Convert some common mathematical expressions for better readability
+  return text
+    // Make exponents more visible
+    .replace(/\^2/g, '²')
+    .replace(/\^3/g, '³')
+    .replace(/\^(\d)/g, (match, digit) => {
+      const superscripts = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+      return superscripts[parseInt(digit)] || match;
+    })
+    // Make fractions more readable  
+    .replace(/(\w+)\/(\w+)/g, '$1/$2')
+    // Handle some common mathematical symbols
+    .replace(/sqrt\(([^)]+)\)/g, '√($1)')
+    .replace(/pi/g, 'π')
+    .replace(/theta/g, 'θ')
+    .replace(/alpha/g, 'α')
+    .replace(/beta/g, 'β')
+    .replace(/gamma/g, 'γ')
+    .replace(/delta/g, 'δ');
+};
+
+interface QuizInterfaceProps {
+  questions: GeneratedQuizQuestion[];
+  onComplete: (answers: UserAnswer[]) => void;
+  onBack: () => void;
+  timeLimit: number; // in minutes
+}
+
 export function QuizInterface({
   questions,
   onComplete,
@@ -102,15 +134,39 @@ export function QuizInterface({
         keywords: isCorrect ? [] : [question.options?.[question.options.correct] || '']
       };
     } else {
-      // FRQ answer checking
-      const userAnswerLower = userAnswer.toLowerCase();
-      const keywords = question.markScheme.keywords.map(k => k.toLowerCase());
+      // Enhanced FRQ answer checking with mathematical notation support
+      const normalizeAnswer = (answer: string) => {
+        return answer
+          .toLowerCase()
+          .trim()
+          // Normalize mathematical expressions
+          .replace(/\s+/g, ' ')
+          // Handle exponent notation: treat ^ as power
+          .replace(/\*\*/g, '^') // Convert ** to ^
+          .replace(/\s*\^\s*/g, '^') // Remove spaces around ^
+          // Normalize fractions
+          .replace(/\s*\/\s*/g, '/')
+          // Handle common mathematical terms
+          .replace(/power\s+of/g, '^')
+          .replace(/to\s+the\s+power\s+of/g, '^')
+          .replace(/squared/g, '^2')
+          .replace(/cubed/g, '^3');
+      };
+      
+      const normalizedUserAnswer = normalizeAnswer(userAnswer);
+      const keywords = question.markScheme.keywords.map(k => normalizeAnswer(k));
       
       let matchedKeywords = 0;
       const matchedTerms: string[] = [];
       
       keywords.forEach(keyword => {
-        if (keyword && userAnswerLower.includes(keyword)) {
+        if (keyword && (
+          normalizedUserAnswer.includes(keyword) ||
+          // Check for mathematical equivalents
+          (keyword.includes('^') && normalizedUserAnswer.includes(keyword)) ||
+          // Check for alternative expressions
+          normalizedUserAnswer.replace(/\s/g, '').includes(keyword.replace(/\s/g, ''))
+        )) {
           matchedKeywords++;
           matchedTerms.push(keyword);
         }
@@ -241,7 +297,7 @@ export function QuizInterface({
           </div>
 
           <p className="text-lg leading-relaxed mb-8">
-            {currentQuestion.questionText}
+            {renderMathText(currentQuestion.questionText)}
           </p>
 
           {currentQuestion.questionType === "MCQ" && currentQuestion.options ? (
@@ -261,7 +317,7 @@ export function QuizInterface({
                     disabled={showFeedback}
                   />
                   <span className="font-medium">{key}.</span>
-                  <span>{value}</span>
+                  <span>{renderMathText(value)}</span>
                 </label>
               ))}
             </div>
@@ -275,7 +331,7 @@ export function QuizInterface({
                 rows={4}
                 value={currentAnswer}
                 onChange={(e) => setCurrentAnswer(e.target.value)}
-                placeholder="Type your answer here..."
+                placeholder="Type your answer here... (Use ^ for exponents, e.g., x^2)"
                 disabled={showFeedback}
               />
             </div>

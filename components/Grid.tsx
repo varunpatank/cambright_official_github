@@ -6,8 +6,8 @@ const Grid = () => {
   return (
     <section id="about">
       <div className="text-center">
-        <h1 className="text-4xl  text-center">
-          <span className="text-purple-300">Some</span> of our endless features
+        <h1 className="text-4xl text-center">
+          <span className="text-purple-300">Everything</span> you need to succeed
         </h1>
       </div>
       <BentoGrid className="w-full py-20">

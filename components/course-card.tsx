@@ -4,12 +4,13 @@ import Link from "next/link";
 import { IconBadge } from "./icon-badge";
 import { BadgeCheck, BookOpen, Play, Pencil } from "lucide-react";
 import { CourseProgress } from "./course-progress";
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 interface CourseCardProps {
   id: string;
   title: string;
   imageUrl: string;
+  imageAssetId?: string | null;
   chaptersLength: number;
   progress: number | null;
   subject: string;
@@ -29,6 +30,7 @@ export const CourseCard = ({
   id,
   title,
   imageUrl,
+  imageAssetId,
   chaptersLength,
   progress,
   subject,
@@ -63,7 +65,13 @@ export const CourseCard = ({
       )}
       <Link href={`/courses/${id}`} className="block">
         <div className="relative w-full aspect-video rounded-md overflow-hidden">
-          <Image fill className="object-cover" alt={title} src={imageUrl} />
+          <Image 
+            fill 
+            className="object-cover" 
+            alt={title} 
+            src={imageAssetId ? `/api/assets/${imageAssetId}` : (imageUrl || fallbackImageURL)}
+            unoptimized={!!imageAssetId}
+          />
         </div>
         <div className="flex flex-col pt-2">
           <div className="text-xl md:text-base font-medium group-hover:text-purple-500 transition line-clamp-2">

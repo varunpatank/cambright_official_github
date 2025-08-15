@@ -24,10 +24,18 @@ import {
   Shield,
   Settings,
   UserCheck,
-  Eye
+  User,
+  Eye,
+  ExternalLink,
+  MessageCircle,
+  AlertCircle,
+  RefreshCw,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 import { School } from '@/lib/minio-school-types'
 import { useAdminStatus } from '@/hooks/use-admin-status'
+import { SchoolPreviewImage, SchoolBannerImage } from '@/components/school-image-display'
 
 interface SchoolWithRank extends School {
   rank: number
@@ -49,11 +57,13 @@ export default function SchoolHubPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCompetitionExpanded, setIsCompetitionExpanded] = useState(false)
   const [chapterAdminAccess, setChapterAdminAccess] = useState<ChapterAdminAccess>({
     isChapterSuperAdmin: false,
     isChapterAdmin: false,
     managedSchools: []
   })
+  const [schoolRoles, setSchoolRoles] = useState<Record<string, string>>({})
 
   // Check chapter admin access
   const checkChapterAdminAccess = useCallback(async () => {
@@ -73,6 +83,13 @@ export default function SchoolHubPage() {
           isChapterAdmin: isAdmin,
           managedSchools
         })
+        
+        // Store the detailed admin data for per-school role checking
+        const schoolRoles = adminData.reduce((acc: any, admin: any) => {
+          acc[admin.schoolId] = admin.role
+          return acc
+        }, {})
+        setSchoolRoles(schoolRoles)
       }
     } catch (error) {
       console.error('Error checking chapter admin access:', error)
@@ -154,7 +171,9 @@ export default function SchoolHubPage() {
   const getUserRole = (schoolId: string) => {
     if (hasAdminAccess) return 'super_admin'
     if (chapterAdminAccess.managedSchools.includes(schoolId)) {
-      return chapterAdminAccess.isChapterSuperAdmin ? 'chapter_super_admin' : 'chapter_admin'
+      const userRoleForSchool = schoolRoles[schoolId]
+      if (userRoleForSchool === 'CHAPTER_SUPER_ADMIN') return 'chapter_super_admin'
+      if (userRoleForSchool === 'CHAPTER_ADMIN') return 'chapter_admin'
     }
     return null
   }
@@ -274,26 +293,13 @@ export default function SchoolHubPage() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-n-8 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-destructive mb-4">{error}</p>
-          <Button onClick={fetchSchools} variant="outline">
-            Try Again
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-n-8 p-4 sm:p-6">
       <div className="w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl font-bold text-n-1 mb-2">School Chapter Hub</h1>
+            <h1 className="text-4xl sm:text-5xl font-bold text-n-1 mb-2">School Chapter Hub.</h1>
             <p className="text-n-3 text-base sm:text-lg">
               Discover and connect with school chapters worldwide
             </p>
@@ -342,6 +348,84 @@ export default function SchoolHubPage() {
               )}
             </div>
           )}
+        </div>
+
+        {/* Cambright Annual School Challenge */}
+        <div className="mb-8">
+          <Card className="bg-purple-900/20 border-purple-500/30 overflow-hidden">
+            <CardContent className="p-6 sm:p-8">
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-purple-600 rounded-xl flex items-center justify-center">
+                    <Trophy className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                  </div>
+                </div>
+                
+                <div className="flex-1">
+                  <div 
+                    className="cursor-pointer"
+                    onClick={() => setIsCompetitionExpanded(!isCompetitionExpanded)}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="text-2xl sm:text-3xl font-bold text-purple-300">
+                        Cambright&apos;s Annual School Challenge
+                      </h2>
+                      <Button variant="ghost" size="sm" className="text-purple-300 hover:bg-purple-500/10">
+                        {isCompetitionExpanded ? (
+                          <ChevronUp className="w-5 h-5" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5" />
+                        )}
+                      </Button>
+                    </div>
+                    
+                    <p className="text-n-2 text-lg mb-4">
+                      Schools with the most volunteer hours, image posts, and events hosted under Cambright get a <span className="font-bold text-purple-300">$1,000 grant!</span>
+                    </p>
+                  </div>
+                  
+                  {isCompetitionExpanded && (
+                    <div className="space-y-4 text-n-3 animate-in fade-in-0 slide-in-from-top-1">
+                      <div>
+                        <h3 className="font-semibold text-purple-300 mb-2">Challenge Details:</h3>
+                        <ul className="space-y-2 text-sm sm:text-base">
+                          <li>• Post images must have &quot;Cambright&quot; somewhere visible</li>
+                          <li>• Activities include: tutoring friends, helping teachers, volunteering, hosting school events</li>
+                          <li>• Documentation and images required for all activities</li>
+                          <li>• All activities must be posted with proper documentation</li>
+                        </ul>
+                      </div>
+                      
+                      <div className="bg-purple-800/30 rounded-lg p-4 border border-purple-500/20">
+                        <h3 className="font-semibold text-purple-300 mb-2 flex items-center">
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Want to add your school?
+                        </h3>
+                        <p className="text-sm sm:text-base mb-3">
+                          Join the Cambright Discord and post in the #school-channel:
+                        </p>
+                        <ul className="text-sm space-y-1 mb-4">
+                          <li>• School name, website, email, phone number</li>
+                          <li>• School board (Cambright usernames or names)</li>
+                          <li>• Banner and icon images</li>
+                        </ul>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => window.open('https://discord.gg/k3qWavX2km', '_blank')}
+                          className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10 hover:border-purple-400"
+                        >
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Join Discord
+                          <ExternalLink className="w-3 h-3 ml-2" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Search */}
@@ -403,185 +487,270 @@ export default function SchoolHubPage() {
           </Card>
         </div>
 
-        {/* Schools Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        {/* Schools List - One Row Per School */}
+        <div className="space-y-6">
           {filteredSchools.map((school) => (
-            <Card key={school.id} className="bg-n-7 border-n-6 hover:border-primary/50 transition-colors group">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br ${getRankColor(school.rank)} flex items-center justify-center flex-shrink-0`}>
-                      {getRankIcon(school.rank)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-n-1 group-hover:text-primary transition-colors text-sm sm:text-base truncate">
-                        {school.name}
-                      </CardTitle>
-                      <div className="flex items-center text-n-4 text-xs sm:text-sm mt-1">
-                        <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
-                        <span className="truncate">{school.location || 'Location not specified'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
-                    <div className="flex items-center gap-1">
-                      <Badge variant={school.isActive ? 'default' : 'secondary'} className="text-xs">
-                        {school.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                      
-                      {/* Chapter Admin Role Badge */}
-                      {canManageSchool(school.id) && !hasAdminAccess && (
-                        <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/20">
-                          {getUserRole(school.id) === 'chapter_super_admin' ? 'Super Admin' : 'Admin'}
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    {/* Management Actions */}
-                    {canManageSchool(school.id) && (
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.location.href = hasAdminAccess ? `/admin/schools` : `/admin/chapter-dashboard`}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        {hasAdminAccess && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteSchool(school.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive h-8 w-8 p-0"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {school.description && (
-                  <CardDescription className="text-n-3 mt-2">
-                    {school.description}
-                  </CardDescription>
-                )}
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {/* School Image */}
-                {school.imageUrl && (
-                  <div className="w-full h-40 rounded-lg overflow-hidden">
-                    <img
-                      src={school.imageUrl}
-                      alt={school.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-n-6 rounded-lg">
-                    <div className="text-2xl font-bold text-n-1">{school.volunteerHours || 0}</div>
-                    <div className="text-n-4 text-sm">Volunteer Hours</div>
-                  </div>
-                  <div className="text-center p-3 bg-n-6 rounded-lg">
-                    <div className="text-2xl font-bold text-n-1">{school.activeMembers || 0}</div>
-                    <div className="text-n-4 text-sm">Active Members</div>
-                  </div>
-                </div>
-
-                {/* Chapter Admin Info - Show if user manages this school */}
-                {canManageSchool(school.id) && (
-                  <div className="border-t border-n-6 pt-4">
-                    <h4 className="text-n-2 font-medium mb-2">Your Role</h4>
-                    <div className="space-y-1">
-                      {hasAdminAccess && (
-                        <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">
-                          <Shield className="w-3 h-3 mr-1" />
-                          Super Admin
-                        </Badge>
-                      )}
-                      {!hasAdminAccess && getUserRole(school.id) === 'chapter_super_admin' && (
-                        <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/20">
-                          <UserCheck className="w-3 h-3 mr-1" />
-                          Chapter Super Admin
-                        </Badge>
-                      )}
-                      {!hasAdminAccess && getUserRole(school.id) === 'chapter_admin' && (
-                        <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-400 border-green-500/20">
-                          <Settings className="w-3 h-3 mr-1" />
-                          Chapter Admin
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Contact Info */}
-                <div className="border-t border-n-6 pt-4">
-                  <div className="space-y-2">
-                    {school.website && (
-                      <div className="flex items-center text-n-3 text-sm">
-                        <Globe className="w-4 h-4 mr-2" />
-                        <a 
-                          href={school.website} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="hover:text-primary transition-colors"
-                        >
-                          Visit Website
-                        </a>
-                      </div>
-                    )}
-                    {school.email && (
-                      <div className="flex items-center text-n-3 text-sm">
-                        <Mail className="w-4 h-4 mr-2" />
-                        <a 
-                          href={`mailto:${school.email}`}
-                          className="hover:text-primary transition-colors"
-                        >
-                          {school.email}
-                        </a>
-                      </div>
-                    )}
-                    {school.phone && (
-                      <div className="flex items-center text-n-3 text-sm">
-                        <Phone className="w-4 h-4 mr-2" />
-                        <span>{school.phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* View School Button */}
-                <div className="border-t border-n-6 pt-4">
-                  <Button 
-                    onClick={() => window.location.href = `/schools/${school.id}`}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                    size="sm"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    View School
-                  </Button>
-                </div>
-
-                {/* Admin Controls */}
-                {hasAdminAccess && (
-                  <div className="border-t border-n-6 pt-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-n-3 text-sm">Status Control</span>
-                      <Switch
-                        checked={school.isActive}
-                        onCheckedChange={() => toggleSchoolStatus(school)}
+            <Card key={school.id} className="bg-n-7 border-n-6 hover:border-primary/50 transition-all duration-300 group overflow-hidden">
+              <CardContent className="p-0">
+                <div className="flex items-center min-h-[200px]">
+                  {/* Left Side: Circular School Image */}
+                  <div className="flex items-center justify-center p-8 flex-shrink-0">
+                    <div className="w-32 h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden ring-4 ring-primary/20 group-hover:ring-primary/40 shadow-xl transition-all duration-300">
+                      <SchoolPreviewImage
+                        school={school}
+                        width={144}
+                        height={144}
+                        objectFit="cover"
+                        className="w-full h-full object-center group-hover:scale-110 transition-transform duration-500"
+                        onError={(error) => {
+                          console.error(`Failed to load preview image for school ${school.name}:`, error);
+                        }}
                       />
                     </div>
                   </div>
-                )}
+                  
+                  {/* Middle: School Info and Large Stats */}
+                  <div className="flex-1 p-6 pr-8 flex flex-col justify-center min-w-0">
+                    {/* School Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-4 mb-2">
+                          <CardTitle className="text-n-1 group-hover:text-primary transition-colors text-2xl font-bold truncate">
+                            {school.name}
+                          </CardTitle>
+                          <Badge 
+                            variant={school.rank <= 3 ? 'default' : 'secondary'} 
+                            className={`text-lg px-4 py-2 font-bold ${
+                              school.rank === 1 ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40' :
+                              school.rank === 2 ? 'bg-gray-400/20 text-gray-300 border-gray-400/40' :
+                              school.rank === 3 ? 'bg-amber-600/20 text-amber-300 border-amber-600/40' :
+                              'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                            }`}
+                          >
+                            #{school.rank}
+                          </Badge>
+                        </div>
+                        
+                        {school.description && (
+                          <p className="text-n-3 text-lg mb-3 line-clamp-2 leading-relaxed">{school.description}</p>
+                        )}
+                        
+                        <div className="flex items-center text-n-4 text-base">
+                          <MapPin className="w-5 h-5 mr-2 text-primary" />
+                          <span>{school.location || 'Location not specified'}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Large Statistics Display */}
+                    <div className="grid grid-cols-2 gap-6 mb-4">
+                      <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-6 text-center border border-primary/20 group-hover:border-primary/30 transition-colors">
+                        <div className="text-4xl font-bold text-primary mb-2">
+                          {(school.activeMembers || 0).toLocaleString()}
+                        </div>
+                        <div className="text-n-3 text-sm font-medium flex items-center justify-center">
+                          <Users className="w-5 h-5 mr-2" />
+                          Active Members
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 rounded-xl p-6 text-center border border-green-500/20 group-hover:border-green-500/30 transition-colors">
+                        <div className="text-4xl font-bold text-green-400 mb-2">
+                          {(school.volunteerHours || 0).toLocaleString()}
+                        </div>
+                        <div className="text-n-3 text-sm font-medium flex items-center justify-center">
+                          <Clock className="w-5 h-5 mr-2" />
+                          Volunteer Hours
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Status Badges */}
+                    <div className="flex items-center gap-3">
+                      <Badge variant={school.isActive ? 'default' : 'secondary'} className="text-sm px-4 py-2">
+                        {school.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  {/* Right Side: Purple Aesthetic Design */}
+                  <div className="w-80 lg:w-96 p-6 bg-purple-900/20 rounded-r-lg backdrop-blur-sm border-l border-purple-500/30">
+                    {/* Banner Image with Purple Frame */}
+                    <div className="relative mb-6">
+                      <div className="h-40 relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-purple-500/20">
+                        {(school.bannerAssetId || school.imageAssetId || school.imageUrl) ? (
+                          <>
+                            <SchoolBannerImage
+                              school={school}
+                              width={384}
+                              height={160}
+                              objectFit="cover"
+                              className="w-full h-full object-center group-hover:scale-110 transition-transform duration-700"
+                              onError={(error) => {
+                                console.error(`Failed to load banner image for school ${school.name}:`, error);
+                              }}
+                            />
+                            {/* Subtle overlay for depth */}
+                            <div className="absolute inset-0 bg-purple-900/20"></div>
+                          </>
+                        ) : (
+                          <div className="w-full h-full bg-purple-800/30 flex items-center justify-center relative overflow-hidden">
+                            <div className="text-center z-10">
+                              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-purple-500/20 flex items-center justify-center backdrop-blur-sm">
+                                <Globe className="w-8 h-8 text-purple-300" />
+                              </div>
+                              <p className="text-purple-200 font-medium" style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)' }}>Beautiful banner awaits</p>
+                              <p className="text-purple-400 text-sm mt-1" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>Upload to showcase your school</p>
+                            </div>
+                            {/* Purple background pattern */}
+                            <div className="absolute inset-0 opacity-20">
+                              <div className="absolute top-4 left-4 w-20 h-20 bg-purple-500/20 rounded-full blur-xl"></div>
+                              <div className="absolute bottom-6 right-6 w-16 h-16 bg-purple-600/30 rounded-full blur-lg"></div>
+                              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-purple-400/20 rounded-full blur-2xl"></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Floating rank badge */}
+                      <div className="absolute -top-3 -right-3 z-10">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg text-sm font-bold ${
+                          school.rank === 1 ? 'bg-yellow-500 text-black' :
+                          school.rank === 2 ? 'bg-gray-400 text-black' :
+                          school.rank === 3 ? 'bg-amber-600 text-white' :
+                          'bg-purple-600 text-white'
+                        }`} style={{ textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8)' }}>
+                          #{school.rank}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Admin Access Card - Purple Design */}
+                    {canManageSchool(school.id) && (
+                      <div className="mb-6 p-5 bg-purple-800/20 rounded-xl border border-purple-500/30 backdrop-blur-sm">
+                        <div className="flex items-center mb-3">
+                          <div className="w-8 h-8 rounded-lg bg-purple-600/30 flex items-center justify-center mr-3">
+                            <Shield className="w-4 h-4 text-purple-300" />
+                          </div>
+                          <h4 className="text-n-1 font-semibold">Your Access</h4>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {hasAdminAccess && (
+                            <div className="flex items-center p-3 bg-purple-600/20 rounded-lg border border-purple-500/30">
+                              <div className="w-6 h-6 rounded-full bg-purple-500/30 flex items-center justify-center mr-3">
+                                <Shield className="w-3 h-3 text-purple-300" />
+                              </div>
+                              <div>
+                                <p className="text-purple-300 font-medium text-sm">Super Administrator</p>
+                                <p className="text-n-4 text-xs">Full platform access - can manage all schools</p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {!hasAdminAccess && getUserRole(school.id) === 'chapter_super_admin' && (
+                            <div className="flex items-center p-3 bg-blue-600/20 rounded-lg border border-blue-500/30">
+                              <div className="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center mr-3">
+                                <UserCheck className="w-3 h-3 text-blue-300" />
+                              </div>
+                              <div>
+                                <p className="text-blue-300 font-medium text-sm">School Administrator</p>
+                                <p className="text-n-4 text-xs">Can post and manage content for this school</p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {!hasAdminAccess && getUserRole(school.id) === 'chapter_admin' && (
+                            <div className="flex items-center p-3 bg-blue-600/20 rounded-lg border border-blue-500/30">
+                              <div className="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center mr-3">
+                                <Settings className="w-3 h-3 text-blue-300" />
+                              </div>
+                              <div>
+                                <p className="text-blue-300 font-medium text-sm">School Administrator</p>
+                                <p className="text-n-4 text-xs">Can post and manage content for this school</p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {!hasAdminAccess && getUserRole(school.id) !== 'chapter_super_admin' && getUserRole(school.id) !== 'chapter_admin' && (
+                            <div className="flex items-center p-3 bg-green-600/20 rounded-lg border border-green-500/30">
+                              <div className="w-6 h-6 rounded-full bg-green-500/30 flex items-center justify-center mr-3">
+                                <User className="w-3 h-3 text-green-300" />
+                              </div>
+                              <div>
+                                <p className="text-green-300 font-medium text-sm">Student</p>
+                                <p className="text-n-4 text-xs">Can view content but cannot post</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Action Buttons - Purple Design */}
+                    <div className="space-y-4">
+                      {/* Primary Action */}
+                      <Button
+                        size="lg"
+                        onClick={() => window.location.href = `/schools/${school.id}`}
+                        className="w-full h-14 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 group"
+                      >
+                        <Eye className="w-5 h-5 mr-3 group-hover:scale-110 transition-transform" />
+                        Explore School
+                        <div className="ml-auto opacity-60 group-hover:opacity-100 transition-opacity">
+                          →
+                        </div>
+                      </Button>
+                      
+                      {/* Management Actions - Always Show for All Users */}
+                      <div className="space-y-3">
+                        <div className="h-px bg-purple-500/30"></div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              if (canManageSchool(school.id)) {
+                                window.location.href = hasAdminAccess ? `/admin/schools` : `/admin/chapter-dashboard`
+                              } else {
+                                // Show permission denied message
+                                toast({
+                                  title: "Access Denied",
+                                  description: "You don't have permission to edit this school.",
+                                  variant: "destructive",
+                                })
+                              }
+                            }}
+                            className="h-12 border-purple-500/30 hover:border-purple-400 hover:bg-purple-500/10 rounded-xl transition-all duration-300 group"
+                          >
+                            <Edit className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                            Edit
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              if (hasAdminAccess) {
+                                deleteSchool(school.id)
+                              } else {
+                                // Show permission denied message
+                                toast({
+                                  title: "Access Denied",
+                                  description: "Only super admins can delete schools.",
+                                  variant: "destructive",
+                                })
+                              }
+                            }}
+                            className="h-12 border-red-500/30 text-red-400 hover:border-red-500/50 hover:bg-red-500/5 rounded-xl transition-all duration-300 group"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -589,13 +758,46 @@ export default function SchoolHubPage() {
 
         {filteredSchools.length === 0 && !isLoading && (
           <div className="text-center py-12">
-            <p className="text-n-4 text-lg mb-4">
-              {searchTerm ? 'No schools found matching your search.' : 'No schools available.'}
-            </p>
-            {hasAdminAccess && (
-              <Button onClick={() => window.location.href = '/admin/schools'}>
-                Add First School
-              </Button>
+            {error ? (
+              <>
+                <div className="mb-6">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                    <AlertCircle className="w-8 h-8 text-red-400" />
+                  </div>
+                  <p className="text-red-400 text-lg mb-2">Failed to load school chapters</p>
+                  <p className="text-n-4 text-sm mb-4">There was an issue connecting to the database. Please try again.</p>
+                </div>
+                <div className="space-x-3">
+                  <Button onClick={fetchSchools} variant="outline" size="sm">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Try Again
+                  </Button>
+                  {hasAdminAccess && (
+                    <Button onClick={() => toast({
+                      title: "School Management",
+                      description: "Schools are now managed manually via configuration files. Check the SCHOOLS_SETUP_GUIDE.md for details.",
+                      duration: 5000,
+                    })} size="sm">
+                      School Config Guide
+                    </Button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-n-4 text-lg mb-4">
+                  {searchTerm ? 'No schools found matching your search.' : 'No schools available.'}
+                </p>
+                {hasAdminAccess && (
+                  <Button onClick={() => toast({
+                    title: "School Management",
+                    description: "Schools are now managed manually via configuration files. Check the SCHOOLS_SETUP_GUIDE.md for details.",
+                    duration: 5000,
+                  })}>
+                    School Config Guide
+                  </Button>
+                )}
+              </>
             )}
           </div>
         )}

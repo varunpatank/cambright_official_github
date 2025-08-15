@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const { userId } = auth();
     const { title, authorId } = await req.json();
     
-    if (!userId || !(await isTutor(userId))) {
+    if (!userId) {
       return new NextResponse("Unauthorized!");
     }
 
@@ -24,11 +24,7 @@ export async function POST(req: Request) {
         return new NextResponse("Only super admins can assign courses to other users", { status: 403 });
       }
       
-      // Verify the target user is also a tutor
-      if (!(await isTutor(authorId))) {
-        return new NextResponse("Target user must be a tutor", { status: 400 });
-      }
-      
+      // Note: Removed tutor check - all users can now be assigned courses
       courseAuthorId = authorId;
     }
 

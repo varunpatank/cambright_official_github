@@ -39,12 +39,12 @@ const SprintIdLayout = async ({ children, params }: SprintIdLayoutProps) => {
 
   return (
     <div
-      className="relative h-full bg-no-repeat bg-cover bg-center"
+      className="relative h-full bg-no-repeat bg-cover bg-center w-full"
       style={{ backgroundImage: `url(${sprint.imageFullUrl})` }}
     >
       <div className="absolute inset-0 bg-black/10" />
       <SprintNavbar data={sprint} />
-      <main className="relative pt-28 h-full">{children}</main>
+      <main className="relative pt-28 h-full w-full max-w-full overflow-x-auto">{children}</main>
     </div>
   );
 };

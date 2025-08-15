@@ -156,11 +156,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<AssetHealt
 
 async function getAssetStatistics() {
   // Get basic asset statistics
-  const totalAssets = await db.assetManager.count()
-  const activeAssets = await db.assetManager.count({ where: { isActive: true } })
+  const totalAssets = await db.assets.count()
+  const activeAssets = await db.assets.count({ where: { isActive: true } })
   
   // Get recent uploads (last 24 hours)
-  const recentUploads24h = await db.assetManager.count({
+  const recentUploads24h = await db.assets.count({
     where: {
       isActive: true,
       createdAt: {
@@ -170,26 +170,26 @@ async function getAssetStatistics() {
   })
 
   // Get asset type distribution
-  const assetTypeStats = await db.assetManager.groupBy({
-    by: ['assetType'],
+  const assetTypeStats = await db.assets.groupBy({
+    by: ['type'],
     where: { isActive: true },
-    _count: { assetType: true }
+    _count: { type: true }
   })
 
   const assetTypeDistribution = assetTypeStats.reduce((acc, stat) => {
-    acc[stat.assetType] = stat._count.assetType
+    acc[stat.type] = stat._count.type
     return acc
   }, {} as Record<string, number>)
 
   // Get size distribution
-  const assets = await db.assetManager.findMany({
+  const assets = await db.assets.findMany({
     where: { isActive: true },
-    select: { fileSize: true }
+    select: { size: true }
   })
 
   const sizeDistribution = assets.reduce(
     (acc, asset) => {
-      const sizeMB = asset.fileSize / (1024 * 1024)
+      const sizeMB = asset.size / (1024 * 1024)
       if (sizeMB < 1) acc.small++
       else if (sizeMB <= 10) acc.medium++
       else acc.large++
@@ -211,9 +211,9 @@ async function checkAssetIntegrity() {
   const bucketName = process.env.MINIO_BUCKET_NAME || 'cambright-assets'
   
   // Check for orphaned database records (assets in DB but not in MinIO)
-  const dbAssets = await db.assetManager.findMany({
+  const dbAssets = await db.assets.findMany({
     where: { isActive: true },
-    select: { key: true, minioPath: true, fileSize: true },
+    select: { key: true, size: true },
     take: 100 // Limit for performance
   })
 
@@ -222,10 +222,10 @@ async function checkAssetIntegrity() {
 
   for (const asset of dbAssets) {
     try {
-      const stat = await minioClient.statObject(bucketName, asset.minioPath)
+      const stat = await minioClient.statObject(bucketName, asset.key)
       
       // Check file size integrity
-      if (stat.size !== asset.fileSize) {
+      if (stat.size !== asset.size) {
         integrityIssues++
       }
     } catch (error) {
@@ -245,7 +245,7 @@ async function checkAssetIntegrity() {
     if (objectCount >= 50) break // Limit for performance
   }
 
-  const dbPaths = new Set(dbAssets.map(a => a.minioPath))
+  const dbPaths = new Set(dbAssets.map(a => a.key))
   const orphanedFiles = minioObjects.filter(path => !dbPaths.has(path)).length
 
   return {
@@ -274,7 +274,7 @@ async function getRecentErrors() {
   // This would typically come from your logging system
   // For now, return empty array or check for recent failed operations
   
-  const recentFailedAssets = await db.assetManager.findMany({
+  const recentFailedAssets = await db.assets.findMany({
     where: {
       isActive: false,
       updatedAt: {

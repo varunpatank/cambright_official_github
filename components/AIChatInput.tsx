@@ -38,12 +38,12 @@ export default function ChatInput({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent pointer-events-none">
-      <div className="max-w-4xl mx-auto w-full px-4 pb-4 pointer-events-auto">
-        <div className="flex items-center gap-2 bg-n-7 border border-white/10 rounded-2xl p-3 shadow-xl backdrop-blur-md">
+      <div className="max-w-6xl mx-auto w-full px-8 pb-6 pointer-events-auto">
+        <div className="flex items-center gap-3 bg-n-7 border border-white/10 rounded-2xl p-4 shadow-xl backdrop-blur-md mx-auto max-w-4xl">
           <div className="relative flex-1">
             <textarea
               disabled={loading} // disable textarea when loading
-              className={`w-full h-12 max-h-36 px-4 py-2 bg-transparent text-white placeholder-gray-400 border-none focus:outline-none resize-none scrollbar-hide ${
+              className={`w-full h-12 max-h-36 px-4 py-3 bg-transparent text-white placeholder-gray-400 border-none focus:outline-none resize-none scrollbar-hide font-sora ${
                 loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
               placeholder={

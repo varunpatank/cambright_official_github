@@ -81,17 +81,22 @@ const guestRoutes: RouteItem[] = [
         label: "Our Schools",
         href: "/school-hub",
       },
+  {
+    icon: GraduationCap,
+    label: "Tutor Mode",
+    href: "/tutor/courses",
+  },
 ];
 
 const tutorRoutes: RouteItem[] = [
   {
     icon: List,
-    label: "Courses",
+    label: "My Courses",
     href: "/tutor/courses",
   },
   {
     icon: NotebookPen,
-    label: "Notes",
+    label: "My Notes",
     href: "/tutor/notes",
   },
   {

@@ -159,7 +159,7 @@ export const ListContainer = ({ sprintId, data }: ListContainerProps) => {
           <ol
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="flex gap-x-3 h-full"
+            className="flex gap-x-3 h-full w-full justify-start items-start px-4"
           >
             {orderedData.map((list, index) => (
               <ListItem

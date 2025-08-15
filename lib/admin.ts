@@ -8,7 +8,6 @@ import { defaultIds } from "@/app/(dashboard)/(routes)/users"
  * Uses environment variable first, falls back to defaultIds
  */
 export function isAdmin(userId?: string | null): boolean {
-	  if (process.env.NODE_ENV === 'development') return true // All users are admins in dev
 	if (!userId) return false
 	
 	// Check if env var exists and has non-whitespace content
@@ -54,7 +53,6 @@ function getDefaultAdminIds(): string[] {
  * Check if a user is a super admin (highest level access)
  */
 export function isSuperAdmin(userId?: string | null): boolean {
-	  if (process.env.NODE_ENV === 'development') return true // All users are super admins in dev
 	if (!userId) return false
 	
 	const envSuperAdminIds = process.env.NEXT_PUBLIC_SUPER_ADMIN_IDS?.trim()
@@ -85,7 +83,6 @@ export function isSuperAdmin(userId?: string | null): boolean {
  * More resilient version that handles database failures gracefully
  */
 export function hasAdminAccess(userId?: string | null): boolean {
-	  if (process.env.NODE_ENV === 'development') return true // All users have admin access in dev
 	if (!userId) return false
 	
 	try {

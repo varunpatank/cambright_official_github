@@ -1,11 +1,35 @@
 import { db, optimizedQueries } from '@/lib/db'
 import { enhancedCache, SchoolCacheData } from '@/lib/enhanced-cache'
 import { withQueryMonitoring } from '@/lib/query-performance-monitor'
-import { School, SchoolPost, AssetManager } from '@prisma/client'
+import type { School, SchoolPost } from '@prisma/client'
 
 export interface SchoolWithAssets extends School {
-  imageAsset?: AssetManager | null
-  bannerAsset?: AssetManager | null
+  imageAsset?: {
+    id: string
+    key: string
+    originalName: string  // Correct database field name
+    mimeType: string
+    size: number          // Correct database field name  
+    url: string          // Correct database field name
+    type: string         // Correct database field name
+    uploadedBy: string
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+  } | null
+  bannerAsset?: {
+    id: string
+    key: string
+    originalName: string  // Correct database field name
+    mimeType: string
+    size: number          // Correct database field name
+    url: string          // Correct database field name
+    type: string         // Correct database field name
+    uploadedBy: string
+    isActive: boolean
+    createdAt: Date
+    updatedAt: Date
+  } | null
 }
 
 export interface SchoolWithPosts extends SchoolWithAssets {
@@ -19,8 +43,8 @@ export interface CreateSchoolData {
   website?: string
   email?: string
   phone?: string
-  imageAssetKey?: string
-  bannerAssetKey?: string
+  imageAssetId?: string
+  bannerAssetId?: string
   volunteerHours?: number
   activeMembers?: number
   createdBy: string
@@ -33,8 +57,8 @@ export interface UpdateSchoolData {
   website?: string
   email?: string
   phone?: string
-  imageAssetKey?: string
-  bannerAssetKey?: string
+  imageAssetId?: string
+  bannerAssetId?: string
   volunteerHours?: number
   activeMembers?: number
   isActive?: boolean
@@ -53,6 +77,158 @@ export interface GetSchoolsOptions {
 }
 
 export class SchoolService {
+  /**
+   * Get schools with pagination (API-compatible method)
+   */
+  static async getSchools(options: GetSchoolsOptions = {}): Promise<{
+    schools: SchoolWithAssets[]
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      totalPages: number
+    }
+  }> {
+    const {
+      search,
+      page = 1,
+      limit = 50,
+      includeInactive = false
+    } = options
+
+    // Build where clause
+    const where: any = {}
+    
+    if (!includeInactive) {
+      where.isActive = true
+    }
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { location: { contains: search, mode: 'insensitive' } }
+      ]
+    }
+
+    // Get schools with basic asset info
+    const [schools, total] = await Promise.all([
+      db.school.findMany({
+        where,
+        include: {
+          Assets_School_imageAssetIdToAssets: {
+            select: {
+              id: true,
+              key: true,
+              originalName: true,
+              mimeType: true,
+              size: true,
+              url: true,
+              type: true,
+              uploadedBy: true,
+              isActive: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          },
+          Assets_School_bannerAssetIdToAssets: {
+            select: {
+              id: true,
+              key: true,
+              originalName: true,
+              mimeType: true,
+              size: true,
+              url: true,
+              type: true,
+              uploadedBy: true,
+              isActive: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          }
+        } as any,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      db.school.count({ where })
+    ])
+
+    // Transform schools to match expected interface
+    const transformedSchools = schools.map(school => ({
+      ...school,
+      imageAsset: (school as any).Assets_School_imageAssetIdToAssets,
+      bannerAsset: (school as any).Assets_School_bannerAssetIdToAssets
+    }))
+
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      schools: transformedSchools as SchoolWithAssets[],
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    }
+  }
+
+  /**
+   * Get a single school by ID
+   */
+  static async getSchoolById(id: string): Promise<SchoolWithAssets | null> {
+    const school = await withQueryMonitoring(
+      `getSchoolById:${id}`,
+      () => db.school.findUnique({
+        where: { id },
+        include: {
+          Assets_School_imageAssetIdToAssets: {
+            select: {
+              id: true,
+              key: true,
+              originalName: true,
+              mimeType: true,
+              size: true,
+              url: true,
+              type: true,
+              uploadedBy: true,
+              isActive: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          },
+          Assets_School_bannerAssetIdToAssets: {
+            select: {
+              id: true,
+              key: true,
+              originalName: true,
+              mimeType: true,
+              size: true,
+              url: true,
+              type: true,
+              uploadedBy: true,
+              isActive: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          }
+        } as any
+      })
+    )
+
+    if (!school) {
+      return null
+    }
+
+    // Transform the response to match expected interface
+    return {
+      ...school,
+      imageAsset: (school as any).Assets_School_imageAssetIdToAssets,
+      bannerAsset: (school as any).Assets_School_bannerAssetIdToAssets
+    } as SchoolWithAssets
+  }
+
   /**
    * Get all schools with optional filtering and pagination
    */
@@ -107,19 +283,33 @@ export class SchoolService {
     )
 
     // Get paginated schools with asset relations
-    const schools = await withQueryMonitoring(
-      'getAllSchools:findMany',
-      () => db.school.findMany({
-        where: whereClause,
-        include: {
-          imageAsset: true,
-          bannerAsset: true
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit
-      })
-    )
+    let schools
+    try {
+      schools = await withQueryMonitoring(
+        'getAllSchools:findMany',
+        () => db.school.findMany({
+          where: whereClause,
+          include: {
+            Assets_School_bannerAssetIdToAssets: true
+          },
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit
+        })
+      )
+    } catch (error) {
+      // Fallback query without asset relations if columns don't exist
+      console.warn('Asset columns not found, falling back to basic query:', error)
+      schools = await withQueryMonitoring(
+        'getAllSchools:findMany:fallback',
+        () => db.school.findMany({
+          where: whereClause,
+          orderBy: { createdAt: 'desc' },
+          skip: (page - 1) * limit,
+          take: limit
+        })
+      )
+    }
 
     // Cache simple queries
     if (!search && page === 1 && limit === 10 && !includeInactive) {
@@ -136,46 +326,6 @@ export class SchoolService {
   }
 
   /**
-   * Get school by ID with asset relations
-   */
-  static async getSchoolById(id: string, includePosts = false): Promise<SchoolWithAssets | SchoolWithPosts | null> {
-    // Try cache first for basic school data
-    if (!includePosts) {
-      const cached = await enhancedCache.getSchool(id)
-      if (cached) {
-        return cached as SchoolWithAssets
-      }
-    }
-
-    const includeOptions: any = {
-      imageAsset: true,
-      bannerAsset: true
-    }
-
-    if (includePosts) {
-      includeOptions.posts = {
-        where: { isActive: true },
-        orderBy: { createdAt: 'desc' }
-      }
-    }
-
-    const school = await withQueryMonitoring(
-      `getSchoolById:${id}`,
-      () => db.school.findUnique({
-        where: { id },
-        include: includeOptions
-      })
-    )
-
-    // Cache basic school data
-    if (school && !includePosts) {
-      await enhancedCache.setSchool(id, school as SchoolCacheData)
-    }
-
-    return school
-  }
-
-  /**
    * Create a new school
    */
   static async createSchool(data: CreateSchoolData): Promise<SchoolWithAssets> {
@@ -189,24 +339,29 @@ export class SchoolService {
           website: data.website,
           email: data.email,
           phone: data.phone,
-          imageAssetKey: data.imageAssetKey,
-          bannerAssetKey: data.bannerAssetKey,
+          imageAssetId: data.imageAssetId,
+          bannerAssetId: data.bannerAssetId,
           volunteerHours: data.volunteerHours || 0,
           activeMembers: data.activeMembers || 0,
           createdBy: data.createdBy,
           isActive: true
-        },
+        } as any,
         include: {
-          imageAsset: true,
-          bannerAsset: true
-        }
+          Assets_School_imageAssetIdToAssets: true,
+          Assets_School_bannerAssetIdToAssets: true
+        } as any
       })
     )
 
     // Invalidate school list cache
     await enhancedCache.invalidateSchoolRelatedCache(school.id)
 
-    return school
+    // Transform the response to match expected interface
+    return {
+      ...school,
+      imageAsset: (school as any).Assets_School_imageAssetIdToAssets,
+      bannerAsset: (school as any).Assets_School_bannerAssetIdToAssets
+    } as SchoolWithAssets
   }
 
   /**
@@ -219,16 +374,21 @@ export class SchoolService {
         where: { id },
         data,
         include: {
-          imageAsset: true,
-          bannerAsset: true
-        }
+          Assets_School_imageAssetIdToAssets: true,
+          Assets_School_bannerAssetIdToAssets: true
+        } as any
       })
     )
 
     // Invalidate related cache
     await enhancedCache.invalidateSchoolRelatedCache(id)
 
-    return school
+    // Transform the response to match expected interface
+    return {
+      ...school,
+      imageAsset: (school as any).Assets_School_imageAssetIdToAssets,
+      bannerAsset: (school as any).Assets_School_bannerAssetIdToAssets
+    } as SchoolWithAssets
   }
 
   /**
@@ -241,16 +401,21 @@ export class SchoolService {
         where: { id },
         data: stats,
         include: {
-          imageAsset: true,
-          bannerAsset: true
-        }
+          Assets_School_imageAssetIdToAssets: true,
+          Assets_School_bannerAssetIdToAssets: true
+        } as any
       })
     )
 
     // Invalidate related cache
     await enhancedCache.invalidateSchoolRelatedCache(id)
 
-    return school
+    // Transform the response to match expected interface
+    return {
+      ...school,
+      imageAsset: (school as any).Assets_School_imageAssetIdToAssets,
+      bannerAsset: (school as any).Assets_School_bannerAssetIdToAssets
+    } as SchoolWithAssets
   }
 
   /**
@@ -303,8 +468,7 @@ export class SchoolService {
     const schools = await db.school.findMany({
       where: { isActive: true },
       include: {
-        imageAsset: true,
-        bannerAsset: true,
+        Assets_School_bannerAssetIdToAssets: true,
         chapterAdmins: {
           where: { isActive: true },
           include: {
@@ -331,13 +495,20 @@ export class SchoolService {
         ]
       },
       include: {
-        imageAsset: true,
-        bannerAsset: true
-      },
+        Assets_School_imageAssetIdToAssets: true,
+        Assets_School_bannerAssetIdToAssets: true
+      } as any,
       take: limit,
       orderBy: { name: 'asc' }
     })
 
-    return schools
+    // Transform the response to match expected interface
+    const transformedSchools = schools.map(school => ({
+      ...school,
+      imageAsset: (school as any).Assets_School_imageAssetIdToAssets,
+      bannerAsset: (school as any).Assets_School_bannerAssetIdToAssets
+    }))
+
+    return transformedSchools as SchoolWithAssets[]
   }
 }

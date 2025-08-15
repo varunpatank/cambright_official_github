@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { hasAdminAccess } from '@/lib/admin'
 import { SchoolService } from '@/lib/school-service'
+import { db } from '@/lib/db'
 
 const UpdateSchoolSchema = z.object({
   name: z.string().min(1, 'Name is required').optional(),
@@ -11,8 +12,8 @@ const UpdateSchoolSchema = z.object({
   website: z.string().url().optional(),
   email: z.string().email().optional(),
   phone: z.string().optional(),
-  imageAssetKey: z.string().optional(),
-  bannerAssetKey: z.string().optional(),
+  imageAssetId: z.string().optional(),
+  bannerAssetId: z.string().optional(),
   isActive: z.boolean().optional(),
   volunteerHours: z.number().min(0).optional(),
   activeMembers: z.number().min(0).optional()
@@ -23,6 +24,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Get school from database using SchoolService
     const school = await SchoolService.getSchoolById(params.id)
     
     if (!school) {
@@ -72,8 +74,6 @@ export async function PUT(
     }
 
     const body = await req.json()
-    console.log(`Updating school ${params.id} with data:`, body)
-    
     const validatedData = UpdateSchoolSchema.parse(body)
 
     // Check if school exists first
@@ -83,6 +83,31 @@ export async function PUT(
         { error: 'School not found' },
         { status: 404 }
       )
+    }
+
+    // If asset IDs are provided, verify they exist in the database
+    if (validatedData.imageAssetId) {
+      const imageAsset = await db.assets.findUnique({
+        where: { id: validatedData.imageAssetId }
+      })
+      if (!imageAsset) {
+        return NextResponse.json(
+          { error: `Image asset not found: ${validatedData.imageAssetId}` },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (validatedData.bannerAssetId) {
+      const bannerAsset = await db.assets.findUnique({
+        where: { id: validatedData.bannerAssetId }
+      })
+      if (!bannerAsset) {
+        return NextResponse.json(
+          { error: `Banner asset not found: ${validatedData.bannerAssetId}` },
+          { status: 400 }
+        )
+      }
     }
 
     // Use SchoolService to update school with asset relations

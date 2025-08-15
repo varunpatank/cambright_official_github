@@ -18,7 +18,8 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Chapter, CloudinaryData } from "@prisma/client";
-import { FileUpload } from "@/components/file-upload";
+import { MinioFileUpload } from "@/components/minio-file-upload";
+import { VideoUpload } from "@/components/video-upload";
 
 // Dynamically import the Player component
 const Player = dynamic(() => import("@/components/Player"), { ssr: false });
@@ -32,6 +33,7 @@ interface VideoFormProps {
 
 const formSchema = z.object({
   videoUrl: z.string().min(1),
+  videoAssetKey: z.string().optional(),
 });
 
 export const VideoForm = ({
@@ -126,26 +128,87 @@ export const VideoForm = ({
                 <Loader2 className="animate-spin h-10 w-10 text-white" />
               </div>
             )}
-            <Player
-              {...videoJsOptions}
-              onReady={() => handlePlayerLoad()} // Ensure this is a function call
-            />
+            {/* Try Video.js Player first, fallback to HTML5 video */}
+            {initialData.videoUrl.includes('minio') || initialData.videoUrl.includes('cambright') ? (
+              <video
+                controls
+                className="w-full h-full"
+                onLoadedData={() => {
+                  console.log('Video loaded successfully');
+                  setIsPlayerLoaded(true);
+                }}
+                onError={(e) => {
+                  console.error('Video load error:', e);
+                  console.error('Video URL:', initialData.videoUrl);
+                  console.error('Error details:', {
+                    target: e.target,
+                    currentSrc: (e.target as HTMLVideoElement)?.currentSrc,
+                    networkState: (e.target as HTMLVideoElement)?.networkState,
+                    readyState: (e.target as HTMLVideoElement)?.readyState
+                  });
+                }}
+                onLoadStart={() => console.log('Video load started')}
+                onCanPlay={() => console.log('Video can play')}
+                onCanPlayThrough={() => console.log('Video can play through')}
+              >
+                <source src={initialData.videoUrl} type="video/mp4" />
+                <source src={initialData.videoUrl} type="video/mov" />
+                <source src={initialData.videoUrl} type="video/quicktime" />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <Player
+                {...videoJsOptions}
+                onReady={() => handlePlayerLoad()} // Ensure this is a function call
+              />
+            )}
           </div>
         </>
       )}
 
       {isEditing && (
-        <div className="purplebtn">
-          <FileUpload
-            endpoint="chapterVideo"
-            onChange={(url) => {
-              if (url) {
-                onSubmit({ videoUrl: url });
-              }
-            }}
-          />
-          <div className="text-xs text-muted-foreground mt-4">
-            Upload this chapter&apos;s video
+        <div className="space-y-4">
+          {/* Enhanced Video Upload for Large Files */}
+          <div className="purplebtn">
+            <div className="text-sm font-medium mb-2 text-white">
+              Large Video Upload (Recommended for videos &gt; 1MB)
+            </div>
+            <VideoUpload
+              onUploadComplete={(videoKey) => {
+                // Generate the MinIO URL from the video key
+                const videoUrl = `https://minio.varram.me/cambright/${videoKey}`;
+                onSubmit({ 
+                  videoUrl,
+                  videoAssetKey: videoKey 
+                });
+              }}
+              onUploadError={(error) => {
+                toast.error(`Video upload failed: ${error}`);
+              }}
+              maxSizeGB={10}
+              className="mb-4"
+            />
+          </div>
+          
+          {/* Fallback Upload for Small Files */}
+          <div className="purplebtn">
+            <div className="text-sm font-medium mb-2 text-white">
+              Standard Upload (For files &lt; 1MB)
+            </div>
+            <MinioFileUpload
+              endpoint="chapterVideo"
+              onChange={(url, assetKey) => {
+                if (url) {
+                  onSubmit({ 
+                    videoUrl: url,
+                    videoAssetKey: assetKey 
+                  });
+                }
+              }}
+            />
+            <div className="text-xs text-muted-foreground mt-4">
+              Upload this chapter&apos;s video (limited to small files)
+            </div>
           </div>
         </div>
       )}

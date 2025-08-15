@@ -55,7 +55,7 @@ export const optimizedQueries = {
       name: true,
       location: true,
       isActive: true,
-      imageAssetKey: true,
+      imageAssetId: true,
       volunteerHours: true,
       activeMembers: true,
       createdAt: true,
@@ -68,17 +68,17 @@ export const optimizedQueries = {
   getSchoolWithRelations: (id: string) => db.school.findUnique({
     where: { id },
     include: {
-      imageAsset: {
+      Assets_School_imageAssetIdToAssets: {
         select: {
           key: true,
-          fileName: true,
+          originalName: true,
           mimeType: true,
         },
       },
-      bannerAsset: {
+      Assets_School_bannerAssetIdToAssets: {
         select: {
           key: true,
-          fileName: true,
+          originalName: true,
           mimeType: true,
         },
       },
@@ -90,7 +90,7 @@ export const optimizedQueries = {
           imageAsset: {
             select: {
               key: true,
-              fileName: true,
+              originalName: true,
               mimeType: true,
             },
           },
@@ -137,7 +137,7 @@ export const optimizedQueries = {
       title: true,
       description: true,
       isPublished: true,
-      imageAssetKey: true,
+      imageAssetId: true,
       createdAt: true,
       subject: {
         select: {

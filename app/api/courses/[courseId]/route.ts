@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import cloudinary from "cloudinary";
-import { isSuperAdmin } from '@/lib/admin'
+import { isSuperAdmin } from '@/lib/admin';
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -78,6 +78,17 @@ export async function PATCH(
     if (course.userId !== userId && !isSuperAdmin(userId)) {
       return new NextResponse('Unauthorized!', { status: 401 });
     }
+
+    // If imageAssetId is provided, verify it exists in the database
+    if (values.imageAssetId) {
+      const imageAsset = await db.assets.findUnique({
+        where: { id: values.imageAssetId }
+      });
+      if (!imageAsset) {
+        return new NextResponse(`Image asset not found: ${values.imageAssetId}`, { status: 400 });
+      }
+    }
+
     const updatedCourse = await db.course.update({
       where: { id: courseId },
       data: { ...values },

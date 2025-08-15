@@ -3,6 +3,55 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const API_KEY = 'AIzaSyA9Zx29iw14QaHTSwFwK6NuBcmZ9gUrd_I';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
+// Function to clean mathematical notation and remove LaTeX
+function cleanMathematicalNotation(text: string): string {
+  if (!text) return text;
+  
+  // Replace common LaTeX expressions with plain text equivalents
+  let cleaned = text
+    // Replace fractions: \frac{a}{b} -> a/b
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1)/($2)')
+    // Replace square roots: \sqrt{x} -> sqrt(x)
+    .replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)')
+    // Replace superscripts: x^{2} -> x^2
+    .replace(/\^\{([^}]+)\}/g, '^$1')
+    // Replace subscripts: x_{2} -> x_2
+    .replace(/\_\{([^}]+)\}/g, '_$1')
+    // Remove other LaTeX commands
+    .replace(/\\[a-zA-Z]+\{([^}]*)\}/g, '$1')
+    // Remove remaining LaTeX backslashes
+    .replace(/\\([a-zA-Z])/g, '$1')
+    // Clean up multiple spaces
+    .replace(/\s+/g, ' ')
+    .trim();
+    
+  return cleaned;
+}
+
+// Function to validate and filter mathematical keywords
+function filterMathematicalKeywords(keywords: string[], subject: string): string[] {
+  if (subject !== 'Mathematics') return keywords;
+  
+  return keywords.filter(keyword => {
+    const cleaned = keyword.toLowerCase().trim();
+    
+    // Exclude abstract mathematical terms
+    const abstractTerms = [
+      'differentiation', 'integration', 'calculus', 'trigonometry',
+      'algebra', 'geometry', 'statistics', 'probability', 'function',
+      'equation', 'graph', 'plot', 'sketch', 'draw', 'find', 'calculate',
+      'solve', 'determine', 'evaluate', 'simplify', 'expand', 'factor'
+    ];
+    
+    // Check if keyword is an abstract term
+    if (abstractTerms.includes(cleaned)) return false;
+    
+    // Allow numerical values, mathematical expressions, and specific terms
+    const mathPattern = /^[0-9x-z\+\-\*/\^()=<>.,\s]*$|^(sin|cos|tan|log|ln|sqrt|pi|e).*$/i;
+    return mathPattern.test(cleaned) || cleaned.length <= 5;
+  });
+}
+
 export interface GenerationProgress {
   currentStep: number;
   totalSteps: number;
@@ -326,6 +375,23 @@ CRITICAL REQUIREMENTS:
 - Follow IGCSE marking standards
 - Based on authentic Cambridge past paper style
 
+MATHEMATICAL NOTATION RULES:
+- Use ^ for exponents (e.g., x^2, 2^3, e^x)
+- NO LaTeX formatting (\frac, \sqrt, etc.) - use plain text alternatives
+- Use / for division (e.g., dy/dx instead of \frac{dy}{dx})
+- Use sqrt() for square roots (e.g., sqrt(x) instead of \sqrt{x})
+- For fractions: write as a/b not \frac{a}{b}
+- Use plain text mathematical notation only
+
+${subject === 'Mathematics' ? `
+MATHEMATICS SPECIFIC RULES:
+- Keywords should be numerical values, mathematical terms, or algebraic expressions only
+- NO abstract words like "differentiation", "integration", "calculus"
+- Use specific values, equations, or mathematical symbols
+- Examples of good keywords: "2x", "x^2", "dy/dx", "sin(x)", "cos(x)", "pi", "e"
+- Examples of bad keywords: "differentiation", "integration", "calculus", "trigonometry"
+` : ''}
+
 ${questionType === 'MCQ' ? `
 FOR MCQ QUESTIONS - MANDATORY FORMAT:
 - Provide exactly 4 options labeled A, B, C, D
@@ -411,15 +477,18 @@ Generate authentic IGCSE-style questions that match Cambridge past paper standar
     const validatedQuestions = questions.map((q: any, index: number) => {
       const baseQuestion = {
         id: q.id || `${subject}_${topic.replace(/\s+/g, '_')}_${questionType}_${Date.now()}_${index}`,
-        questionText: q.questionText || 'Question text not provided',
+        questionText: cleanMathematicalNotation(q.questionText || 'Question text not provided'),
         questionType: q.questionType,
         difficulty: q.difficulty,
         topic: q.topic || topic,
         marks: q.marks || 1,
-        markScheme: q.markScheme || {
-          answer: 'Answer not provided',
-          keywords: [],
-          guidance: 'No guidance provided'
+        markScheme: {
+          answer: cleanMathematicalNotation(q.markScheme?.answer || 'Answer not provided'),
+          keywords: filterMathematicalKeywords(
+            (q.markScheme?.keywords || []).map((k: string) => cleanMathematicalNotation(k)),
+            subject
+          ),
+          guidance: cleanMathematicalNotation(q.markScheme?.guidance || 'No guidance provided')
         }
       };
 
@@ -428,10 +497,10 @@ Generate authentic IGCSE-style questions that match Cambridge past paper standar
         // Ensure all options exist and are valid
         const options = q.options || {};
         const validOptions = {
-          A: options.A || 'Option A not provided',
-          B: options.B || 'Option B not provided',
-          C: options.C || 'Option C not provided',
-          D: options.D || 'Option D not provided',
+          A: cleanMathematicalNotation(options.A || 'Option A not provided'),
+          B: cleanMathematicalNotation(options.B || 'Option B not provided'),
+          C: cleanMathematicalNotation(options.C || 'Option C not provided'),
+          D: cleanMathematicalNotation(options.D || 'Option D not provided'),
           correct: options.correct || 'A'
         };
 

@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 interface FileUploadProps {
-  onChange: (url?: string) => void
+  onChange: (url?: string, assetKey?: string) => void
   endpoint: 'courseImage' | 'roomImage' | 'messageFile' | 'courseAttachment' | 'noteAttachment' | 'chapterVideo' | 'schoolPostImage'
   className?: string
   disabled?: boolean
@@ -30,6 +30,7 @@ const FILE_TYPE_ICONS = {
   'video/webm': Video,
   'video/avi': Video,
   'video/mov': Video,
+  'video/quicktime': Video,
   'application/pdf': FileText,
   'text/plain': File,
 }
@@ -78,35 +79,111 @@ export function MinioFileUpload({
         formData.append('files', file)
       })
 
-      // Simulate progress for better UX
+      // Create abort controller for timeout handling with dynamic timeout based on file size
+      const controller = new AbortController()
+      const fileSize = files[0]?.size || 0;
+      const fileSizeGB = fileSize / (1024 * 1024 * 1024);
+      
+      // Dynamic timeout: 30 minutes base + 10 minutes per GB
+      const timeoutMinutes = 30 + Math.ceil(fileSizeGB * 10);
+      const timeoutMs = timeoutMinutes * 60 * 1000;
+      
+      console.log(`File size: ${fileSizeGB.toFixed(2)} GB, timeout: ${timeoutMinutes} minutes`);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      // Adjust progress simulation for large files
+      const progressIncrement = fileSizeGB > 2 ? 2 : 10; // Slower progress for large files
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90))
-      }, 200)
+        setUploadProgress(prev => Math.min(prev + progressIncrement, 90))
+      }, fileSizeGB > 2 ? 1000 : 200) // Slower updates for large files
 
       const response = await fetch(`/api/minio-upload?endpoint=${endpoint}`, {
         method: 'POST',
         body: formData,
-      })
+        signal: controller.signal,
+      }).catch((fetchError) => {
+        console.error('Fetch error details:', fetchError);
+        if (fetchError.name === 'AbortError') {
+          throw new Error(`Upload timed out after ${timeoutMinutes} minutes for ${fileSizeGB.toFixed(2)}GB file. The file might be too large for your connection.`);
+        }
+        throw fetchError;
+      });
 
+      clearTimeout(timeoutId)
       clearInterval(progressInterval)
       setUploadProgress(100)
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Upload failed')
+        let errorData;
+        let errorMessage = 'Upload failed';
+        
+        try {
+          const responseText = await response.text();
+          console.error('Upload error response text:', responseText);
+          
+          // Try to parse as JSON
+          if (responseText.trim()) {
+            errorData = JSON.parse(responseText);
+            errorMessage = errorData.error || 'Upload failed';
+            
+            // Add more specific error details
+            if (errorData.details) {
+              errorMessage += `: ${errorData.details}`;
+            }
+            
+            // Log debug info in development
+            if (process.env.NODE_ENV === 'development' && errorData.debugInfo) {
+              console.error('Debug info:', errorData.debugInfo);
+            }
+          } else {
+            errorMessage = `Server error: ${response.status} ${response.statusText}`;
+          }
+        } catch (jsonError) {
+          console.error('Failed to parse error response as JSON:', jsonError);
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        
+        throw new Error(errorMessage)
       }
 
-      const result = await response.json()
+      const result = await response.json().catch(async (jsonError) => {
+        console.error('Failed to parse successful response as JSON:', jsonError);
+        const responseText = await response.text();
+        console.error('Response text:', responseText);
+        throw new Error('Server returned invalid response format');
+      });
       
-      if (result.success && result.files.length > 0) {
+      console.log('Upload result:', result);
+      
+      if (result.success && result.files && result.files.length > 0) {
         setUploadedFiles(result.files)
-        // For single file uploads, call onChange with the first file URL
-        onChange(result.files[0].url)
-        toast.success('Files uploaded successfully!')
+        // For single file uploads, call onChange with the first file URL and asset key
+        onChange(result.files[0].url, result.files[0].key)
+        
+        // Show appropriate success message
+        const fileCount = result.files.length;
+        const successMessage = fileCount === 1 
+          ? `File "${result.files[0].name}" uploaded successfully!`
+          : `${fileCount} files uploaded successfully!`;
+        toast.success(successMessage);
+      } else {
+        console.error('Upload result missing success or files:', result);
+        throw new Error(result.error || 'Upload failed - no files returned');
       }
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error(error instanceof Error ? error.message : 'Upload failed')
+      
+      let errorMessage = 'Upload failed';
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          errorMessage = 'Upload timed out after 30 minutes. Please try uploading a smaller file or check your connection.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(errorMessage)
     } finally {
       setIsUploading(false)
       setTimeout(() => setUploadProgress(0), 1000)
@@ -149,9 +226,9 @@ export function MinioFileUpload({
     const newFiles = uploadedFiles.filter((_, i) => i !== index)
     setUploadedFiles(newFiles)
     if (newFiles.length === 0) {
-      onChange(undefined)
+      onChange(undefined, undefined)
     } else {
-      onChange(newFiles[0].url)
+      onChange(newFiles[0].url, newFiles[0].key)
     }
   }, [uploadedFiles, onChange])
 
@@ -200,7 +277,7 @@ export function MinioFileUpload({
                 {endpoint === 'courseImage' || endpoint === 'roomImage' || endpoint === 'schoolPostImage' 
                   ? 'Images up to 4MB' 
                   : endpoint === 'chapterVideo' 
-                  ? 'Videos up to 512GB'
+                  ? 'Videos up to 10GB'
                   : 'Files up to 512MB'
                 }
               </p>

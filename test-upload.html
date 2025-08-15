@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Asset Upload</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 20px 0; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; }
+        .error { border-color: #f00; background: #fee; }
+        .success { border-color: #0a0; background: #efe; }
+    </style>
+</head>
+<body>
+    <h1>Test Asset Upload</h1>
+    
+    <form id="uploadForm">
+        <div>
+            <label>File: <input type="file" id="fileInput" accept="image/*" required></label>
+        </div>
+        <div style="margin: 10px 0;">
+            <label>Asset Type: 
+                <select id="assetType">
+                    <option value="school-post">school-post</option>
+                    <option value="profile">profile</option>
+                    <option value="course">course</option>
+                </select>
+            </label>
+        </div>
+        <div>
+            <button type="submit">Upload</button>
+        </div>
+    </form>
+    
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('fileInput');
+            const assetType = document.getElementById('assetType').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.innerHTML = '<div class="result error">Please select a file</div>';
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('assetType', assetType);
+            
+            resultDiv.innerHTML = '<div class="result">Uploading...</div>';
+            
+            try {
+                const response = await fetch('/api/assets/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const responseText = await response.text();
+                console.log('Raw response:', responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    result = { error: 'Invalid JSON response', rawResponse: responseText };
+                }
+                
+                if (response.ok && result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>Upload Successful!</h3>
+                            <p><strong>Asset Key:</strong> ${result.asset.key}</p>
+                            <p><strong>URL:</strong> <a href="${result.asset.url}" target="_blank">${result.asset.url}</a></p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>Upload Failed</h3>
+                            <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                            <p><strong>Error:</strong> ${result.error || 'Unknown error'}</p>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>Network Error</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

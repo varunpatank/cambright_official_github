@@ -5,78 +5,47 @@ import { AnimatedTestimonials } from "./ui/animated-testimonials";
 
 const testimonials = [
   {
-    quote:
-      "Use & edit ready-made templates or create custom Sprints to boost your progress by setting due dates for tasks",
+    quote: "Ready-made templates and custom Sprints with due dates to boost productivity",
     name: "Progress Tracker",
     designation: "Boost Productivity",
     src: "/progress.png",
     link: "/tracker/select-group",
   },
   {
-    quote:
-      "Sit online mock-exams at anytime just like real life, with timers, and auto-marking. It will tell you your level in each paper!",
+    quote: "Online mock exams with timers and auto-marking to assess your level",
     name: "Mock Exam",
-    designation: "With Auto-Marking",
+    designation: "Auto-Marking System",
     src: "/mcq-solver.png",
     link: "mcq-solver",
   },
   {
-    quote:
-      "Enroll for Free Online Courses, 1-on-1 & group courses from expert verified tutors, with notes, recorded lessons, meetings, and Q&A sessions.",
+    quote: "Free online courses from verified tutors with notes and live sessions",
     name: "Free Courses",
-    designation: "Free Courses, Expert Tutors",
+    designation: "Expert Tutors",
     src: "/courses.png",
     link: "/search-courses",
   },
-
   {
-    quote:
-      "Get free, comprehensive revision notes, designed to get the most information stuck in your head in the shortest time possible & written specific to the syllabus!",
-    name: "Notes",
-    designation: "Comprehensive Notes",
+    quote: "Comprehensive revision notes designed for maximum retention",
+    name: "Study Notes",
+    designation: "Syllabus-Specific",
     src: "/notes.png",
     link: "/search-notes",
   },
   {
-    quote:
-      "Join our team, become a tutor? write notes? or make flashcards? help with marketing? anyways, you will get credit hours for everything and raise your GPA!",
-    name: "Join Us",
-    designation: "Have Your Contribution",
-    src: "/salah.png",
-    link: "/tutor-apply",
-  },
-  {
-    quote:
-      "Some amazing pages & tools are still under development, coming soon, but you can check them here!",
-    name: "Coming Soon",
-    designation: "Amazing Tools on their Way",
-    src: "/quizzer.png",
-    link: "/quizzer",
-  },
-  {
-    quote:
-      "Get free latest Past Papers, you can decide to have them blank and fresh or with model answers from expert solvers!",
+    quote: "Latest past papers with model answers from expert solvers",
     name: "Past Papers",
-    designation: "With Model Answers",
+    designation: "With Solutions",
     src: "/solved.png",
     link: "past-papers",
   },
   {
-    quote:
-      "1000+ Fully customizable Quick Flashcards to test your knowledge or add to it, for all subjects and all boards!",
+    quote: "1000+ customizable flashcards for all subjects and boards",
     name: "Flashcards",
     designation: "Study Smarter",
     src: "/flash.png",
     link: "/flashcards",
-  },
-  {
-    quote:
-      "We believe that everyone has the right to learn, children in Gaza & Sudan have equal rights to everyone else on Earth to get high quality education, and of course lives come before education!",
-    name: "Donate",
-    designation: "Free Palestine & Sudan ♥️",
-    src: "/gaza.png",
-    link: "/donate",
-  },
+  }
 ];
 
 const Typer = () => {
@@ -87,21 +56,12 @@ const Typer = () => {
           <ReactTyped
             strings={[
               "Boost your IGCSE performance",
-              "Ace your Alevels/AS",
+              "Ace your A-levels with confidence",
               "Master subjects with expert help",
-              "Join 1-on-1 FREE courses",
-              "Join group FREE courses",
-              "Join online studyhubs",
-              "Compete with students worldwide",
               "Access top-quality resources",
               "Track progress effectively",
-              "Enhance your study techniques",
-              "Achieve top grades with our support",
-              "Ask any question, in any subject, at anytime",
-              "Get personalised learning plans & schedules",
-              "Prepare with confidence and skill",
-              "Excel in your exams with ease",
-              "Join a community of successful students",
+              "Achieve A* grades consistently",
+              "Join a community of top students",
             ]}
             typeSpeed={50}
             backSpeed={60}
