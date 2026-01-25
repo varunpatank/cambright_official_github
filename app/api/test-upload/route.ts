@@ -2,7 +2,8 @@
 export const runtime = 'nodejs'
 export const maxDuration = 1800; // 30 minutes
 export const dynamic = 'force-dynamic';
-export const maxBodySize = 10 * 1024 * 1024 * 1024; // 10GB
+// Note: Body size limits should be configured in next.config.js
+const MAX_BODY_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
 
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -20,14 +21,14 @@ export async function POST(request: NextRequest) {
       const sizeInGB = sizeInBytes / (1024 * 1024 * 1024);
       
       console.log(`Request size: ${sizeInMB.toFixed(2)} MB (${sizeInGB.toFixed(2)} GB)`);
-      console.log(`Server limit: ${(maxBodySize / (1024 * 1024 * 1024))} GB`);
-      console.log(`Within limit: ${sizeInBytes <= maxBodySize}`);
+      console.log(`Server limit: ${(MAX_BODY_SIZE / (1024 * 1024 * 1024))} GB`);
+      console.log(`Within limit: ${sizeInBytes <= MAX_BODY_SIZE}`);
       
-      if (sizeInBytes > maxBodySize) {
+      if (sizeInBytes > MAX_BODY_SIZE) {
         return NextResponse.json({ 
           error: 'File too large',
           requestSize: `${sizeInGB.toFixed(2)} GB`,
-          limit: `${(maxBodySize / (1024 * 1024 * 1024))} GB`,
+          limit: `${(MAX_BODY_SIZE / (1024 * 1024 * 1024))} GB`,
           withinLimit: false
         }, { status: 413 })
       }

@@ -141,11 +141,6 @@ const nextroutes: RouteItem[] = [
         href: "/quizzer",
       },
       {
-        icon: Bot,
-        label: "Tuto AI",
-        href: "/tuto-ai",
-      },
-      {
         icon: Timer,
         label: "Marks Predictor",
         href: "/predictor",
@@ -280,8 +275,8 @@ export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
 
   const routes: RouteItem[] = isTutorPage ? tutorRoutes : guestRoutes;
 
-  // Create accordion routes array that includes admin section if user has access
-  const accordionRoutes = hasAdminAccess ? [...nextroutes, adminSection] : nextroutes;
+  // Admin section is hidden for all users
+  const accordionRoutes = nextroutes;
 
   return (
     <div className="flex flex-col w-full">

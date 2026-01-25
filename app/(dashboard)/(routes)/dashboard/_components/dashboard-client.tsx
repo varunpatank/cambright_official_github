@@ -92,15 +92,6 @@ const tools = [
     borderColor: "border-purple-500/30"
   },
   {
-    title: "Tuto AI",
-    description: "AI-powered tutoring assistant",
-    icon: Brain,
-    href: "/tuto-ai",
-    color: "bg-pink-500",
-    bgGradient: "from-pink-500/20 to-pink-600/20",
-    borderColor: "border-pink-500/30"
-  },
-  {
     title: "Quiz Generator",
     description: "Generate practice questions with AI",
     icon: Target,
@@ -181,7 +172,7 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
         {/* Header */}
         <div className="text-center space-y-4 mt-4">
           <h1 className="text-5xl font-sora font-bold text-white">
-            Welcome back, <span className="text-purple-400">{capitalizedName}</span>!
+            Welcome Back, <span className="text-purple-400">{capitalizedName}</span>!
           </h1>
           <p className="text-xl text-gray-300 font-code">
             Continue your educational journey with CamBright

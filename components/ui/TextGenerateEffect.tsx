@@ -1,6 +1,6 @@
 // v0.0.01 salah
 "use client";
-import { useEffect } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { motion, stagger, useAnimate } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -12,9 +12,9 @@ export const TextGenerateEffect = ({
   className?: string;
 }) => {
   const [scope, animate] = useAnimate();
-  let wordsArray = words.split(" ");
-  useEffect(() => {
-    console.log(wordsArray);
+  const wordsArray = useMemo(() => words.split(" "), [words]);
+  
+  const animateWords = useCallback(() => {
     animate(
       "span",
       {
@@ -25,7 +25,11 @@ export const TextGenerateEffect = ({
         delay: stagger(0.05),
       }
     );
-  }, [scope.current]);
+  }, [animate]);
+
+  useEffect(() => {
+    animateWords();
+  }, [animateWords]);
 
   const renderWords = () => {
     return (

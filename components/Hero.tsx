@@ -126,7 +126,7 @@ const Hero = ({ showThem }: HeroProps) => {
           <div className="mt-2">
             <TextGenerateEffect
               className="text-center md:tracking-wider mb-4 text-sm md:text-lg lg:text-2xl"
-              words="Welcome! We are a 501c3 non-profit that helps students and teachers ace IGCSEs with free courses, resources, and school chapters across the globe."
+              words="Welcome! We are an official LLC that helps students and teachers ace IGCSEs with free courses, resources, and school chapters across the globe."
             />
           </div>
 
