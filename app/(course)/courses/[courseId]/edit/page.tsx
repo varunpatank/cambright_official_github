@@ -63,18 +63,10 @@ const SuperAdminCourseEditPage = async ({ params }: { params: { courseId: string
               <SubjectForm
                 initialData={course}
                 courseId={course.id}
-                options={subjects.map((subject) => ({
-                  label: subject.name,
-                  value: subject.id,
-                }))}
               />
               <BoardForm
                 initialData={course}
                 courseId={course.id}
-                options={boards.map((board) => ({
-                  label: board.name,
-                  value: board.id,
-                }))}
               />
             </div>
             <div className="space-y-6">

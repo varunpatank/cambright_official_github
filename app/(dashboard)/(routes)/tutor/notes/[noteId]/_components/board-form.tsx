@@ -1,4 +1,4 @@
-// v.0.0.01 salah
+// v.0.0.02 - Updated to text input for custom board entry
 
 "use client";
 import * as z from "zod";
@@ -11,38 +11,41 @@ import {
   FormItem,
   FormMessage,
   FormField,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MousePointerClick, Pencil, XIcon } from "lucide-react";
+import { MousePointerClick, XIcon } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
 import { Note } from "@prisma/client";
-import { Combobox } from "@/components/ui/combobox";
-import { Boardobox } from "@/components/ui/boardobox";
 
 interface BoardFormProps {
   initialData: Note;
   noteId: string;
-  options: { label: string; value: string }[];
+  options?: { label: string; value: string }[];
 }
+
 const formSchema = z.object({
-  noteboardId: z.string().min(1),
+  noteboardId: z.string().min(1, "Please enter a board/curriculum"),
 });
-export const BoardForm = ({ initialData, noteId, options }: BoardFormProps) => {
+
+export const BoardForm = ({ initialData, noteId }: BoardFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const toggleEdit = () => setIsEditing((current) => !current);
   const router = useRouter();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       noteboardId: initialData?.noteboardId || "",
     },
   });
+  
   const { isSubmitting, isValid } = form.formState;
+  
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await axios.patch(`/api/notes/${noteId}`, values);
@@ -54,9 +57,7 @@ export const BoardForm = ({ initialData, noteId, options }: BoardFormProps) => {
       console.log(error);
     }
   };
-  const selectedOption = options.find(
-    (option) => option.value === initialData.noteboardId
-  );
+
   return (
     <div className="mt-6 bg-[#020817] rounded-md p-4 border">
       <div className="font-medium flex items-center justify-between">
@@ -70,13 +71,11 @@ export const BoardForm = ({ initialData, noteId, options }: BoardFormProps) => {
           }
         >
           {isEditing ? (
-            <>
-              <XIcon />
-            </>
+            <XIcon />
           ) : (
             <>
               <MousePointerClick className="h-4 mr-2 w-4" />
-              Change
+              {initialData.noteboardId ? "Change" : "Add"}
             </>
           )}
         </Button>
@@ -88,7 +87,7 @@ export const BoardForm = ({ initialData, noteId, options }: BoardFormProps) => {
             !initialData.noteboardId && "text-slate-500 italic"
           )}
         >
-          {selectedOption?.label || "Choose Board"}
+          {initialData.noteboardId || "No board set"}
         </p>
       )}
       {isEditing && (
@@ -103,12 +102,15 @@ export const BoardForm = ({ initialData, noteId, options }: BoardFormProps) => {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Boardobox
-                      options={options}
-                      value={field.value}
-                      onChange={field.onChange} // Correctly passing onChange
+                    <Input
+                      disabled={isSubmitting}
+                      placeholder="e.g., Cambridge IGCSE, Edexcel A-Level, IB Diploma..."
+                      {...field}
                     />
                   </FormControl>
+                  <FormDescription className="text-xs text-gray-400">
+                    Include the class/grade level (e.g., "Cambridge IGCSE Year 10", "AQA A-Level Year 12")
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -119,7 +121,7 @@ export const BoardForm = ({ initialData, noteId, options }: BoardFormProps) => {
                 disabled={!isValid || isSubmitting}
                 variant="tert"
               >
-                {isSubmitting ? "Saving.." : "Save"}
+                {isSubmitting ? "Saving..." : "Save"}
               </Button>
             </div>
           </form>

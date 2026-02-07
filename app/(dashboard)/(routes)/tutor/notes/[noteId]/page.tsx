@@ -135,18 +135,10 @@ const CourseIdPage = async ({ params }: { params: { noteId: string } }) => {
                 <SubjectForm
                   initialData={note}
                   noteId={note.id}
-                  options={subjects.map((subject) => ({
-                    label: subject.name,
-                    value: subject.id,
-                  }))}
                 />
                 <BoardForm
                   initialData={note}
                   noteId={note.id}
-                  options={boards.map((board) => ({
-                    label: board.name,
-                    value: board.id,
-                  }))}
                 />
               </div>
               <div className="space-y-6">
