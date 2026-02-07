@@ -5,6 +5,7 @@ import { uploadFile, BUCKET_NAME } from '@/lib/minio'
 import { nanoid } from 'nanoid'
 import crypto from 'crypto'
 import { db } from '@/lib/db'
+import { AssetType } from '@prisma/client'
 
 // Configure route for large file uploads
 export const runtime = 'nodejs'
@@ -14,6 +15,9 @@ export const dynamic = 'force-dynamic';
 // Additional configuration for large file handling
 export const preferredRegion = 'auto';
 export const revalidate = false;
+
+// Global max file size limit - 1GB (to prevent abuse)
+const GLOBAL_MAX_SIZE = 1 * 1024 * 1024 * 1024; // 1GB
 
 // Supported file types and size limits
 const FILE_TYPES = {
@@ -44,7 +48,7 @@ const FILE_TYPES = {
   },
   chapterVideo: { 
     accept: ['video/mp4', 'video/webm', 'video/avi', 'video/mov', 'video/quicktime', 'video/x-msvideo'], 
-    maxSize: 10 * 1024 * 1024 * 1024, // 10GB
+    maxSize: 1 * 1024 * 1024 * 1024, // 1GB (reduced from 10GB)
     maxCount: 1 
   },
   schoolPostImage: { 
@@ -181,6 +185,14 @@ export async function POST(request: NextRequest) {
     for (const file of files) {
       console.log(`Processing file: ${file.name}, type: ${file.type}, size: ${file.size}`);
       
+      // Global size limit check - 1GB max (prevents abuse)
+      if (file.size > GLOBAL_MAX_SIZE) {
+        console.log(`File exceeds global 1GB limit: ${file.name}: ${file.size} bytes`);
+        return NextResponse.json({ 
+          error: `File exceeds maximum 1GB limit. Uploading files larger than 1GB may result in account suspension.` 
+        }, { status: 400 })
+      }
+
       // Validate file type
       if (!fileConfig.accept.includes(file.type)) {
         console.log(`File type validation failed for ${file.name}: ${file.type}`);
@@ -189,7 +201,7 @@ export async function POST(request: NextRequest) {
         }, { status: 400 })
       }
 
-      // Validate file size
+      // Validate file size against endpoint-specific limit
       if (file.size > fileConfig.maxSize) {
         console.log(`File size validation failed for ${file.name}: ${file.size} bytes`);
         return NextResponse.json({ 
@@ -250,15 +262,15 @@ export async function POST(request: NextRequest) {
         if (endpointsNeedingDBRecord.includes(endpoint)) {
           try {
             // Map endpoint to asset type
-            const assetTypeMap: Record<string, string> = {
-              'chapterVideo': 'CHAPTER_VIDEO',
-              'schoolImage': 'SCHOOL_IMAGE',
-              'schoolBanner': 'SCHOOL_BANNER',
-              'postImage': 'POST_IMAGE',
-              'courseImage': 'COURSE_IMAGE'
+            const assetTypeMap: Record<string, AssetType> = {
+              'chapterVideo': AssetType.CHAPTER_VIDEO,
+              'schoolImage': AssetType.SCHOOL_IMAGE,
+              'schoolBanner': AssetType.SCHOOL_BANNER,
+              'postImage': AssetType.POST_IMAGE,
+              'courseImage': AssetType.COURSE_IMAGE
             }
             
-            const assetType = assetTypeMap[endpoint] || 'GENERAL_FILE'
+            const assetType = assetTypeMap[endpoint] || AssetType.GENERAL_FILE
             
             const asset = await db.assets.create({
               data: {
@@ -268,7 +280,7 @@ export async function POST(request: NextRequest) {
                 mimeType: file.type,
                 size: file.size,
                 url: result.url,
-                type: assetType, // Use the mapped asset type
+                type: assetType,
                 uploadedBy: userId,
                 isActive: true
               }

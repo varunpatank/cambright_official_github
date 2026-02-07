@@ -2,40 +2,42 @@ import { Client } from 'minio'
 
 let minioClientInstance: Client | null = null
 
+// Get the public URL for displaying files
+export function getPublicUrl(objectName: string): string {
+	const publicUrl = process.env.R2_PUBLIC_URL || 'https://pub-4cea7b29ffd74a9aa5f511bb2bf0b4ff.r2.dev'
+	return `${publicUrl}/${objectName}`
+}
+
 function getMinioClient(): Client {
 	if (!minioClientInstance) {
-		if (!process.env.MINIO_URL) {
-			throw new Error('MINIO_URL is required')
+		// Support both new R2 config and legacy MINIO config
+		const accountId = process.env.R2_ACCOUNT_ID
+		const accessKeyId = process.env.R2_ACCESS_KEY_ID || process.env.MINIO_KEY_ID
+		const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY || process.env.MINIO_ACCESS_KEY
+
+		if (!accessKeyId) {
+			throw new Error('R2_ACCESS_KEY_ID or MINIO_KEY_ID is required')
 		}
 
-		if (!process.env.MINIO_KEY_ID) {
-			throw new Error('MINIO_KEY_ID is required')
+		if (!secretAccessKey) {
+			throw new Error('R2_SECRET_ACCESS_KEY or MINIO_ACCESS_KEY is required')
 		}
 
-		if (!process.env.MINIO_ACCESS_KEY) {
-			throw new Error('MINIO_ACCESS_KEY is required')
-		}
+		// Use Cloudflare R2 endpoint
+		const endPoint = accountId 
+			? `${accountId}.r2.cloudflarestorage.com`
+			: new URL(process.env.MINIO_URL || '').hostname
 
-		// Parse MinIO URL to extract endpoint and port
-		const minioUrl = new URL(process.env.MINIO_URL)
-		const endPoint = minioUrl.hostname
-		const port = minioUrl.port ? parseInt(minioUrl.port) : (minioUrl.protocol === 'https:' ? 443 : 9000)
-		const useSSL = minioUrl.protocol === 'https:'
-
-		console.log(`Initializing MinIO client: ${endPoint}:${port} (SSL: ${useSSL})`);
+		console.log(`Initializing R2/MinIO client: ${endPoint} (SSL: true)`);
 
 		minioClientInstance = new Client({
 			endPoint,
-			port,
-			useSSL,
-			accessKey: process.env.MINIO_KEY_ID,
-			secretKey: process.env.MINIO_ACCESS_KEY,
-			// Add region for better compatibility
-			region: 'us-east-1',
-			// Use path-style addressing for MinIO
+			port: 443,
+			useSSL: true,
+			accessKey: accessKeyId,
+			secretKey: secretAccessKey,
+			region: 'auto', // Cloudflare R2 uses 'auto' region
 			pathStyle: true,
-			// Set transport options for large file uploads
-			transportAgent: undefined, // Let MinIO handle transport
 		})
 	}
 
@@ -262,28 +264,26 @@ export async function uploadFile(
 		
 		// Generate a presigned URL for access (valid for 7 days)
 		try {
-			console.log('Generating presigned URL for video access...');
-			const presignedUrl = await minioClient.presignedGetObject(bucketName, objectName, 7 * 24 * 60 * 60); // 7 days
-			console.log(`Generated presigned URL: ${presignedUrl}`);
+			console.log('Generating URL for file access...');
+			
+			// For Cloudflare R2, use the public URL directly
+			const publicUrl = getPublicUrl(objectName);
+			console.log(`Generated public URL: ${publicUrl}`);
 			
 			return {
 				success: true,
-				url: presignedUrl,
+				url: publicUrl,
 			}
-		} catch (presignError) {
-			console.log('Could not generate presigned URL, using direct URL:', presignError);
+		} catch (urlError) {
+			console.log('Error generating URL:', urlError);
 			
-			// Fallback to direct URL if presigned URL fails
-			const baseUrl = process.env.MINIO_URL!.endsWith('/') 
-				? process.env.MINIO_URL!.slice(0, -1) 
-				: process.env.MINIO_URL!
-			
-			const finalUrl = `${baseUrl}/${bucketName}/${objectName}`;
-			console.log(`Generated direct URL: ${finalUrl}`);
+			// Fallback to public URL
+			const publicUrl = getPublicUrl(objectName);
+			console.log(`Fallback public URL: ${publicUrl}`);
 			
 			return {
 				success: true,
-				url: finalUrl,
+				url: publicUrl,
 			}
 		}
 	} catch (error: any) {

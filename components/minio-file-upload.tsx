@@ -70,6 +70,15 @@ export function MinioFileUpload({
   const uploadFiles = useCallback(async (files: FileList) => {
     if (!files || files.length === 0) return
 
+    // Check file size limit - max 1GB
+    const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB
+    for (const file of Array.from(files)) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`File "${file.name}" exceeds 1GB limit. Uploading files larger than 1GB may result in account suspension.`);
+        return;
+      }
+    }
+
     setIsUploading(true)
     setUploadProgress(0)
 
@@ -277,9 +286,12 @@ export function MinioFileUpload({
                 {endpoint === 'courseImage' || endpoint === 'roomImage' || endpoint === 'schoolPostImage' 
                   ? 'Images up to 4MB' 
                   : endpoint === 'chapterVideo' 
-                  ? 'Videos up to 10GB'
+                  ? 'Videos up to 1GB'
                   : 'Files up to 512MB'
                 }
+              </p>
+              <p className="text-xs text-red-500 mt-1 font-medium">
+                ⚠️ Max 1GB per file. Exceeding this limit may result in account suspension.
               </p>
             </>
           )}

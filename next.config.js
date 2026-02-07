@@ -194,6 +194,16 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'cdn-icons-png.freepik.com',
       },
+      // Cloudflare R2 public URL
+      {
+        protocol: 'https',
+        hostname: 'pub-4cea7b29ffd74a9aa5f511bb2bf0b4ff.r2.dev',
+      },
+      // Generic R2 pattern (in case bucket changes)
+      {
+        protocol: 'https',
+        hostname: '*.r2.dev',
+      },
     ],
   },
   
