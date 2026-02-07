@@ -78,8 +78,8 @@ model Chapter {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   videoAssetKey  String?
-  videoAsset     Assets?         @relation("ChapterVideoAsset", fields: [videoAssetKey], references: [key])
   course         Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  videoAsset     Assets?         @relation("ChapterVideoAsset", fields: [videoAssetKey], references: [key])
   cloudinaryData CloudinaryData?
   userProgress   UserProgress[]
 
@@ -536,8 +536,8 @@ model Assets {
   isActive                            Boolean      @default(true)
   createdAt                           DateTime     @default(now())
   updatedAt                           DateTime     @default(now())
-  Course                              Course[]
   Chapter                             Chapter[]    @relation("ChapterVideoAsset")
+  Course                              Course[]
   School_School_bannerAssetIdToAssets School[]     @relation("School_bannerAssetIdToAssets")
   School_School_imageAssetIdToAssets  School[]     @relation("School_imageAssetIdToAssets")
   SchoolPost                          SchoolPost[] @relation("SchoolPostImageAsset")
