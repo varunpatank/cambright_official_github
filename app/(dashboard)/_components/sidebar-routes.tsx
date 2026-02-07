@@ -131,6 +131,11 @@ const nextroutes: RouteItem[] = [
     href: "1",
     children: [
       {
+        icon: Bot,
+        label: "Tuto AI",
+        href: "/tuto-ai",
+      },
+      {
         icon: CheckCheck,
         label: "MCQ Mock Exam",
         href: "/mcq-solver",

@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
-import { ChevronDown, Play, Check, Clock, Plus, Minus, Shuffle } from 'lucide-react';
+import { ChevronDown, Play, Check, Clock, Plus, Minus, Shuffle, GraduationCap } from 'lucide-react';
 import { QuizSettings, TopicQuestionCount } from '../types/quiz';
-import { IGCSE_TOPICS } from '../services/geminiService';
+import { IGCSE_TOPICS, AS_TOPICS, A_LEVEL_TOPICS } from '../services/geminiService';
 
 interface QuizSetupProps {
   onStartQuiz: (settings: QuizSettings) => void;
   availableSubjects: string[];
 }
 
+const LEVELS = ['IGCSE', 'AS Level', 'A Level'] as const;
+
 export function QuizSetup({ onStartQuiz, availableSubjects }: QuizSetupProps) {
   const [settings, setSettings] = useState<QuizSettings>({
+    level: 'IGCSE',
     subject: 'Biology' as any,
     yearRange: { from: '2020', to: 'present' },
     topics: [],
@@ -95,11 +98,33 @@ export function QuizSetup({ onStartQuiz, availableSubjects }: QuizSetupProps) {
       'Music': 'Musical theory and performance',
       'Drama': 'Theatre arts and performance skills'
     };
-    return descriptions[subject] || 'Cambridge IGCSE subject';
+    return descriptions[subject] || 'Cambridge subject';
   };
 
-  const currentTopics = IGCSE_TOPICS[settings.subject as keyof typeof IGCSE_TOPICS] || [];
+  // Get topics based on selected level
+  const getTopicsForLevel = () => {
+    switch (settings.level) {
+      case 'AS Level':
+        return AS_TOPICS[settings.subject as keyof typeof AS_TOPICS] || [];
+      case 'A Level':
+        return A_LEVEL_TOPICS[settings.subject as keyof typeof A_LEVEL_TOPICS] || [];
+      default:
+        return IGCSE_TOPICS[settings.subject as keyof typeof IGCSE_TOPICS] || [];
+    }
+  };
+
+  const currentTopics = getTopicsForLevel();
   const allSubjects = Object.keys(IGCSE_TOPICS);
+
+  const handleLevelChange = (level: typeof LEVELS[number]) => {
+    setSettings({
+      ...settings,
+      level,
+      topics: [],
+      topicQuestions: []
+    });
+    setRandomQuestions(0);
+  };
 
   const handleSubjectChange = (subject: string) => {
     setSettings({
@@ -144,9 +169,40 @@ export function QuizSetup({ onStartQuiz, availableSubjects }: QuizSetupProps) {
     <div className="min-h-screen bg-black-100 text-white">
       <div className="max-w-6xl mx-auto p-8">
         <h1 className="text-6xl font-bold text-center mb-4 font-sora">Quizzer.</h1>
-        <p className="text-center text-gray-400 mb-12">CamBright Intelligence powered IGCSE exam practice with authentic past paper questions</p>
+        <p className="text-center text-gray-400 mb-12">CamBright Intelligence powered exam practice with authentic past paper questions</p>
         
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Level Selection */}
+          <div>
+            <label className="block text-lg font-medium mb-3">
+              <GraduationCap className="w-5 h-5 inline mr-2" />
+              Qualification Level:
+            </label>
+            <div className="grid grid-cols-3 gap-4">
+              {LEVELS.map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => handleLevelChange(level)}
+                  className={`p-4 border-2 rounded-lg transition-all text-center ${
+                    settings.level === level
+                      ? 'border-purple-600 bg-purple-900/30'
+                      : 'border-gray-700 bg-gray-900 hover:border-gray-600'
+                  }`}
+                >
+                  <h3 className={`text-lg font-bold ${settings.level === level ? 'text-purple-400' : 'text-white'}`}>
+                    {level}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {level === 'IGCSE' && 'Foundation level (Year 10-11)'}
+                    {level === 'AS Level' && 'Advanced Subsidiary (Year 12)'}
+                    {level === 'A Level' && 'Advanced Level (Year 13)'}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Subject Selection */}
           <div>
             <label className="block text-lg font-medium mb-3">Subject:</label>

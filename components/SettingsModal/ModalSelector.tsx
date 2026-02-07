@@ -13,11 +13,11 @@ interface ModelSelectorProps {
 }
 
 const MODEL_OPTIONS: ModelOption[] = [
-  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro" },
-  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash" },
-  { id: "gemini-2.0-lite", name: "Gemini 2.0 Lite" },
-  { id: "gemini-1.5", name: "Gemini 1.5" },
-  { id: "gemini-1.0", name: "Gemini 1.0" },
+  { id: "google/gemma-3-4b-it:free", name: "Gemma 3 4B (Free - Recommended)" },
+  { id: "google/gemma-3-12b-it:free", name: "Gemma 3 12B (Free)" },
+  { id: "google/gemma-3-27b-it:free", name: "Gemma 3 27B (Free)" },
+  { id: "meta-llama/llama-3.2-3b-instruct:free", name: "Llama 3.2 3B (Free)" },
+  { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B (Free)" },
 ];
 
 export default function ModelSelector({ model, onChange }: ModelSelectorProps) {

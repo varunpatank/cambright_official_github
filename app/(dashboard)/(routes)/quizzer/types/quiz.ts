@@ -47,6 +47,7 @@ export interface TopicQuestionCount {
 }
 
 export interface QuizSettings {
+  level: 'IGCSE' | 'AS Level' | 'A Level';
   subject: 'Biology' | 'Chemistry' | 'Physics' | 'Mathematics' | 'English Language' | 'English Literature' | 'History' | 'Geography' | 'Economics' | 'Business Studies' | 'Accounting' | 'Computer Science' | 'Art & Design' | 'Design & Technology' | 'Food & Nutrition' | 'Physical Education' | 'Music' | 'Drama';
   yearRange: { from: string; to: string };
   topics: string[];

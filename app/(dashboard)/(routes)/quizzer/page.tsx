@@ -5,7 +5,7 @@ import { QuizSetup } from './components/QuizSetup';
 import { QuizInterface } from './components/QuizInterface';
 import { QuizResults } from './components/QuizResults';
 import { QuizSettings, UserAnswer, GeneratedQuizQuestion } from './types/quiz';
-import { generateMixedQuestions, IGCSE_TOPICS, GenerationProgress } from './services/geminiService';
+import { generateMixedQuestions, IGCSE_TOPICS, AS_TOPICS, A_LEVEL_TOPICS, GenerationProgress } from './services/geminiService';
 
 type AppState = 'setup' | 'quiz' | 'results' | 'loading';
 
@@ -26,11 +26,15 @@ function App() {
       
       console.log('🚀 Generating quiz with CamBright Intelligence:', settings);
       
+      // Get the right topics based on level
+      const topicsForLevel = settings.level === 'AS Level' ? AS_TOPICS : 
+                             settings.level === 'A Level' ? A_LEVEL_TOPICS : 
+                             IGCSE_TOPICS;
+      
       // Handle random questions by selecting random topics
       const processedTopicQuestions = settings.topicQuestions.map(tq => {
         if (tq.topic === 'Random Mixed Topics') {
-          // For random questions, we'll generate from all available topics
-          const allTopics = IGCSE_TOPICS[settings.subject];
+          const allTopics = topicsForLevel[settings.subject];
           const randomTopic = allTopics[Math.floor(Math.random() * allTopics.length)];
           return { topic: randomTopic, count: tq.count };
         }
@@ -43,7 +47,8 @@ function App() {
         settings.difficulty,
         settings.paper === 'MCQ Only' ? 'MCQ' : 
         settings.paper === 'Theory Only' ? 'FRQ' : 'Mixed',
-        setGenerationProgress
+        setGenerationProgress,
+        settings.level
       );
       
       if (questions.length === 0) {
@@ -90,7 +95,7 @@ function App() {
           <div className="w-16 h-16 border-4 border-purple-700 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
           
           <h2 className="text-2xl font-bold font-sora mb-2">Generating Your Quiz</h2>
-          <p className="text-gray-400 mb-6">CamBright Intelligence is creating authentic IGCSE questions</p>
+          <p className="text-gray-400 mb-6">CamBright Intelligence is creating authentic {quizSettings?.level || 'IGCSE'} questions</p>
           
           {generationProgress && (
             <div className="space-y-4">
@@ -152,7 +157,12 @@ function App() {
   }
 
   if (appState === 'setup') {
-    return <QuizSetup onStartQuiz={handleStartQuiz} availableSubjects={['Biology', 'Chemistry', 'Physics', 'Mathematics']} />;
+    return (
+      <QuizSetup 
+        onStartQuiz={handleStartQuiz} 
+        availableSubjects={['Biology', 'Chemistry', 'Physics', 'Mathematics']} 
+      />
+    );
   }
 
   if (appState === 'quiz') {
