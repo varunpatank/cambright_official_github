@@ -5,13 +5,11 @@ import { redirect } from 'next/navigation'
 import { TitleForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/title-form'
 import { DescriptionForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/description-form'
 import { ImageForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/image-form'
-import { SubjectForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/subject-form'
 import { SessionlinkForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/sessionlink-form'
 import { SessiontimeForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/sessiontime'
 import { AttachmentForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/attachment-form'
 import { AttachmentlinkForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/attachmentlink-form'
 import { ChaptersForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/chapters-form'
-import { BoardForm } from '@/app/(dashboard)/(routes)/tutor/courses/[courseId]/_components/board-form'
 import { Banner } from '@/components/banner'
 import { isSuperAdmin } from '@/lib/admin'
 import { ArrowLeft, LayoutDashboard, Play, File, ListVideo } from 'lucide-react'
@@ -31,9 +29,6 @@ const SuperAdminCourseEditPage = async ({ params }: { params: { courseId: string
     },
   })
   if (!course) return redirect('/search-courses')
-
-  const subjects = await db.subject.findMany({ orderBy: { name: 'asc' } })
-  const boards = await db.board.findMany({ orderBy: { name: 'asc' } })
 
   return (
     <div className="p-6">
@@ -60,14 +55,6 @@ const SuperAdminCourseEditPage = async ({ params }: { params: { courseId: string
               <TitleForm initialData={course} courseId={course.id} />
               <DescriptionForm initialData={course} courseId={course.id} />
               <ImageForm initialData={course} courseId={course.id} />
-              <SubjectForm
-                initialData={course}
-                courseId={course.id}
-              />
-              <BoardForm
-                initialData={course}
-                courseId={course.id}
-              />
             </div>
             <div className="space-y-6">
               <div className="flex items-center gap-x-2">

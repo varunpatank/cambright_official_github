@@ -15,7 +15,6 @@ import { redirect } from "next/navigation";
 import { TitleForm } from "./_components/title-form";
 import { DescriptionForm } from "./_components/description-form";
 import { ImageForm } from "./_components/image-form-new";
-import { SubjectForm } from "./_components/subject-form";
 import { SessionlinkForm } from "./_components/sessionlink-form";
 import { SessiontimeForm } from "./_components/sessiontime";
 import { AttachmentForm } from "./_components/attachment-form";
@@ -24,7 +23,6 @@ import { ChaptersForm } from "./_components/chapters-form";
 import { Banner } from "@/components/banner";
 import { Actions } from "./_components/actions";
 import Link from "next/link";
-import { BoardForm } from "./_components/board-form";
 // export const maxDuration = 300;
 
 const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
@@ -45,19 +43,6 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
     },
   });
 
-  // Fetch subjects and boards
-  const subjects = await db.subject.findMany({
-    orderBy: {
-      name: "asc",
-    },
-  });
-
-  const boards = await db.board.findMany({
-    orderBy: {
-      name: "asc",
-    },
-  });
-
   if (!course) {
     return redirect("/tutor/courses");
   }
@@ -72,8 +57,6 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
   const optionalFields = [
     course.description,
     course.imageUrl || course.imageAssetId, // Accept either imageUrl or imageAssetId
-    course.subjectId,
-    course.boardId,
   ];
 
   const allRequiredFieldsFilled = requiredFields.every(Boolean);
@@ -129,14 +112,6 @@ const CourseIdPage = async ({ params }: { params: { courseId: string } }) => {
                 <TitleForm initialData={course} courseId={course.id} />
                 <DescriptionForm initialData={course} courseId={course.id} />
                 <ImageForm initialData={course} courseId={course.id} />
-                <SubjectForm
-                  initialData={course}
-                  courseId={course.id}
-                />
-                <BoardForm
-                  initialData={course}
-                  courseId={course.id}
-                />
               </div>
               <div className="space-y-6">
                 <div className="flex items-center gap-x-2">
