@@ -132,16 +132,3 @@ export const BoardForm = ({
     </div>
   );
 };
-                type="submit"
-                disabled={!isValid || isSubmitting}
-                variant="tert"
-              >
-                {isSubmitting ? "Saving.." : "Save"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      )}
-    </div>
-  );
-};
