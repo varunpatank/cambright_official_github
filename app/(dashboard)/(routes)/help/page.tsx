@@ -52,6 +52,8 @@ import { saveAs } from "file-saver";
 import { useConfettiStore } from "@/hooks/use-confetti-store";
 import Player from "@/components/Player";
 import { FileDown, Loader2 } from "lucide-react";
+import { StarryBackground } from "@/components/ui/starry-background";
+import { Cover } from "@/components/ui/cover";
 
 type FormData = {
   email: string;
@@ -181,9 +183,17 @@ const TutorPage = () => {
       <BackgroundLines>
         <div className="relative z-20 px-6 py-10 md:px-12 md:py-20 lg:px-16 lg:py-32 lg:pt-20 md:pt-12 pt-8 flex-grow">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-wide leading-tight mb-5">
-              Help center.
-            </h1>
+            {/* Starry Header */}
+            <StarryBackground height="160px" intensity="medium" className="mb-12">
+              <div className="flex items-center justify-center h-full py-6">
+                <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
+                  <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-wide leading-tight">
+                    Help <span className="text-purple-400">Center</span>.
+                  </h1>
+                </Cover>
+              </div>
+            </StarryBackground>
+            
             <section className="mb-24 text-start">
               <h3 className="text-3xl sm:text-4xl font-semibold mb-8 text-purple-400">
                 FAQ

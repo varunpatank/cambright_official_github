@@ -12,7 +12,7 @@ import { MobileSidebar } from "./MobileSidebar";
 
 export const TrackerNavbar = () => {
   return (
-    <div className="p-4 border-b h-full flex items-center border-n-6 bg-n-8/90 backdrop-blur-sm shadow-sm">
+    <div className="p-4 border-b h-full flex items-center border-gray-800 bg-black/95 backdrop-blur-sm shadow-sm">
       <MobileSidebar />
       <NavbarRoutes />{" "}
     </div>

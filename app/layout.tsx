@@ -30,6 +30,11 @@ export const metadata: Metadata = {
   title: "CamBright | Top Scores & Bright Futures",
   description:
     "CamBright | Top Scores & Bright Futures - Free Past papers, study tools, and a community that has got your back!",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -45,9 +50,6 @@ export default function RootLayout({
       // publishableKey={clerkPubKey}
     >
       <html lang="en">
-        <head>
-          <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-        </head>
         <body className={inter.className} suppressHydrationWarning={true}>
           {/* <ContextMenu> */}
           {/* <ContextMenuTrigger> */}

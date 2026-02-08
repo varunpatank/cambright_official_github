@@ -17,6 +17,8 @@ import {
 import { TimelineStory } from "../../_components/our-story";
 import Footerer from "@/components/Footerer";
 import Link from "next/link";
+import { StarryBackground } from "@/components/ui/starry-background";
+import { Cover } from "@/components/ui/cover";
 // export const maxDuration = 300;
 
 // Type definition for the user data
@@ -339,14 +341,21 @@ const TutorPage = () => {
       <BackgroundLines>
         <div className="relative z-20 px-6 py-10 md:px-12 md:py-20 lg:px-16 lg:py-32 lg:pt-20 md:pt-12 pt-8 flex-grow">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-wide leading-tight mb-5">
-              About Cambright.
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl font-light mb-12 opacity-90">
-              Our main goal is simply to help all students around the world to
-              catch those <span className="text-purple-400"> A*s</span> at no
-              cost at all and as close as their device screen!
-            </p>
+            {/* Starry Header */}
+            <StarryBackground height="200px" intensity="high" className="mb-12">
+              <div className="flex items-center justify-center h-full py-8">
+                <Cover className="inline-block px-10 py-6 bg-neutral-900/60 rounded-xl">
+                  <div className="text-center">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-wide leading-tight">
+                      About <span className="text-purple-400">Cambright</span>.
+                    </h1>
+                    <p className="text-lg sm:text-xl md:text-2xl font-light mt-4 opacity-90 max-w-2xl">
+                      Helping students around the world catch those <span className="text-purple-400">A*s</span> for free!
+                    </p>
+                  </div>
+                </Cover>
+              </div>
+            </StarryBackground>
 
             {/* Meet the Team Title */}
             <h2 className="text-4xl sm:text-5xl font-extrabold tracking-wide leading-tight mb-12">

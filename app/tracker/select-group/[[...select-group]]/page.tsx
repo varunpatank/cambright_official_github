@@ -19,17 +19,19 @@ export default function CreateOrganizationPage() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-n-8 to-n-7 text-white  flex h-full">
+    <div className="bg-black text-white flex h-full min-h-screen">
       <BackgroundLines>
-        <div className="relative z-20 px-6 py-5 md:px-12 md:py-8 lg:px-16 lg:py-8 lg:pt-15 md:pt-8 pt-5 flex-grow ">
+        <div className="relative z-20 px-6 py-5 md:px-12 md:py-8 lg:px-16 lg:py-12 lg:pt-24 md:pt-16 pt-12 flex-grow ">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-wide leading-tight mb-5">
-              <Cover>Progress</Cover> Tracker.
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl font-light mb-12 opacity-90">
-              Track your progress, create a study group and gather study buddies
-              to boost your studying progress and ACE your exams!
-            </p>
+            <Cover className="inline-block px-8 py-6 mb-8">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-wide leading-tight mb-5">
+                Progress Tracker.
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl font-light opacity-90">
+                Track your progress, create a study group and gather study buddies
+                to boost your studying progress and ACE your exams!
+              </p>
+            </Cover>
             <div className="justify-center items-center flex">
               <OrganizationList
                 hidePersonal

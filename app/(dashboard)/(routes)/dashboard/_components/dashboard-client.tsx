@@ -31,6 +31,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
+import { StarryBackground } from "@/components/ui/starry-background";
+import { Cover } from "@/components/ui/cover";
 
 interface DashboardClientProps {
   userId: string;
@@ -166,18 +168,21 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
   return (
     <div className="min-h-screen bg-black-100 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Spacer */}
-        <div className="h-8"></div>
-        
-        {/* Header */}
-        <div className="text-center space-y-4 mt-4">
-          <h1 className="text-5xl font-sora font-bold text-white">
-            Welcome Back, <span className="text-purple-400">{capitalizedName}</span>!
-          </h1>
-          <p className="text-xl text-gray-300 font-code">
-            Continue your educational journey with CamBright
-          </p>
-        </div>
+        {/* Starry Header Section */}
+        <StarryBackground height="180px" intensity="medium" className="mt-4">
+          <div className="flex items-center justify-center h-full py-8">
+            <Cover className="inline-block px-8 py-6 bg-neutral-900/60 rounded-xl">
+              <div className="text-center space-y-3">
+                <h1 className="text-4xl md:text-5xl font-sora font-bold text-white">
+                  Welcome Back, <span className="text-purple-400">{capitalizedName}</span>!
+                </h1>
+                <p className="text-lg md:text-xl text-gray-300 font-code">
+                  Continue your educational journey with CamBright
+                </p>
+              </div>
+            </Cover>
+          </div>
+        </StarryBackground>
 
         {/* User Profile Card */}
         <Card className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-purple-500/30 backdrop-blur-sm">

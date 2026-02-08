@@ -4,19 +4,28 @@ import { ChatHistory } from "@/types";
 import { Bot, User, Copy, Check } from "lucide-react";
 import Image from "next/image";
 
-// Simple markdown formatter
+// Enhanced markdown formatter with better styling
 function formatMarkdown(text: string): React.ReactNode[] {
+  // Remove any hashtag headings and convert to bold
+  let processedText = text
+    .replace(/^#{1,6}\s+(.+)$/gm, '**$1**')
+    .replace(/•/g, '  •'); // Add spacing before bullets
+  
   // Process the text line by line for better control
-  const lines = text.split('\n');
+  const lines = processedText.split('\n');
   
   return lines.map((line, lineIndex) => {
     const elements: React.ReactNode[] = [];
     let lineRemaining = line;
     let elemKey = 0;
+    
+    // Check if line is a bullet point for special styling
+    const isBulletPoint = line.trim().startsWith('•') || line.trim().startsWith('-') || line.trim().match(/^\d+\./);
 
-    // Process bold (**text**), italic (*text*), and code (`text`)
+    // Process bold (**text**), italic/underline (_text_), and code (`text`)
     while (lineRemaining.length > 0) {
       const boldMatch = lineRemaining.match(/\*\*(.+?)\*\*/);
+      const italicMatch = lineRemaining.match(/_([^_]+)_/);
       const codeMatch = lineRemaining.match(/\x60([^\x60]+)\x60/); // Using hex for backtick
       
       // Find the earliest match
@@ -24,6 +33,11 @@ function formatMarkdown(text: string): React.ReactNode[] {
       
       if (boldMatch && boldMatch.index !== undefined) {
         earliestMatch = { match: boldMatch, type: 'bold' };
+      }
+      if (italicMatch && italicMatch.index !== undefined) {
+        if (!earliestMatch || italicMatch.index < (earliestMatch.match.index || 0)) {
+          earliestMatch = { match: italicMatch, type: 'italic' };
+        }
       }
       if (codeMatch && codeMatch.index !== undefined) {
         if (!earliestMatch || codeMatch.index < (earliestMatch.match.index || 0)) {
@@ -40,6 +54,8 @@ function formatMarkdown(text: string): React.ReactNode[] {
         // Add the formatted element
         if (earliestMatch.type === 'bold') {
           elements.push(<strong key={`${lineIndex}-${elemKey++}`} className="font-semibold text-white">{earliestMatch.match[1]}</strong>);
+        } else if (earliestMatch.type === 'italic') {
+          elements.push(<em key={`${lineIndex}-${elemKey++}`} className="text-purple-300 not-italic border-b border-purple-400/50">{earliestMatch.match[1]}</em>);
         } else if (earliestMatch.type === 'code') {
           elements.push(<code key={`${lineIndex}-${elemKey++}`} className="px-1.5 py-0.5 rounded bg-white/10 text-purple-300 font-mono text-sm">{earliestMatch.match[1]}</code>);
         }
@@ -53,11 +69,15 @@ function formatMarkdown(text: string): React.ReactNode[] {
         break;
       }
     }
+    
+    // Add extra spacing for empty lines (section breaks)
+    const isEmptyLine = line.trim() === '';
 
     return (
-      <span key={lineIndex}>
+      <span key={lineIndex} className={isBulletPoint ? 'block pl-2 py-0.5' : ''}>
         {elements}
         {lineIndex < lines.length - 1 && <br />}
+        {isEmptyLine && <span className="block h-2" />}
       </span>
     );
   });

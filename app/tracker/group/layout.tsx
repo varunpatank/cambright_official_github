@@ -7,7 +7,7 @@ import "./customertwo.css";
 
 const TrackerLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-black min-h-screen">
       {/* Navbar */}
       <div className="h-[80px] fixed top-0 left-0 w-full z-50 ">
         <TrackerNavbar />

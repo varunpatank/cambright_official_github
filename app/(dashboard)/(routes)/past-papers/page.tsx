@@ -11,6 +11,8 @@ import { redirect } from "next/navigation";
 import GlateCard from "@/components/ui/glatecard";
 import SolvedCard from "./_components/SolvedCard";
 import NewCard from "./_components/NewCard";
+import { StarryBackground } from "@/components/ui/starry-background";
+import { Cover } from "@/components/ui/cover";
 
 // Mapping object for subject name replacements
 const subjectMapping: Record<string, string> = {
@@ -76,10 +78,18 @@ const PastPapersMainPage = () => {
       <div className="relative flex flex-col">
         <FloatingNavbar />
         <div className="flex-grow p-8">
+          {/* Starry Header */}
+          <StarryBackground height="140px" intensity="medium" className="mb-8">
+            <div className="flex items-center justify-center h-full py-6">
+              <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
+                <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
+                  Past <span className="text-purple-400">Papers</span>
+                </h1>
+              </Cover>
+            </div>
+          </StarryBackground>
+          
           <div className="flex flex-col items-center mb-8">
-            <h1 className="text-center text-3xl font-bold text-white opacity-90 mb-4">
-              Past Papers
-            </h1>
             <SearchInputSubjects setSearchTerm={setSearchTerm} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 h-full">

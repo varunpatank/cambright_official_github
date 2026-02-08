@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ChevronDown, Play, Check, Clock, Plus, Minus, Shuffle, GraduationCap } from 'lucide-react';
 import { QuizSettings, TopicQuestionCount } from '../types/quiz';
 import { IGCSE_TOPICS, AS_TOPICS, A_LEVEL_TOPICS } from '../services/geminiService';
+import { Cover } from "@/components/ui/cover";
+import { StarryBackground } from "@/components/ui/starry-background";
 
 interface QuizSetupProps {
   onStartQuiz: (settings: QuizSettings) => void;
@@ -167,9 +169,19 @@ export function QuizSetup({ onStartQuiz, availableSubjects }: QuizSetupProps) {
 
   return (
     <div className="min-h-screen bg-black-100 text-white">
+      {/* Starry Header */}
+      <StarryBackground height="240px" intensity="medium" showMeteors={true}>
+        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+          <Cover className="inline-block px-8 py-6">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+              Question <span className="text-purple-400">Quizzer</span>.
+            </h1>
+            <p className="text-gray-400 text-center">CamBright Intelligence powered exam practice with authentic past paper questions</p>
+          </Cover>
+        </div>
+      </StarryBackground>
+      
       <div className="max-w-6xl mx-auto p-8">
-        <h1 className="text-6xl font-bold text-center mb-4 font-sora">Quizzer.</h1>
-        <p className="text-center text-gray-400 mb-12">CamBright Intelligence powered exam practice with authentic past paper questions</p>
         
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Level Selection */}

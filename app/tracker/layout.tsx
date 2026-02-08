@@ -10,7 +10,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const isSprintPage =
     pathname?.includes("/sprint") || pathname?.includes("/template-sprint");
   return (
-    <div className="h-full">
+    <div className="h-full bg-black min-h-screen">
       {/* Navbar */}
       {!isGroupPage && (
         <div

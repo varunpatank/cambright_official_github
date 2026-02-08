@@ -8,6 +8,8 @@ import { WobbleCard } from "@/components/ui/wobble-card";
 import MagicButton from "@/components/MagicButton";
 import { HandHeart } from "lucide-react";
 import { ConfirmModalVeryCustom } from "@/components/modals/confirm-modal-verycustom";
+import { StarryBackground } from "@/components/ui/starry-background";
+import { Cover } from "@/components/ui/cover";
 // export const maxDuration = 300;
 
 const products = [
@@ -81,6 +83,19 @@ const products = [
 const DonatePage = () => {
   return (
     <main className="relative bg-black-100 flex justify-center items-center flex-col overflow-hidden mx-auto px-0">
+      {/* Starry Header */}
+      <div className="w-full max-w-7xl px-4 pt-8">
+        <StarryBackground height="160px" intensity="high" className="mb-4">
+          <div className="flex items-center justify-center h-full py-6">
+            <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
+              <h1 className="text-4xl sm:text-5xl font-bold text-white text-center">
+                Support <span className="text-purple-400">Our Mission</span>
+              </h1>
+            </Cover>
+          </div>
+        </StarryBackground>
+      </div>
+      
       <div className="max-w-7xl w-full">
         {/* If HeroParallax accepts animation strength, reduce dip here */}
         <HeroParallax products={products} />

@@ -9,6 +9,8 @@ import { NotesList } from "@/components/notes-list";
 import { getNotes } from "@/actions/get-notes";
 import { SquareArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { StarryBackground } from "@/components/ui/starry-background";
+import { Cover } from "@/components/ui/cover";
 
 interface SearchPageProps {
   searchParams: {
@@ -38,10 +40,23 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
 
   return (
     <>
-      <div className="px-6 pt-6 md:hidden md:mb-0 block">
+      {/* Starry Header */}
+      <div className="p-6">
+        <StarryBackground height="140px" intensity="medium">
+          <div className="flex items-center justify-center h-full py-6">
+            <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
+              <h1 className="text-3xl md:text-4xl font-sora font-bold text-white text-center">
+                Browse <span className="text-purple-400">Courses & Notes</span>
+              </h1>
+            </Cover>
+          </div>
+        </StarryBackground>
+      </div>
+
+      <div className="px-6 pt-2 md:hidden md:mb-0 block">
         <SearchInput />
       </div>
-      <div className="p-6">
+      <div className="p-6 pt-2">
         <Subjects items={subjects} />
 
         {/* Courses Section */}

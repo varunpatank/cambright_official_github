@@ -20,6 +20,8 @@ import {
   Sparkles
 } from 'lucide-react'
 import { getAllSchools, getTotalStats, searchSchools, type StaticSchool } from '@/data/schools-static'
+import { StarryBackground } from "@/components/ui/starry-background"
+import { Cover } from "@/components/ui/cover"
 
 interface SchoolWithRank extends StaticSchool {
   rank: number
@@ -72,22 +74,25 @@ export default function SchoolHubPage() {
   return (
     <div className="min-h-screen bg-n-8 p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-7xl mx-auto">
-        {/* Hero Header */}
-        <div className="text-center mb-12 pt-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6">
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className="text-purple-300 text-sm font-medium">Global Community</span>
+        {/* Starry Hero Header */}
+        <StarryBackground height="220px" intensity="high" className="mb-10">
+          <div className="flex items-center justify-center h-full py-8">
+            <Cover className="inline-block px-10 py-6 bg-neutral-900/60 rounded-xl">
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 border border-purple-500/30 mb-4">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                  <span className="text-purple-300 text-sm font-medium">Global Community</span>
+                </div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-n-1 tracking-tight">
+                  School <span className="text-purple-400">Chapters</span>
+                </h1>
+                <p className="text-n-3 text-base sm:text-lg max-w-2xl mx-auto mt-4 leading-relaxed">
+                  Meet the incredible schools making a difference with CamBright
+                </p>
+              </div>
+            </Cover>
           </div>
-          
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-n-1 mb-6 tracking-tight">
-            School Chapters
-          </h1>
-          
-          <p className="text-n-3 text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed">
-            Meet the incredible schools making a difference in their communities through 
-            tutoring, mentorship, and volunteer work with CamBright.
-          </p>
-        </div>
+        </StarryBackground>
 
         {/* About Section */}
         <div className="mb-10">

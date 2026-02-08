@@ -150,16 +150,11 @@ const nextroutes: RouteItem[] = [
         label: "Marks Predictor",
         href: "/predictor",
       },
-      // {
-      //   icon: Calculator,
-      //   label: "Predictor",
-      //   href: "/predictor",
-      // },
-      // {
-      //   icon: PenLine,
-      //   label: "Mock exam",
-      //   href: "/mockexam",
-      // },
+      {
+        icon: Copy,
+        label: "Flashcards",
+        href: "/flashcards",
+      },
       {
         icon: ListChecks,
         label: "Progress Tracker",
@@ -199,11 +194,6 @@ const nextroutes: RouteItem[] = [
         icon: TvMinimalPlay,
         label: "Courses",
         href: "/search-courses",
-      },
-      {
-        icon: Copy,
-        label: "Flashcards",
-        href: "/flashcards",
       },
     ],
   },

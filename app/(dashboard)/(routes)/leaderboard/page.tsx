@@ -15,6 +15,8 @@ import {
   VerifiedIcon,
 } from "lucide-react";
 import { StarsBackground } from "@/components/ui/shooting-stars";
+import { StarryBackground } from "@/components/ui/starry-background";
+import { Cover } from "@/components/ui/cover";
 import Link from "next/link";
 import {
   Tooltip,
@@ -197,10 +199,20 @@ const LeaderBoardPage = () => {
     <TooltipProvider delayDuration={100}>
       <div className="max-w-4xl mx-auto p-6">
         <StarsBackground />
-        <h1 className="text-4xl sm:text-5xl md:text-5xl text-white font-extrabold text-center text-gradient bg-clip-text text-transparent mb-8 sm:mb-12 relative">
-          Leaderboard.
-          <p className="text-lg text-gray-500">Why not beat the toppers?</p>
-        </h1>
+        
+        {/* Starry Header */}
+        <StarryBackground height="160px" intensity="high" className="mb-8">
+          <div className="flex items-center justify-center h-full py-6">
+            <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
+              <div className="text-center">
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-white">
+                  Leaderboard<span className="text-purple-400">.</span>
+                </h1>
+                <p className="text-lg text-gray-400 mt-2">Why not beat the toppers?</p>
+              </div>
+            </Cover>
+          </div>
+        </StarryBackground>
         
         {/* Leaderboard Stats */}
         {leaderboardStats && (

@@ -45,7 +45,7 @@ const TrackerSidebar = ({
   if (!isLoadedOrg || !isLoadedOrgList || userMemberships.isLoading) {
     return (
       <>
-        <div className="font-medium pt-6 mb-1 bg-n-7 min-w-full pl-2 pr-2 gap-x-2 py-2">
+        <div className="font-medium pt-6 mb-1 bg-black min-w-full pl-2 pr-2 gap-x-2 py-2 min-h-screen border-r border-gray-800">
           <Skeleton className="h-10 w-[90%] mb-4" />
           <NavItem.Skeleton /> <NavItem.Skeleton /> <NavItem.Skeleton />
         </div>
@@ -54,12 +54,12 @@ const TrackerSidebar = ({
   }
   return (
     <>
-      <div className="font-medium pt-6 mb-1 bg-n-7 min-w-full pl-2 pr-2 ">
+      <div className="font-medium pt-6 mb-1 bg-black min-w-full pl-2 pr-2 min-h-screen border-r border-gray-800">
         <div className="flex">
-          <span className="pl-2 pt-2">Study Groups</span>
+          <span className="pl-2 pt-2 text-gray-300">Study Groups</span>
           <Button
             asChild
-            className="ml-auto hover:bg-n-8 transition-all"
+            className="ml-auto hover:bg-gray-900 transition-all"
             size={"icon"}
             variant={"ghost"}
           >
