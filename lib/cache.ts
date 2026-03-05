@@ -1,7 +1,6 @@
 // Cache utility with Redis and memory fallback
 // Supports both Redis (production) and in-memory cache (development)
-
-import { Redis } from 'ioredis'
+// Redis is only used when REDIS_URL is explicitly set in environment variables
 
 interface CacheInterface {
 	get(key: string): Promise<string | null>
@@ -10,44 +9,71 @@ interface CacheInterface {
 	clear(): Promise<void>
 }
 
-// Redis cache implementation
+// Redis cache implementation (lazy-loaded only when REDIS_URL is set)
 class RedisCache implements CacheInterface {
-	private redis: Redis
+	private redis: any
+	private connected: boolean = false
 
-	constructor() {
-		this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379')
+	constructor(redisUrl: string) {
+		// Dynamically import ioredis to avoid loading it when not needed
+		const IoRedis = require('ioredis')
+		this.redis = new IoRedis(redisUrl, {
+			lazyConnect: true,
+			maxRetriesPerRequest: 1,
+			retryStrategy(times: number) {
+				if (times > 3) return null // Stop retrying after 3 attempts
+				return Math.min(times * 200, 2000)
+			},
+			enableOfflineQueue: false,
+		})
+		this.redis.on('error', (err: Error) => {
+			if (this.connected) {
+				console.warn('Redis connection error:', err.message)
+			}
+			this.connected = false
+		})
+		this.redis.on('connect', () => {
+			this.connected = true
+		})
+		// Attempt connection but don't block
+		this.redis.connect().catch(() => {
+			this.connected = false
+		})
 	}
 
 	async get(key: string): Promise<string | null> {
+		if (!this.connected) return null
 		try {
 			return await this.redis.get(key)
 		} catch (error) {
-			console.warn('Redis get error:', error)
 			return null
 		}
 	}
 
 	async setex(key: string, ttl: number, value: string): Promise<void> {
+		if (!this.connected) return
 		try {
 			await this.redis.setex(key, ttl, value)
 		} catch (error) {
-			console.warn('Redis setex error:', error)
+			// silently fail
 		}
 	}
 
 	async del(key: string): Promise<void> {
+		if (!this.connected) return
 		try {
 			await this.redis.del(key)
 		} catch (error) {
-			console.warn('Redis del error:', error)
+			// silently fail
 		}
 	}
 
 	async clear(): Promise<void> {
+		if (!this.connected) return
 		try {
 			await this.redis.flushall()
 		} catch (error) {
-			console.warn('Redis clear error:', error)
+			// silently fail
 		}
 	}
 }
@@ -90,12 +116,13 @@ class SmartCache implements CacheInterface {
 	constructor() {
 		this.memoryCache = new MemoryCache()
 		
-		// Only use Redis in production or if explicitly configured
-		if (process.env.REDIS_URL || process.env.NODE_ENV === 'production') {
+		// Only use Redis when REDIS_URL is explicitly configured
+		const redisUrl = process.env.REDIS_URL
+		if (redisUrl) {
 			try {
-				this.redisCache = new RedisCache()
+				this.redisCache = new RedisCache(redisUrl)
 			} catch (error) {
-				console.warn('Failed to initialize Redis, falling back to memory cache:', error)
+				console.warn('Failed to initialize Redis, falling back to memory cache')
 			}
 		}
 	}

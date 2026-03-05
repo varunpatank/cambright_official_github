@@ -2,6 +2,8 @@
 // Provides detailed performance health status for monitoring systems
 
 import { NextRequest, NextResponse } from 'next/server'
+
+export const dynamic = 'force-dynamic'
 import { performanceMetrics } from '@/lib/performance-metrics'
 import { queryMonitor, checkDatabaseHealth } from '@/lib/query-performance-monitor'
 import { enhancedCache } from '@/lib/enhanced-cache'
