@@ -1,6 +1,6 @@
 // Test large file upload limits
 export const runtime = 'nodejs'
-export const maxDuration = 1800; // 30 minutes
+export const maxDuration = 300; // 5 minutes (Vercel Hobby plan max)
 export const dynamic = 'force-dynamic';
 // Note: Body size limits should be configured in next.config.js
 const MAX_BODY_SIZE = 10 * 1024 * 1024 * 1024; // 10GB

@@ -9,7 +9,7 @@ import { AssetType } from '@prisma/client'
 
 // Configure route for large file uploads
 export const runtime = 'nodejs'
-export const maxDuration = 1800; // 30 minutes for large files
+export const maxDuration = 300; // 5 minutes (Vercel Hobby plan max)
 export const dynamic = 'force-dynamic';
 
 // Additional configuration for large file handling

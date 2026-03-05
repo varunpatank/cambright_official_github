@@ -6,7 +6,7 @@ import { db } from '@/lib/db'
 
 // Configure route for large video uploads
 export const runtime = 'nodejs'
-export const maxDuration = 1800; // 30 minutes for large videos
+export const maxDuration = 300; // 5 minutes (Vercel Hobby plan max)
 export const dynamic = 'force-dynamic';
 
 // Video specific configuration
