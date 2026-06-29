@@ -1,27 +1,15 @@
-"use client";
-import { BackgroundLines } from "@/components/ui/background-lines";
-import { Button } from "@/components/ui/button";
+﻿"use client";
 import { useState } from "react";
-import Image from "next/image"; // For handling images
-import { FaCrown, FaLinkedinIn, FaGithub } from "react-icons/fa"; // LinkedIn and GitHub Icons
+import Image from "next/image";
+import { FaLinkedinIn, FaGithub } from "react-icons/fa";
 import { FaInstagram } from "react-icons/fa6";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { TimelineStory } from "../../_components/our-story";
 import Footerer from "@/components/Footerer";
 import Link from "next/link";
 import { StarryBackground } from "@/components/ui/starry-background";
-import { Cover } from "@/components/ui/cover";
-// export const maxDuration = 300;
+import { Button } from "@/components/ui/button";
 
-// Type definition for the user data
 interface SocialLinks {
   linkedin?: string;
   instagram?: string;
@@ -37,80 +25,69 @@ interface User {
   avatar: string;
 }
 
-// Users data
-const users: User[] = [
+const founders: User[] = [
   {
     name: "Varun P.",
-    role: "Head of Non-Profit",
+    role: "Head of Operations",
     bio: "Lifelong Football fan | Avid Badminton Coach & Player | App Development Enthusiast | Cambridge Glazer",
-    tags: ["Developer", "Football Fan"],
-    socialLinks: {
-      linkedin: "https://www.linkedin.com/in/alicejohnson",
-      instagram: "/instagram.svg",
-    },
+    tags: ["Co-Founder", "Head of Operations"],
+    socialLinks: { linkedin: "https://www.linkedin.com/in/alicejohnson" },
     avatar: "/varun.png",
   },
   {
     name: "Varram",
     role: "Head of Business",
     bio: "",
-    tags: ["Business Strategist"],
-    socialLinks: {
-      linkedin: "https://www.linkedin.com/in/emmalee",
-      github: "https://github.com/varram",
-    },
+    tags: ["Co-Founder", "Business Strategist"],
+    socialLinks: { linkedin: "https://www.linkedin.com/in/emmalee", github: "https://github.com/varram" },
     avatar: "/varram.png",
   },
   {
     name: "Salah",
     role: "Head of Tech",
     bio: "I'm an Arab Muslim developer with an interest in cardiology. I developed this website. 😁",
-    tags: ["Head of Tech", "Developer"],
-    socialLinks: {
-      github: "https://github.com",
-      instagram: "https://www.instagram.com/sala7.dev",
-    },
+    tags: ["Co-Founder", "Head of Tech"],
+    socialLinks: { github: "https://github.com", instagram: "https://www.instagram.com/sala7.dev" },
     avatar: "/salahx.png",
   },
   {
     name: "Ganna",
     role: "Recruiter & Designer",
-    bio: "I'm proud to be part of the Cambright team, where I lead with creativity and connection. I craft visuals that define our brand and work to build a strong, united team that drives our success.",
-    tags: ["Designer", "Recruiter"],
-    socialLinks: {
-      linkedin: "none",
-    },
+    bio: "I craft visuals that define our brand and work to build a strong, united team that drives our success.",
+    tags: ["Co-Founder", "Designer"],
+    socialLinks: {},
     avatar: "/ellie.png",
   },
-  
-  
-  
   {
     name: "Arunima",
     role: "Marketing",
-    bio: "Hey!! My name is Arunima! I love helping out students with reaching their full potential! Outside of academia, I love animals and drawing! I hope this website helps you in reaching your full potential! :)",
-    tags: ["Marketer", "Animal Lover"],
-    socialLinks: {
-      linkedin: "https://www.linkedin.com/in/davidwilson",
-    },
+    bio: "I love helping students reach their full potential! Outside of academia, I love animals and drawing!",
+    tags: ["Co-Founder", "Marketing"],
+    socialLinks: { linkedin: "https://www.linkedin.com/in/davidwilson" },
     avatar: "/aru.webp",
   },
-  
+];
 
-  
+const board: User[] = [
+  {
+    name: "Vaishnav B",
+    role: "Tutor",
+    bio: "",
+    tags: ["Board Member", "Tutor"],
+    socialLinks: {},
+    avatar: "/user1.png",
+  },
   {
     name: "Khant Thiha Zaw",
-    role: "Resources, Ex-Lead, Top Member",
-    bio: "I am a student from Myanmar studying As and A levels with a soft spot for cats.",
-    tags: ["Student", "Cat Lover"],
-    socialLinks: {
-      linkedin: " https://www.linkedin.com/in/khant-thiha-zaw-b998a932a",
-    },
+    role: "Resources & Ex-Lead",
+    bio: "I am a student from Myanmar studying AS and A Levels with a soft spot for cats.",
+    tags: ["Top Member", "Cat Lover"],
+    socialLinks: { linkedin: "https://www.linkedin.com/in/khant-thiha-zaw-b998a932a" },
     avatar: "/khant.png",
   },
   {
     name: "Lukas C.",
-    role: "Math/Developer",
+    role: "Math & Developer",
     bio: "",
     tags: ["Developer", "Volunteer"],
     socialLinks: {},
@@ -120,11 +97,10 @@ const users: User[] = [
     name: "Vijay P.",
     role: "Video Editor",
     bio: "Avid chess player and video maker.",
-    tags: ["Video Editor", "Chess enthusiast"],
+    tags: ["Video Editor"],
     socialLinks: {},
     avatar: "/user1.png",
   },
-  
   {
     name: "Zisty",
     role: "Marketing",
@@ -136,380 +112,285 @@ const users: User[] = [
   {
     name: "Daro",
     role: "Community Manager",
-    bio: "I’m Daro, an aspiring medic with a passion for learning and teaching. I love exploring the world of medicine and expanding my knowledge. My goal is to make students enjoy learning and find their passion!",
+    bio: "I'm Daro, an aspiring medic with a passion for learning and teaching. My goal is to make students enjoy learning!",
     tags: ["Moderator", "Top Volunteer"],
-    socialLinks: {
-      linkedin: "https://www.linkedin.com/in/michaelclark",
-      instagram: "/instagram.svg",
-    },
+    socialLinks: { linkedin: "https://www.linkedin.com/in/michaelclark" },
     avatar: "/daru.png",
-  },
-
-  {
-    name: "KMD",
-    role: "Tutor",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user2.png",
-  },
-  {
-    name: "Itrolode",
-    role: "Paper volunteer",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user1.png",
-  },
-  {
-    name: "Volunteer",
-    role: "Tutor",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user2.png",
-  },
-  {
-    name: "Volunteer",
-    role: "Tutor",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user1.png",
-  },
-  {
-    name: "Volunteer",
-    role: "Notes volunteer",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user2.png",
-  },
-  {
-    name: "Nour",
-    role: "Tutor",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user1.png",
-  },
-  {
-    name: "Yinzeus",
-    role: "Paper volunteer",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user2.png",
-  },
-  {
-    name: "Vashi",
-    role: "Paper volunteer",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user1.png",
   },
 ];
 
-// Function to generate random colors for tags
-const generateTagColor = (tag: string) => {
-  const colors = [
-    "bg-purple-400",
-    "bg-blue-400",
-    "bg-green-400",
-    "bg-red-400",
-    "bg-yellow-400",
-    "bg-pink-400",
-    "bg-indigo-400",
-  ];
-  const index = tag.length % colors.length; // simple hashing by length
-  return colors[index];
+const volunteers: User[] = [
+  { name: "Itrolode", role: "Paper Volunteer", bio: "", tags: ["Volunteer"], socialLinks: {}, avatar: "/user1.png" },
+  { name: "Nour", role: "Volunteer", bio: "", tags: ["Volunteer"], socialLinks: {}, avatar: "/user1.png" },
+  { name: "Yinzeus", role: "Paper Volunteer", bio: "", tags: ["Volunteer"], socialLinks: {}, avatar: "/user2.png" },
+  { name: "Vashi", role: "Paper Volunteer", bio: "", tags: ["Volunteer"], socialLinks: {}, avatar: "/user1.png" },
+];
+
+const storyMilestones = [
+  {
+    title: "The Beginning",
+    text: "CamBright started as a student-led effort to make high-quality IGCSE support accessible regardless of location, budget, or background.",
+  },
+  {
+    title: "Building Momentum",
+    text: "From a small volunteer circle, we expanded into a global learning community with revision notes, mock exams, and practical study tools.",
+  },
+  {
+    title: "Mission-Driven Growth",
+    text: "Every feature we ship is built around one promise: better outcomes for students through clarity, consistency, and free access.",
+  },
+  {
+    title: "What Comes Next",
+    text: "We are scaling CamBright Intelligence, deeper mock support, and smarter learning flows to help even more students hit top grades.",
+  },
+];
+
+const tagColors: Record<string, string> = {
+  "Co-Founder": "bg-purple-500/20 text-purple-300 border border-purple-500/30",
+  "Head of Tech": "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+  "Head of Operations": "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30",
+  "Head of Business": "bg-green-500/20 text-green-300 border border-green-500/30",
+  Designer: "bg-pink-500/20 text-pink-300 border border-pink-500/30",
+  Marketing: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
+  Developer: "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
+  Moderator: "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
+  "Top Member": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+  "Top Volunteer": "bg-rose-500/20 text-rose-300 border border-rose-500/30",
 };
 
-// Modal for displaying user details
-const UserCardModal = ({
-  user,
-  onClose,
-}: {
-  user: User;
-  onClose: () => void;
-}) => {
-  const handleClickOutside = (e: React.MouseEvent) => {
-    const modalContent = e.target as HTMLElement;
-    if (modalContent && !modalContent.closest(".modal-content")) {
-      onClose();
-    }
-  };
-  return (
+const getTagColor = (tag: string) =>
+  tagColors[tag] ?? "bg-gray-500/20 text-gray-300 border border-gray-500/30";
+
+const UserModal = ({ user, onClose }: { user: User; onClose: () => void }) => (
+  <div
+    className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+    onClick={onClose}
+  >
     <div
-      className="fixed inset-0 bg-gray-800 bg-opacity-70 flex justify-center items-center z-50"
-      onClick={handleClickOutside}
+      className="bg-n-7 border border-white/10 rounded-2xl p-8 max-w-md w-full relative shadow-2xl"
+      onClick={(e) => e.stopPropagation()}
     >
-      <div
-        className="bg-n-7 p-8 rounded-lg max-w-lg w-full relative modal-content"
-        onClick={(e) => e.stopPropagation()}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all text-lg"
       >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-2xl text-gray-600 hover:text-gray-300 transition-all"
-        >
-          &times;
-        </button>
-        <div className="flex flex-col items-center text-center">
-          <div className="w-32 h-32 rounded-full overflow-hidden mb-4 hover:ring-4 transition-all hover:ring-purple-400">
-            <PhotoProvider>
-              <PhotoView src={user.avatar}>
-                <Image
-                  src={user.avatar}
-                  alt={user.name}
-                  width={128}
-                  height={128}
-                />
-              </PhotoView>
-            </PhotoProvider>
+        ✕
+      </button>
+      <div className="flex flex-col items-center text-center">
+        <div className="w-24 h-24 rounded-full overflow-hidden mb-4 ring-2 ring-purple-500/60">
+          <PhotoProvider>
+            <PhotoView src={user.avatar}>
+              <Image src={user.avatar} alt={user.name} width={96} height={96} className="object-cover w-full h-full" />
+            </PhotoView>
+          </PhotoProvider>
+        </div>
+        <h3 className="text-xl font-bold text-white">{user.name}</h3>
+        <p className="text-sm text-purple-400 font-medium mt-0.5">{user.role}</p>
+        {user.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 justify-center mt-3">
+            {user.tags.map((tag, i) => (
+              <span key={i} className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTagColor(tag)}`}>{tag}</span>
+            ))}
           </div>
-          <h3 className="text-2xl font-semibold">{user.name}</h3>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <span className="font-semibold">{user.role}</span>
-          </div>
-
-          {/* Display Tags with Random Colors */}
-          {user.tags && user.tags.length > 0 && (
-            <div className="flex gap-2 justify-center mt-4">
-              {user.tags.map((tag, idx) => (
-                <span
-                  key={idx}
-                  className={`px-4 py-1 rounded-full text-white text-sm ${generateTagColor(
-                    tag
-                  )}`}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+        )}
+        {user.bio && <p className="text-sm text-gray-400 mt-4 leading-relaxed">{user.bio}</p>}
+        <div className="flex gap-4 mt-5">
+          {user.socialLinks.linkedin && (
+            <a href={user.socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
+              <FaLinkedinIn className="text-gray-400 text-xl hover:text-white transition-colors" />
+            </a>
           )}
-
-          <p className="text-lg mt-4">{user.bio}</p>
-          <div className="flex gap-6 mt-6">
-            {user.socialLinks.linkedin && (
-              <a
-                href={user.socialLinks.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FaLinkedinIn className="text-n-4 text-3xl hover:text-white transition-all" />
-              </a>
-            )}
-            {user.socialLinks.instagram && (
-              <a
-                href={user.socialLinks.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FaInstagram className="text-n-4 text-3xl hover:text-white transition-all" />
-              </a>
-            )}
-            {user.socialLinks.github && (
-              <a
-                href={user.socialLinks.github}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <FaGithub className="text-n-4 text-3xl hover:text-white transition-all" />
-              </a>
-            )}
-          </div>
+          {user.socialLinks.instagram && (
+            <a href={user.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
+              <FaInstagram className="text-gray-400 text-xl hover:text-white transition-colors" />
+            </a>
+          )}
+          {user.socialLinks.github && (
+            <a href={user.socialLinks.github} target="_blank" rel="noopener noreferrer">
+              <FaGithub className="text-gray-400 text-xl hover:text-white transition-colors" />
+            </a>
+          )}
         </div>
       </div>
     </div>
+  </div>
+);
+
+const MemberCard = ({
+  user,
+  size = "md",
+  onClick,
+}: {
+  user: User;
+  size?: "lg" | "md" | "sm";
+  onClick: () => void;
+}) => {
+  const avatarSize = size === "lg" ? "w-20 h-20" : size === "md" ? "w-16 h-16" : "w-12 h-12";
+  const imgSize = size === "lg" ? 80 : size === "md" ? 64 : 48;
+
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/[0.08] hover:border-purple-500/40 hover:bg-white/[0.08] transition-all group text-center w-full hover:-translate-y-0.5"
+    >
+      <div
+        className={`${avatarSize} rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-purple-500/60 transition-all flex-shrink-0`}
+      >
+        <Image
+          src={user.avatar}
+          alt={user.name}
+          width={imgSize}
+          height={imgSize}
+          className="object-cover w-full h-full"
+        />
+      </div>
+      <div>
+        <p className="font-semibold text-white text-sm">{user.name}</p>
+        <p className="text-xs text-gray-500 mt-0.5">{user.role}</p>
+      </div>
+    </button>
   );
 };
 
-const TutorPage = () => {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null); // State for selected user
-
-  const handleUserClick = (user: User) => {
-    setSelectedUser(user); // Open modal with selected user data
-  };
-
-  const closeModal = () => {
-    setSelectedUser(null);
-  };
+const AboutPage = () => {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   return (
-    <div className="bg-gradient-to-br from-n-8 to-n-7 text-white min-h-screen flex flex-col">
-      <BackgroundLines>
-        <div className="relative z-20 px-6 py-10 md:px-12 md:py-20 lg:px-16 lg:py-32 lg:pt-20 md:pt-12 pt-8 flex-grow">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Starry Header */}
-            <StarryBackground height="200px" intensity="high" className="mb-12">
-              <div className="flex items-center justify-center h-full py-8">
-                <Cover className="inline-block px-10 py-6 bg-neutral-900/60 rounded-xl">
-                  <div className="text-center">
-                    <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-wide leading-tight">
-                      About <span className="text-purple-400">Cambright</span>.
-                    </h1>
-                    <p className="text-lg sm:text-xl md:text-2xl font-light mt-4 opacity-90 max-w-2xl">
-                      Helping students around the world catch those <span className="text-purple-400">A*s</span> for free!
-                    </p>
-                  </div>
-                </Cover>
+    <div className="bg-black-100 text-white min-h-screen flex flex-col">
+      <StarryBackground height="240px" intensity="medium" showMeteors={true} className="rounded-none">
+        <div className="relative z-10 h-full px-8">
+          <div className="mx-auto h-full max-w-7xl flex items-center justify-center">
+            <div className="w-full max-w-4xl translate-y-4 md:translate-y-5 rounded-2xl border border-white/10 bg-black/35 px-8 py-7 text-center">
+              <div className="inline-flex items-center gap-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full px-3 py-1 mb-3">
+                <span className="text-[10px] font-semibold text-purple-300 tracking-widest uppercase">CamBright Team</span>
               </div>
-            </StarryBackground>
-
-            {/* Meet the Team Title */}
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-wide leading-tight mb-12">
-              Meet the Team
-            </h2>
-
-            {/* Founders Section */}
-            <section className="mb-24">
-              <h3 className="text-3xl sm:text-4xl font-semibold mb-8 text-purple-400">
-                Founders
-              </h3>
-              <div className="flex justify-center flex-wrap gap-10 mb-12">
-                {users.slice(0, 3).map((user, idx) => (
-                  <div
-                    key={idx}
-                    className="flex flex-col items-center cursor-pointer"
-                    onClick={() => handleUserClick(user)} // Open modal on click
-                  >
-                    <div className="w-32 h-32 bg-gray-300 hover:ring-4 transition-all hover:ring-purple-400 rounded-full mb-4 overflow-hidden">
-                      <Image
-                        src={user.avatar}
-                        alt={user.name}
-                        width={128}
-                        height={128}
-                        className="object-cover"
-                      />
-                    </div>
-                    <p className="font-semibold">{user.name}</p>
-                    <p className="text-sm text-gray-400">{user.role}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-center flex-wrap gap-10 mb-12">
-                {users.slice(3, 5).map((user, idx) => (
-                  <div
-                    key={idx}
-                    className="flex flex-col items-center cursor-pointer"
-                    onClick={() => handleUserClick(user)} // Open modal on click
-                  >
-                    <div className="w-32 h-32 bg-gray-300 hover:ring-4 transition-all hover:ring-purple-400 rounded-full mb-4 overflow-hidden">
-                      <Image
-                        src={user.avatar}
-                        alt={user.name}
-                        width={128}
-                        height={128}
-                        className="object-cover"
-                      />
-                    </div>
-                    <p className="font-semibold">{user.name}</p>
-                    <p className="text-sm text-gray-400">{user.role}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Board Section */}
-            <section className="mb-24">
-              <h3 className="text-3xl sm:text-4xl font-semibold mb-8">
-                Our <span className="text-purple-400">Board</span>
-              </h3>
-              <div className="flex justify-center flex-wrap gap-8">
-                {users.slice(5, 11).map((user, idx) => (
-                  <div
-                    key={idx}
-                    className="flex flex-col items-center cursor-pointer"
-                    onClick={() => handleUserClick(user)} // Open modal on click
-                  >
-                    <div className="w-32 h-32 bg-gray-300 rounded-full mb-4 overflow-hidden hover:ring-4 transition-all hover:ring-purple-400">
-                      <Image
-                        src={user.avatar}
-                        alt={user.name}
-                        width={128}
-                        height={128}
-                        className="object-cover"
-                      />
-                    </div>
-                    <p className="font-semibold">{user.name}</p>
-                    <p className="text-sm text-gray-400">{user.role}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Volunteers Section */}
-            <section>
-              <h3 className="text-3xl sm:text-4xl font-semibold mb-8">
-                Beloved <span className="text-purple-400">Volunteers</span>
-              </h3>
-              <div className="flex justify-center gap-8 overflow-x-auto mb-12">
-                <Carousel
-                  opts={{
-                    align: "center",
-                  }}
-                  className="w-full max-w-xs lg:max-w-xl"
-                >
-                  {" "}
-                  <CarouselContent>
-                    {users.slice(10).map((user, idx) => (
-                      <CarouselItem
-                        key={idx}
-                        className="flex flex-col items-center cursor-pointer md:basis-1/3 lg:basis-1/3"
-                      >
-                        <div className="w-32 h-32 bg-gray-300 rounded-full mb-4 overflow-hidden">
-                          <Image
-                            src={user.avatar}
-                            alt={user.name}
-                            width={128}
-                            height={128}
-                            className="object-cover"
-                          />
-                        </div>
-                        <p className="font-semibold">{user.name}</p>
-                        <p className="text-sm text-gray-400">{user.role}</p>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious />
-                  <CarouselNext />
-                </Carousel>
-              </div>
-            </section>
+              <h1 className="text-4xl md:text-5xl font-bold font-sora leading-tight">
+                About <span className="text-purple-400">CamBright</span>
+              </h1>
+              <p className="text-gray-400 text-sm mt-2">
+                Student-built. Community-powered. Helping learners worldwide reach top scores for free.
+              </p>
+            </div>
           </div>
         </div>
+      </StarryBackground>
 
-        <div className="flex justify-center flex-wrap gap-4 py-6 pt-0 mb-20">
-          <Link
-            href={"/help#sendmsg"}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <Button className=" px-6 py-3 rounded-full text-lg font-semibold shadow-lg hover:from-purple-400 hover:to-indigo-400 transition duration-300 ease-in-out transform hover:scale-105">
-              Contact us
+      <div className="flex-grow px-8 py-10 max-w-7xl mx-auto w-full space-y-8">
+        <section className="rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-950/30 via-n-7 to-blue-950/20 p-6 md:p-7">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="w-1 h-6 bg-purple-500 rounded-full" />
+            <h2 className="text-xl font-bold text-white">Founders</h2>
+          </div>
+
+          <div className="flex justify-center mb-4">
+            <button
+              onClick={() => setSelectedUser(founders[0])}
+              className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-purple-500/10 border border-purple-500/25 hover:bg-purple-500/15 hover:border-purple-500/40 transition-all group w-52"
+            >
+              <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-purple-500/60 group-hover:ring-purple-400 transition-all">
+                <Image
+                  src={founders[0].avatar}
+                  alt={founders[0].name}
+                  width={80}
+                  height={80}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-white">{founders[0].name}</p>
+                <p className="text-xs text-purple-400 font-medium mt-0.5">{founders[0].role}</p>
+                <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  Co-Founder
+                </span>
+              </div>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {founders.slice(1).map((user, i) => (
+              <MemberCard key={i} user={user} size="md" onClick={() => setSelectedUser(user)} />
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-cyan-500/20 bg-gradient-to-br from-cyan-950/20 via-n-7 to-indigo-950/20 p-6 md:p-7">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="w-1 h-6 bg-cyan-500 rounded-full" />
+            <h2 className="text-xl font-bold text-white">Our Board</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {board.map((user, i) => (
+              <MemberCard key={i} user={user} size="md" onClick={() => setSelectedUser(user)} />
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-green-500/20 bg-gradient-to-br from-green-950/20 via-n-7 to-emerald-950/20 p-6 md:p-7">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="w-1 h-6 bg-green-500 rounded-full" />
+            <h2 className="text-xl font-bold text-white">Volunteers</h2>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {volunteers.map((user, i) => (
+              <MemberCard key={i} user={user} size="sm" onClick={() => setSelectedUser(user)} />
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-950/20 via-n-7 to-amber-950/20 p-6 md:p-7">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="w-1 h-6 bg-orange-500 rounded-full" />
+            <h2 className="text-xl font-bold text-white">Our Story</h2>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/25 p-4 md:p-6">
+            <p className="text-sm text-gray-300 leading-relaxed mb-6">
+              CamBright was built by students who understood the pressure of IGCSE prep and wanted to make strong support available to everyone.
+            </p>
+            <div className="relative">
+              <div className="absolute left-[10px] top-1 bottom-1 w-[2px] bg-gradient-to-b from-orange-400/70 via-purple-400/70 to-cyan-400/70" />
+              <div className="space-y-4 md:space-y-5">
+                {storyMilestones.map((milestone, index) => (
+                  <div key={milestone.title} className="relative pl-8">
+                    <div className="absolute left-0 top-1.5 h-5 w-5 rounded-full border border-orange-300/60 bg-orange-500/20" />
+                    <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4">
+                      <div className="text-xs font-semibold tracking-widest uppercase text-orange-300 mb-1">
+                        Stage {index + 1}
+                      </div>
+                      <h3 className="text-base font-semibold text-white mb-1.5">{milestone.title}</h3>
+                      <p className="text-sm text-gray-400 leading-relaxed">{milestone.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-purple-950/30 to-blue-950/30 p-6 md:p-7 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-center md:text-left">
+            <h3 className="text-lg md:text-xl font-semibold text-white">Want to help students level up?</h3>
+            <p className="text-sm text-gray-400 mt-1">Join our mission and build the future of free IGCSE support.</p>
+          </div>
+          <div className="flex justify-center gap-3 pt-1 md:pt-0">
+          <Link href="/help#sendmsg" target="_blank" rel="noopener noreferrer">
+            <Button className="px-5 py-2 rounded-full font-semibold">Contact Us</Button>
+          </Link>
+          <Link href="/help#sendmsg" target="_blank" rel="noopener noreferrer">
+            <Button
+              variant="outline"
+              className="px-5 py-2 rounded-full font-semibold border-white/20 text-white hover:bg-white/10"
+            >
+              Join Our Team
             </Button>
           </Link>
-          <Link
-            href={"/help#sendmsg"}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {" "}
-            <Button className="border-2 border-white text-white px-6 py-3 rounded-full text-lg font-semibold hover:bg-white hover:text-indigo-700 transition duration-300 ease-in-out transform hover:scale-105">
-              Join our team
-            </Button>
-          </Link>
+          </div>
         </div>
-      </BackgroundLines>
-      
-      {/* Modal for displaying user details */}
-      {selectedUser && (
-        <UserCardModal user={selectedUser} onClose={closeModal} />
-      )}
+      </div>
+
+      {selectedUser && <UserModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
       <Footerer />
     </div>
   );
 };
 
-export default TutorPage;
+export default AboutPage;

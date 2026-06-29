@@ -76,19 +76,17 @@ const PastPapersMainPage = () => {
         {/* Background layer */}
       </div>
       <div className="relative flex flex-col">
-        <FloatingNavbar />
-        <div className="flex-grow p-8">
-          {/* Starry Header */}
-          <StarryBackground height="140px" intensity="medium" className="mb-8">
-            <div className="flex items-center justify-center h-full py-6">
-              <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
-                <h1 className="text-3xl md:text-4xl font-bold text-white text-center">
-                  Past <span className="text-purple-400">Papers</span>
-                </h1>
-              </Cover>
-            </div>
-          </StarryBackground>
-          
+        <StarryBackground height="240px" intensity="medium" showMeteors={true} className="rounded-none mb-8">
+          <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+            <Cover className="inline-block px-8 py-6">
+              <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+                Past <span className="text-purple-400">Papers</span>.
+              </h1>
+              <p className="text-gray-400 text-center">Cambridge past papers for IGCSE, AS and A Level</p>
+            </Cover>
+          </div>
+        </StarryBackground>
+        <div className="flex-grow px-8">
           <div className="flex flex-col items-center mb-8">
             <SearchInputSubjects setSearchTerm={setSearchTerm} />
           </div>
@@ -122,8 +120,7 @@ const PastPapersMainPage = () => {
             })}
           </div>
         </div>
-        <div className="mb-8"></div>{" "}
-        {/* Adding space at the bottom of the page */}
+        <div className="mb-8"></div>
       </div>
     </>
   );

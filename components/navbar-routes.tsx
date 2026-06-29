@@ -115,26 +115,9 @@ const NavbarRoutes = () => {
             </Button>
           </Link>
         ) : shouldShowTutorButton ? (
-          <Link href="/tutor/courses">
-            <Button
-              className="mt-1
-           hover:bg-slate-800
-                      bg-n-7
-           "
-              variant={"default"}
-            >
-              Tutor Mode
-            </Button>
-          </Link>
+          null
         ) : tutorStatusLoading && userId ? (
-          // Show a subtle loading indicator for tutor status
-          <Button
-            disabled
-            className="mt-1 bg-n-7 opacity-50"
-            variant={"default"}
-          >
-            <Loader className="h-4 w-4 animate-spin" />
-          </Button>
+          null
         ) : null}
         <ClerkLoading>
           <Loader className="h-5 w-5 to-muted-foreground animate-spin" />
@@ -145,7 +128,7 @@ const NavbarRoutes = () => {
               label="Dashboard"
               url="/dashboard"
               labelIcon={<Home className="size-5" />}
-            />{" "}
+            />
             <UserButton.UserProfileLink
               label="Public Profile"
               url="/profile"

@@ -7,7 +7,6 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { defaultIds } from "../users";
 import {
   CheckCircle,
-  CrownIcon,
   FlagIcon,
   HeartIcon,
   ShieldCheck,
@@ -74,7 +73,6 @@ const LeaderBoardPage = () => {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      setLoading(true);
       try {
         const response = await fetch("/api/leaderboard");
         if (response.ok) {
@@ -85,11 +83,6 @@ const LeaderBoardPage = () => {
             clerkUserCount: data.clerkUserCount,
             databaseUserCount: data.databaseUserCount,
             newUserCount: data.newUserCount
-          });
-          console.log(`Loaded ${data.total} users from leaderboard:`, {
-            clerkUsers: data.clerkUserCount,
-            databaseUsers: data.databaseUserCount,
-            newUsers: data.newUserCount
           });
         } else {
           console.error("Failed to fetch leaderboard data");
@@ -102,7 +95,10 @@ const LeaderBoardPage = () => {
     };
 
     fetchLeaderboard();
-  }, []); // Empty dependency array ensures it runs on mount
+    // Refresh every 30 seconds for real-time updates
+    const interval = setInterval(fetchLeaderboard, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Function to handle XP increment
   const handleXPIncrement = async () => {
@@ -195,44 +191,54 @@ const LeaderBoardPage = () => {
   const boardIds =
     process.env.NEXT_PUBLIC_BOARD_IDS?.split(",") || defaultIds.boardIds;
 
+  const now = Date.now();
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const activeUsersCount = leaderboard.filter((u) => {
+    const lastSignInAt = u.clerkData?.lastSignInAt;
+    return typeof lastSignInAt === "number" && now - lastSignInAt <= 30 * oneDayMs;
+  }).length;
+  const loginsTodayCount = leaderboard.filter((u) => {
+    const lastSignInAt = u.clerkData?.lastSignInAt;
+    return typeof lastSignInAt === "number" && now - lastSignInAt <= oneDayMs;
+  }).length;
+
   return (
     <TooltipProvider delayDuration={100}>
-      <div className="max-w-4xl mx-auto p-6">
+      <div>
         <StarsBackground />
         
         {/* Starry Header */}
-        <StarryBackground height="160px" intensity="high" className="mb-8">
-          <div className="flex items-center justify-center h-full py-6">
-            <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
-              <div className="text-center">
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white">
-                  Leaderboard<span className="text-purple-400">.</span>
-                </h1>
-                <p className="text-lg text-gray-400 mt-2">Why not beat the toppers?</p>
-              </div>
+        <StarryBackground height="240px" intensity="medium" showMeteors={true} className="mb-8 rounded-none">
+          <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+            <Cover className="inline-block px-8 py-6">
+              <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+                Leaderboard<span className="text-purple-400">.</span>
+              </h1>
+              <p className="text-gray-400 text-center">Top students by XP — updated in real time</p>
             </Cover>
           </div>
         </StarryBackground>
         
+        <div className="max-w-4xl mx-auto px-6 pb-6">
         {/* Leaderboard Stats */}
         {leaderboardStats && (
-          <div className="flex justify-center mb-8">
+          <div className="mb-8">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="bg-n-7/50 rounded-lg p-3">
+              <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
+                <div className="text-2xl font-bold text-emerald-400">{leaderboardStats.newUserCount}</div>
+                <div className="text-sm text-gray-400">New Users This Month</div>
+              </div>
+              <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
+                <div className="text-2xl font-bold text-cyan-400">{activeUsersCount}</div>
+                <div className="text-sm text-gray-400">Active Users</div>
+              </div>
+              <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
                 <div className="text-2xl font-bold text-purple-400">{leaderboardStats.total}</div>
                 <div className="text-sm text-gray-400">Total Users</div>
               </div>
-              <div className="bg-n-7/50 rounded-lg p-3">
-                <div className="text-2xl font-bold text-blue-400">{leaderboardStats.clerkUserCount}</div>
-                <div className="text-sm text-gray-400">Clerk Users</div>
-              </div>
-              <div className="bg-n-7/50 rounded-lg p-3">
-                <div className="text-2xl font-bold text-green-400">{leaderboardStats.databaseUserCount}</div>
-                <div className="text-sm text-gray-400">With XP</div>
-              </div>
-              <div className="bg-n-7/50 rounded-lg p-3">
-                <div className="text-2xl font-bold text-yellow-400">{leaderboardStats.newUserCount}</div>
-                <div className="text-sm text-gray-400">New Users</div>
+              <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
+                <div className="text-2xl font-bold text-amber-400">{loginsTodayCount}</div>
+                <div className="text-sm text-gray-400">Logins Today</div>
               </div>
             </div>
           </div>
@@ -243,27 +249,85 @@ const LeaderBoardPage = () => {
         ) : (
           <div className="space-y-6">
             {/* Bar Graph with User Avatars */}
-            <div className="flex justify-center items-end space-x-8 mb-12">
+            <div className="mb-12 mt-4">
+              <div className="mx-auto flex max-w-4xl justify-center items-end gap-4 md:gap-8">
               {leaderboard.slice(0, 3).map((leaderboardUser, index) => (
                 <div
                   key={leaderboardUser.userId}
-                  className="relative flex flex-col items-center space-y-4"
+                  className="relative flex w-32 md:w-44 flex-col items-center"
                 >
-                  {/* Crown for #1 */}
-                  {index === 0 && (
-                    <div
-                      className="absolute top-[-30px] left-1/2 transform -translate-x-1/2"
-                      style={{
-                        zIndex: 10,
-                      }}
-                    >
-                      <CrownIcon className="w-6 h-6 text-yellow-500" />
-                    </div>
-                  )}
+                  <div className="min-h-[44px] mb-1 flex flex-wrap items-center justify-center gap-1 text-[0.9rem] font-semibold text-white text-center leading-tight">
+                    {leaderboardUser.id.startsWith('new-') ? (
+                      <span>{leaderboardUser.name}</span>
+                    ) : (
+                      <Link href={`/profiles/${leaderboardUser.name}`}>
+                        {leaderboardUser.name}
+                      </Link>
+                    )}
+                    {tutorIds.includes(leaderboardUser.userId) &&
+                      !teamIds.includes(leaderboardUser.userId) &&
+                      !boardIds.includes(leaderboardUser.userId) && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <HeartIcon className="w-4 h-4 ml-1 text-purple-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">Volunteer</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    {teamIds.includes(leaderboardUser.userId) && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <ShieldCheck className="w-4 h-4 ml-1  text-green-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">Founder</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    {boardIds.includes(leaderboardUser.userId) &&
+                      !teamIds.includes(leaderboardUser.userId) && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <ShieldIcon className="w-4 h-4 ml-1 text-green-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">Board</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}{" "}
+                    {verifiedIds.includes(leaderboardUser.userId) &&
+                      !teamIds.includes(leaderboardUser.userId) &&
+                      !boardIds.includes(leaderboardUser.userId) &&
+                      !tutorIds.includes(leaderboardUser.userId) && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <VerifiedIcon className="w-4 h-4 ml-1 text-purple-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-sm">Verified</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    {/* New User Badge for top 3 users */}
+                    {leaderboardUser.XP === 0 && leaderboardUser.clerkData && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <span className="ml-1 px-1 py-0.5 text-xs bg-blue-500/20 text-blue-300 rounded border border-blue-500/40">
+                            NEW
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="text-sm">New user from Clerk</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
 
                   {/* User image */}
-                  <div className="relative text-center">
-                    <div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 rounded-full bg-gray-200 overflow-hidden hover:ring-2 transition-all hover:ring-purple-400">
+                  <div className="relative text-center mb-1">
+                    <div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 rounded-full bg-gray-200 overflow-hidden hover:ring-2 transition-all hover:ring-purple-400 ring-2 ring-white/10">
                       <Image
                         src={leaderboardUser.imageUrl || "/default-avatar.png"}
                         alt={leaderboardUser.name}
@@ -272,100 +336,29 @@ const LeaderBoardPage = () => {
                         className="object-cover w-full h-full"
                       />
                     </div>
-                    <span className="mt-2 text-[0.9rem] font-semibold text-white text-center">
-                      <Link href={`/profiles/${leaderboardUser.name}`}>
-                        {leaderboardUser.name}
-                      </Link>
-                      {tutorIds.includes(leaderboardUser.userId) &&
-                        !teamIds.includes(leaderboardUser.userId) &&
-                        !boardIds.includes(leaderboardUser.userId) && (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <HeartIcon className="w-4 h-4 ml-1 text-purple-500" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-sm">Volunteer</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      {teamIds.includes(leaderboardUser.userId) && (
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <ShieldCheck className="w-4 h-4 ml-1  text-green-500" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-sm">Founder</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                      {boardIds.includes(leaderboardUser.userId) &&
-                        !teamIds.includes(leaderboardUser.userId) && (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <ShieldIcon className="w-4 h-4 ml-1 text-green-500" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-sm">Board</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}{" "}
-                      {verifiedIds.includes(leaderboardUser.userId) &&
-                        !teamIds.includes(leaderboardUser.userId) &&
-                        !boardIds.includes(leaderboardUser.userId) &&
-                        !tutorIds.includes(leaderboardUser.userId) && (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <VerifiedIcon className="w-4 h-4 ml-1 text-purple-500" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-sm">Verified</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      {/* New User Badge for top 3 users */}
-                      {leaderboardUser.XP === 0 && leaderboardUser.clerkData && (
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <span className="ml-1 px-1 py-0.5 text-xs bg-blue-500/20 text-blue-300 rounded border border-blue-500/40">
-                              NEW
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-sm">New user from Clerk</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </span>
                   </div>
 
                   {/* Static Rectangular Bars */}
-                  <div className="w-16 sm:w-24 md:w-32">
-                    {index === 1 && (
-                      <div
-                        className="bg-purple-600 rounded-md w-full"
-                        style={{ height: "4rem" }} // First bar height
-                      ></div>
-                    )}
-                    {index === 0 && (
-                      <div
-                        className="bg-purple-600 rounded-md w-full"
-                        style={{ height: "5rem" }} // Second bar height
-                      ></div>
-                    )}
-                    {index === 2 && (
-                      <div
-                        className="bg-purple-600 rounded-md w-full"
-                        style={{ height: "3rem" }} // Third bar height
-                      ></div>
-                    )}
+                  <div className="mt-0.5 w-20 sm:w-24 md:w-32 h-24 flex items-end">
+                    <div
+                      className={`rounded-t-2xl rounded-b-md w-full shadow-lg ${
+                        index === 0
+                          ? "bg-gradient-to-t from-yellow-700 to-yellow-400 shadow-yellow-900/40"
+                          : index === 1
+                          ? "bg-gradient-to-t from-slate-600 to-slate-300 shadow-slate-900/40"
+                          : "bg-gradient-to-t from-amber-900 to-amber-500 shadow-amber-900/40"
+                      }`}
+                      style={{ height: index === 0 ? "5rem" : index === 1 ? "4rem" : "3rem" }}
+                    />
                   </div>
 
                   {/* XP under the bar */}
-                  <span className="text-sm text-white">
+                  <span className="mt-2 text-sm text-white">
                     {leaderboardUser.XP} XP
                   </span>
                 </div>
               ))}
+              </div>
             </div>
 
             {/* List of remaining leaderboard users */}
@@ -389,11 +382,15 @@ const LeaderBoardPage = () => {
                     <div className="flex flex-col ">
                       {" "}
                       <div className="flex ">
-                        <Link href={`/profiles/${leaderboardUser.name}`}>
-                          <span className="text-lg font-semibold">
-                            {leaderboardUser.name}
-                          </span>
-                        </Link>{" "}
+                        {leaderboardUser.id.startsWith('new-') ? (
+                          <span className="text-lg font-semibold">{leaderboardUser.name}</span>
+                        ) : (
+                          <Link href={`/profiles/${leaderboardUser.name}`}>
+                            <span className="text-lg font-semibold">
+                              {leaderboardUser.name}
+                            </span>
+                          </Link>
+                        )}
                         {tutorIds.includes(leaderboardUser.userId) &&
                           !teamIds.includes(leaderboardUser.userId) &&
                           !boardIds.includes(leaderboardUser.userId) && (
@@ -462,18 +459,7 @@ const LeaderBoardPage = () => {
             </div>
           </div>
         )}{" "}
-        {/* XP Increment Button */}
-        <div className="text-center mb-8">
-          <Button
-            onClick={handleXPIncrement}
-            className="px-6 py-3 bg-green-600 text-white hover:bg-green-700 rounded-lg"
-          >
-            Add 5 XP
-          </Button>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Until we add the quiz platform, <br /> XP system is not yet complete
-          </p>
-        </div>
+      </div>
       </div>
     </TooltipProvider>
   );

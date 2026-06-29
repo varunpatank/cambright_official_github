@@ -204,7 +204,7 @@ export default function MessageWindow({
               {/* Message Content */}
               <div className={`flex flex-col gap-1 max-w-[80%] ${isUser ? "items-end" : "items-start"}`}>
                 <span className="text-xs text-gray-500 px-1">
-                  {isUser ? "You" : "Tuto AI"}
+                  {isUser ? "You" : "Tuto"}
                 </span>
                 <div
                   className={`relative px-4 py-3 rounded-2xl shadow-lg ${
@@ -244,7 +244,7 @@ export default function MessageWindow({
               </div>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-gray-500 px-1">Tuto AI</span>
+              <span className="text-xs text-gray-500 px-1">Tuto</span>
               <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-white/5 border border-white/10 backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                   <div className="flex gap-1">

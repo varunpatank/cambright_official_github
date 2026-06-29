@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db"; // Adjust the path if necessary
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 
 export const dynamic = "force-dynamic";
 
 // Export the GET method
 export async function GET(req: Request) {
   try {
-    // Get the logged-in user from the request headers (Clerk authentication in this case)
-    const { userId } = auth(); // This will give the user ID based on Clerk session
+    const { userId } = auth();
 
     if (!userId) {
       return NextResponse.json(
@@ -17,16 +16,44 @@ export async function GET(req: Request) {
       );
     }
 
-    // Fetch account data, including tags
-    const account = await db.userModel.findUnique({
+    // Try to find existing account
+    let account = await db.userModel.findUnique({
       where: { userId },
       include: {
-        tags: { select: { name: true } }, // Include the tags
+        tags: { select: { name: true } },
       },
     });
 
+    // Auto-create account if it doesn't exist yet (new Clerk user)
     if (!account) {
-      return NextResponse.json({ error: "Account not found" }, { status: 404 });
+      const clerkUser = await currentUser();
+      if (!clerkUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      let name = clerkUser.username || clerkUser.firstName || "anonymous";
+
+      // Ensure name uniqueness
+      const existingUser = await db.userModel.findFirst({ where: { name } });
+      if (existingUser) {
+        name = `${name}-${clerkUser.id.slice(-6)}`;
+      }
+
+      account = await db.userModel.create({
+        data: {
+          userId: clerkUser.id,
+          name,
+          imageUrl: clerkUser.imageUrl || "",
+          email: clerkUser.emailAddresses[0]?.emailAddress || "",
+          followers: 0,
+          following: 0,
+          biog: "",
+          XP: 0,
+        },
+        include: {
+          tags: { select: { name: true } },
+        },
+      });
     }
 
     return NextResponse.json(account);

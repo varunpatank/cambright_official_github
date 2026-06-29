@@ -66,25 +66,35 @@ const guestRoutes: RouteItem[] = [
     label: "Dashboard",
     href: "/dashboard",
   },
-  {
-    icon: Compass,
-    label: "Classes",
-    href: "/search",
-  },
+  // {
+  //   icon: Compass,
+  //   label: "Classes",
+  //   href: "/search",
+  // },
   {
     icon: BarChartBigIcon,
     label: "Leaderboard",
     href: "/leaderboard",
   },
+  // {
+  //   icon: Award,
+  //   label: "Our Schools",
+  //   href: "/school-hub",
+  // },
   {
-        icon: Award,
-        label: "Our Schools",
-        href: "/school-hub",
-      },
+    icon: Calculator,
+    label: "Question Quizzer",
+    href: "/quizzer",
+  },
   {
-    icon: GraduationCap,
-    label: "Tutor Mode",
-    href: "/tutor/courses",
+    icon: CheckCheck,
+    label: "MCQ Mock Exam",
+    href: "/mcq-solver",
+  },
+  {
+    icon: Timer,
+    label: "Grade Predictor",
+    href: "/predictor",
   },
 ];
 
@@ -126,59 +136,9 @@ const communityRoutes: RouteItem[] = [
 
 const nextroutes: RouteItem[] = [
   {
-    icon: PencilRuler,
-    label: "Tools",
-    href: "1",
-    children: [
-      {
-        icon: Bot,
-        label: "Tuto AI",
-        href: "/tuto-ai",
-      },
-      {
-        icon: CheckCheck,
-        label: "MCQ Mock Exam",
-        href: "/mcq-solver",
-      },
-      {
-        icon: Calculator,
-        label: "Question Quizzer",
-        href: "/quizzer",
-      },
-      {
-        icon: Timer,
-        label: "Marks Predictor",
-        href: "/predictor",
-      },
-      {
-        icon: Copy,
-        label: "Flashcards",
-        href: "/flashcards",
-      },
-      {
-        icon: ListChecks,
-        label: "Progress Tracker",
-        href: "/tracker/select-group",
-      },
-
-      // {
-      //   icon: ScanSearch,
-      //   label: "Question Finder",
-      //   href: "/questionsearch",
-      // },
-      // {
-      //   icon: SquareMousePointer,
-      //   label: "Quiz generator",
-      //   href: "/quizzer",
-      // },
-
-
-    ],
-  },
-  {
     icon: LibraryBig,
     label: "Resources",
-    href: "/resources",
+    href: "1",
     children: [
       {
         icon: BookOpenCheck,
@@ -191,9 +151,14 @@ const nextroutes: RouteItem[] = [
         href: "/search-notes",
       },
       {
-        icon: TvMinimalPlay,
-        label: "Courses",
-        href: "/search-courses",
+        icon: Bot,
+        label: "Tuto",
+        href: "/tuto-ai",
+      },
+      {
+        icon: Copy,
+        label: "Flashcards",
+        href: "/flashcards",
       },
     ],
   },
@@ -207,26 +172,21 @@ const nextroutes: RouteItem[] = [
         label: "Landpage",
         href: "/home",
       },
-      {
-        icon: GraduationCap,
-        label: "Become a tutor",
-        href: "/tutor-apply",
-      },
-      {
-        icon: NotebookPen,
-        label: "About Us",
-        href: "/about",
-      },
+      // {
+      //   icon: GraduationCap,
+      //   label: "Become a tutor",
+      //   href: "/tutor-apply",
+      // },
       {
         icon: HelpCircle,
         label: "Help Center",
         href: "/help",
       },
-      {
-        icon: HandHeart,
-        label: "Donate",
-        href: "/donate",
-      },
+      // {
+      //   icon: HandHeart,
+      //   label: "Donate",
+      //   href: "/donate",
+      // },
       {
         icon: User,
         label: "Profile",
@@ -284,7 +244,6 @@ export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
           onClick={onClose}
         />
       ))}
-      
       <Accordion type="single" collapsible className="w-full">
         {accordionRoutes.map((route) => (
           <AccordionItem key={route.href} value={route.href} className="w-full">
@@ -314,6 +273,13 @@ export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
           </AccordionItem>
         ))}
       </Accordion>
+      {/* About Us — standalone below Site */}
+      <SidebarItem
+        icon={NotebookPen}
+        label="About Us"
+        href="/about"
+        onClick={onClose}
+      />
     </div>
   );
 };

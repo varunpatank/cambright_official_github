@@ -41,17 +41,16 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
   return (
     <>
       {/* Starry Header */}
-      <div className="p-6">
-        <StarryBackground height="140px" intensity="medium">
-          <div className="flex items-center justify-center h-full py-6">
-            <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
-              <h1 className="text-3xl md:text-4xl font-sora font-bold text-white text-center">
-                Browse <span className="text-purple-400">Courses & Notes</span>
-              </h1>
-            </Cover>
-          </div>
-        </StarryBackground>
-      </div>
+      <StarryBackground height="240px" intensity="medium" showMeteors={true} className="rounded-none mb-6">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+          <Cover className="inline-block px-8 py-6">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+              Browse <span className="text-purple-400">Courses & Notes</span>.
+            </h1>
+            <p className="text-gray-400 text-center">Explore courses, revision notes and study resources</p>
+          </Cover>
+        </div>
+      </StarryBackground>
 
       <div className="px-6 pt-2 md:hidden md:mb-0 block">
         <SearchInput />

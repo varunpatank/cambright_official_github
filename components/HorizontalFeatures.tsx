@@ -1,72 +1,65 @@
 "use client";
 
 import { useRef } from "react";
-import { ChevronLeft, ChevronRight, BookOpen, Users, Trophy, FileText, Calculator, Lightbulb, Target, MessageCircle, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Bot, FileText, Calculator, BookOpen, Trophy, Layers, Target, CheckSquare } from "lucide-react";
 
 const features = [
   {
     id: 1,
-    icon: BookOpen,
-    title: "Comprehensive Resources",
-    description: "Access unlimited study materials and online courses for all IGCSE subjects",
-    color: "from-blue-500 to-cyan-500"
+    icon: Bot,
+    title: "Tuto",
+    description: "CamBright Intelligence tutor — ask anything about your IGCSE subjects",
+    color: "from-cyan-500 to-blue-500"
   },
   {
     id: 2,
-    icon: Users,
-    title: "Expert Tutors",
-    description: "Get help from qualified tutors available 24/7 wherever you are",
-    color: "from-purple-500 to-pink-500"
-  },
-  {
-    id: 3,
     icon: FileText,
-    title: "Latest Past Papers",
-    description: "Practice with the most recent past papers and model answers",
+    title: "Past Papers",
+    description: "Cambridge past papers with model answers for IGCSE, AS & A Level",
     color: "from-green-500 to-emerald-500"
   },
   {
+    id: 3,
+    icon: BookOpen,
+    title: "Revision Notes",
+    description: "Premium revision notes covering all major IGCSE subjects",
+    color: "from-blue-500 to-indigo-500"
+  },
+  {
     id: 4,
-    icon: Calculator,
-    title: "Mock Exams & Auto Marking",
-    description: "Take realistic mock exams with instant automated grading",
-    color: "from-orange-500 to-red-500"
+    icon: Layers,
+    title: "Intelligence Flashcards",
+    description: "Generate personalised flashcards instantly with CamBright Intelligence",
+    color: "from-purple-500 to-pink-500"
   },
   {
     id: 5,
-    icon: Trophy,
-    title: "Leaderboards",
-    description: "Compete with students worldwide and track your progress",
-    color: "from-yellow-500 to-orange-500"
+    icon: Calculator,
+    title: "Grade Predictor",
+    description: "Predict your Cambridge grade using 10-year averaged thresholds",
+    color: "from-orange-500 to-red-500"
   },
   {
     id: 6,
     icon: Target,
-    title: "Progress Tracker",
-    description: "Monitor your study progress and boost productivity",
-    color: "from-indigo-500 to-purple-500"
+    title: "Question Quizzer",
+    description: "CamBright Intelligence-generated practice questions tailored to your subject and topic",
+    color: "from-yellow-500 to-orange-500"
   },
   {
     id: 7,
-    icon: Lightbulb,
-    title: "AI Study Assistant",
-    description: "Get personalized study recommendations and instant help",
-    color: "from-teal-500 to-green-500"
+    icon: CheckSquare,
+    title: "MCQ Mock Exam",
+    description: "Timed multiple-choice mock exams with instant automated marking",
+    color: "from-teal-500 to-cyan-500"
   },
   {
     id: 8,
-    icon: MessageCircle,
-    title: "Study Hubs",
-    description: "Create and join study groups with fellow students",
-    color: "from-pink-500 to-rose-500"
+    icon: Trophy,
+    title: "Leaderboard",
+    description: "Earn XP, compete with students worldwide and rise through the ranks",
+    color: "from-yellow-500 to-amber-500"
   },
-  {
-    id: 9,
-    icon: Calendar,
-    title: "Study Planner",
-    description: "Schedule your studies and get automated reminders",
-    color: "from-cyan-500 to-blue-500"
-  }
 ];
 
 const HorizontalFeatures = () => {
@@ -88,7 +81,7 @@ const HorizontalFeatures = () => {
   };
 
   return (
-    <section className="w-full py-20">
+    <section className="w-full py-12">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold mb-4">
           <span className="text-purple-300">Powerful</span> Features for IGCSE Success
@@ -128,17 +121,15 @@ const HorizontalFeatures = () => {
             return (
               <div
                 key={feature.id}
-                className="flex-shrink-0 w-80 h-64 bg-gradient-to-br from-black-100 to-black-200 rounded-2xl border border-white/10 p-6 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
+                className="flex-shrink-0 w-64 h-48 bg-gradient-to-br from-black-100 to-black-200 rounded-2xl border border-white/10 p-5 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
               >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <IconComponent className="w-6 h-6 text-white" />
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="w-5 h-5 text-white" />
                 </div>
-                
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors duration-300">
+                <h3 className="text-base font-bold text-white mb-2 group-hover:text-purple-300 transition-colors duration-300">
                   {feature.title}
                 </h3>
-                
-                <p className="text-white-200 leading-relaxed">
+                <p className="text-white-200 text-sm leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -149,22 +140,6 @@ const HorizontalFeatures = () => {
         {/* Gradient overlays for scroll indication */}
         <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black-100 to-transparent pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black-100 to-transparent pointer-events-none" />
-      </div>
-
-      {/* Stats section */}
-      <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-        <div className="text-center">
-          <div className="text-4xl font-bold text-purple-300 mb-2">2000+</div>
-          <div className="text-white-200">Active Students</div>
-        </div>
-        <div className="text-center">
-          <div className="text-4xl font-bold text-purple-300 mb-2">5+</div>
-          <div className="text-white-200">Partner Schools</div>
-        </div>
-        <div className="text-center">
-          <div className="text-4xl font-bold text-purple-300 mb-2">100%</div>
-          <div className="text-white-200">Free Access</div>
-        </div>
       </div>
     </section>
   );

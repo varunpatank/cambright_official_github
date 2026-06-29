@@ -1,9 +1,40 @@
 "use client";
-import React, { useEffect, useId, useState, useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { useRef } from "react";
+import React, { useEffect, useId, useState, useMemo, useRef, useCallback } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SparklesCore } from "./sparkles";
+
+// Isolated sparkle canvas — never re-renders after mount
+const SparkleCanvas = React.memo(({ overlayRef }: { overlayRef: React.RefObject<HTMLDivElement> }) => (
+  <div
+    ref={overlayRef}
+    style={{ opacity: 0.08, transition: "opacity 0.8s ease-in-out" }}
+    className="h-full w-full overflow-hidden absolute inset-0 rounded-lg pointer-events-none"
+  >
+    <motion.div
+      animate={{ translateX: ["-50%", "0%"] }}
+      transition={{ translateX: { duration: 20, ease: "linear", repeat: Infinity } }}
+      className="w-[200%] h-full flex"
+    >
+      <SparklesCore
+        background="transparent"
+        minSize={1.5}
+        maxSize={3}
+        particleDensity={150}
+        className="w-full h-full"
+        particleColor="#FFFFFF"
+      />
+      <SparklesCore
+        background="transparent"
+        minSize={1.5}
+        maxSize={3}
+        particleDensity={150}
+        className="w-full h-full"
+        particleColor="#FFFFFF"
+      />
+    </motion.div>
+  </div>
+));
 
 export const Cover = ({
   children,
@@ -13,8 +44,37 @@ export const Cover = ({
   className?: string;
 }) => {
   const [hovered, setHovered] = useState(false);
+  const [active, setActive] = useState(false);
 
   const ref = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  // Auto-cycle the sparkle effect: 2s on, 3.5s off
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const cycle = (on: boolean) => {
+      timeoutId = setTimeout(() => {
+        // Update opacity directly on DOM — no React re-render, canvas stays alive
+        if (overlayRef.current) {
+          overlayRef.current.style.opacity = on ? "1" : "0.08";
+        }
+        cycle(!on);
+      }, on ? 2000 : 3500);
+    };
+    cycle(true);
+    return () => clearTimeout(timeoutId);
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    setHovered(true);
+    if (overlayRef.current) overlayRef.current.style.opacity = "1";
+  }, []);
+  const handleMouseLeave = useCallback(() => {
+    setHovered(false);
+    if (overlayRef.current) overlayRef.current.style.opacity = "0.08";
+  }, []);
+
+  const isActive = hovered || active;
 
   const [containerWidth, setContainerWidth] = useState(0);
   const [beamPositions, setBeamPositions] = useState<number[]>([]);
@@ -46,64 +106,19 @@ export const Cover = ({
 
   return (
     <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       ref={ref}
       className={cn(
-        "relative hover:bg-neutral-900/80 group/cover inline-block bg-neutral-900 px-2 py-2 transition duration-200 rounded-lg",
+        "relative hover:bg-neutral-900/80 group/cover inline-block bg-neutral-900 px-2 py-2 transition duration-200 rounded-2xl",
         className
       )}
     >
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              opacity: {
-                duration: 0.3,
-              },
-            }}
-            className="h-full w-full overflow-hidden absolute inset-0 rounded-lg"
-          >
-            <motion.div
-              animate={{
-                translateX: ["-50%", "0%"],
-              }}
-              transition={{
-                translateX: {
-                  duration: 20,
-                  ease: "linear",
-                  repeat: Infinity,
-                },
-              }}
-              className="w-[200%] h-full flex"
-            >
-              <SparklesCore
-                background="transparent"
-                minSize={1.5}
-                maxSize={3}
-                particleDensity={150}
-                className="w-full h-full"
-                particleColor="#FFFFFF"
-              />
-              <SparklesCore
-                background="transparent"
-                minSize={1.5}
-                maxSize={3}
-                particleDensity={150}
-                className="w-full h-full"
-                particleColor="#FFFFFF"
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <SparkleCanvas overlayRef={overlayRef} />
       {beamData.map((beam, index) => (
         <Beam
           key={index}
-          hovered={hovered}
+          hovered={isActive}
           duration={beam.duration}
           delay={beam.delay}
           width={containerWidth}
@@ -113,19 +128,13 @@ export const Cover = ({
         />
       ))}
       <motion.span
-        key={String(hovered)}
         animate={{
-          scale: hovered ? 0.95 : 1,
-        }}
-        exit={{
-          filter: "none",
-          scale: 1,
+          scale: isActive ? 0.95 : 1,
+          filter: isActive ? "brightness(1.1)" : "brightness(1)",
         }}
         transition={{
-          duration: 0.2,
-          scale: {
-            duration: 0.2,
-          },
+          duration: 0.6,
+          ease: "easeInOut",
         }}
         className={cn(
           "text-white inline-block relative z-20 group-hover/cover:text-white transition duration-200"
@@ -176,26 +185,25 @@ export const Beam = ({
       <defs>
         <motion.linearGradient
           id={`svgGradient-${id}`}
-          key={String(hovered)}
           gradientUnits="userSpaceOnUse"
           initial={{
             x1: "0%",
-            x2: hovered ? "-10%" : "-5%",
+            x2: "-5%",
             y1: 0,
             y2: 0,
           }}
           animate={{
             x1: "110%",
-            x2: hovered ? "100%" : "105%",
+            x2: "105%",
             y1: 0,
             y2: 0,
           }}
           transition={{
-            duration: hovered ? 0.5 : duration ?? 2,
+            duration: duration ?? 2,
             ease: "linear",
             repeat: Infinity,
-            delay: hovered ? Math.random() * (1 - 0.2) + 0.2 : 0,
-            repeatDelay: hovered ? Math.random() * (2 - 1) + 1 : delay ?? 1,
+            delay: 0,
+            repeatDelay: delay ?? 1,
           }}
         >
           <stop stopColor="#a458ea" stopOpacity="0" />

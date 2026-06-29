@@ -117,7 +117,7 @@ const Hero = ({ showThem }: HeroProps) => {
 
       <div className="flex justify-center relative my-20 z-10">
         <div className="max-w-[89vw] md:max-w-2xl lg:max-w-[60vw] flex flex-col items-center justify-center">
-          <Image src={"/logo.png"} alt="logo" height={400} width={400} />
+          <Image src={"/logo-clean.png"} alt="CamBright" height={130} width={520} className="object-contain drop-shadow-[0_0_60px_rgba(139,92,246,0.4)]" />
 
           <p className="uppercase tracking-widest text-xs text-center text-blue-100 max-w-80">
             IGCSE Excellence Made Simple
@@ -126,12 +126,12 @@ const Hero = ({ showThem }: HeroProps) => {
           <div className="mt-2">
             <TextGenerateEffect
               className="text-center md:tracking-wider mb-4 text-sm md:text-lg lg:text-2xl"
-              words="Welcome! We are an official LLC that helps students and teachers ace IGCSEs with free courses, resources, and school chapters across the globe."
+              words="Free CamBright Intelligence tools and Cambridge resources to help you ace your IGCSEs — available to every student, everywhere."
             />
           </div>
 
           <div className="flex flex-col items-center space-y-4 mt-2">
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8 ">
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
               {showThem ? (
                 <>
                   <a href="/sign-up">
@@ -164,33 +164,29 @@ const Hero = ({ showThem }: HeroProps) => {
             </div>
 
             {/* Statistics Box */}
-            <div className="bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 mb-2">
+            <div className="bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-5 mb-2">
               <div className="flex flex-wrap justify-center gap-8 text-center">
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl font-bold text-cyan-400 mb-1">2000+</span>
+                  <span className="text-4xl font-bold text-cyan-400 mb-0.5">2000+</span>
                   <span className="text-sm text-white font-medium">Total Users</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <AnimatedCounter 
                     baseValue={156} 
-                    className="text-3xl font-bold text-emerald-400 mb-1"
+                    className="text-4xl font-bold text-emerald-400 mb-0.5"
                   />
                   <span className="text-sm text-white font-medium">Active Users</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl font-bold text-violet-400 mb-1">5+</span>
-                  <span className="text-sm text-white font-medium">Schools</span>
+                  <span className="text-4xl font-bold text-violet-400 mb-0.5">5+</span>
+                  <span className="text-sm text-white font-medium">Partner Schools</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className="text-4xl font-bold text-purple-400 mb-0.5">100%</span>
+                  <span className="text-sm text-white font-medium">Free</span>
                 </div>
               </div>
             </div>
-            <button
-              onClick={scrollToNextSection}
-              className="flex flex-col items-center justify-center p-4 bg-slate-800 opacity-70 text-white rounded-full shadow-lg backdrop-blur-md hover:bg-opacity-60 transition-all mt-2 mb-2 animate-pulse"
-              aria-label="Scroll Down"
-            >
-              <FaMouse className="text-xl mb-1" />
-              <ChevronDown className="text-xl mt-1 animate-bounce" />
-            </button>
           </div>
         </div>
       </div>

@@ -13,6 +13,8 @@ interface StarryBackgroundProps {
   showMeteors?: boolean;
   /** Intensity of particles - "low" | "medium" | "high" - default "medium" */
   intensity?: "low" | "medium" | "high";
+  /** Override number of meteor beams */
+  meteorCount?: number;
 }
 
 const CircleIcon = ({ className, delay, size = 3 }: { className?: string; delay?: number; size?: number }) => {
@@ -67,7 +69,7 @@ const Beam = ({
         duration: duration || 10,
         delay: delay || 0,
         repeat: Infinity,
-        repeatDelay: Math.random() * 6 + 4,
+        repeatDelay: Math.random() * 2 + 1,
         ease: "linear",
       }}
       style={{ willChange: "transform, opacity" }}
@@ -77,16 +79,16 @@ const Beam = ({
       )}
     >
       <svg
-        viewBox={`0 0 ${width} 3`}
+        viewBox={`0 0 ${width} 6`}
         width={width}
-        height="3"
+        height="6"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <motion.path
-          d={`M0 1.5 H${width}`}
+          d={`M0 3 H${width}`}
           stroke={`url(#gradient-${id})`}
-          strokeWidth="2"
+          strokeWidth="4"
           strokeLinecap="round"
         />
         <defs>
@@ -114,6 +116,7 @@ export const StarryBackground = ({
   height = "200px",
   showMeteors = true,
   intensity = "medium",
+  meteorCount,
 }: StarryBackgroundProps) => {
   const [mounted, setMounted] = useState(false);
 
@@ -129,7 +132,7 @@ export const StarryBackground = ({
   }[intensity];
 
   // Fewer beams for smoother animation
-  const numberOfBeams = {
+  const numberOfBeams = meteorCount ?? {
     low: 2,
     medium: 3,
     high: 4,
@@ -139,8 +142,8 @@ export const StarryBackground = ({
   const beamData = useMemo(() => 
     Array.from({ length: numberOfBeams }, (_, i) => ({
       top: `${(i + 1) * (100 / (numberOfBeams + 1))}%`,
-      duration: Math.random() * 3 + 8, // Slower beams (8-11s)
-      delay: Math.random() * 4 + i * 1.5, // More staggered delays
+      duration: Math.random() * 2 + 4, // 4-6s
+      delay: i * 0.15, // stagger but start near-immediately
     })),
     [numberOfBeams]
   );

@@ -44,18 +44,18 @@ const PastPapersMainPage = () => {
       <div className="relative flex flex-col">
         <div className="absolute top-0 z-[-2] w-full h-screen bg-[#000000]  bg-[radial-gradient(#ffffff33_1px,#0e0c15_1px)] bg-[size:20px_20px]"></div>
         <FloatingMCQNavbar />
+        {/* Starry Header — outside p-8 so it stretches edge-to-edge */}
+        <StarryBackground height="240px" intensity="medium" showMeteors={true} className="rounded-none">
+          <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+            <Cover className="inline-block px-8 py-6">
+              <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+                MCQ <span className="text-purple-400">Mock Exams</span>.
+              </h1>
+              <p className="text-gray-400 text-center">Practice with timed multiple choice questions</p>
+            </Cover>
+          </div>
+        </StarryBackground>
         <div className="flex-grow p-8">
-          {/* Starry Header */}
-          <StarryBackground height="140px" intensity="medium" className="mb-8">
-            <div className="flex items-center justify-center h-full py-6">
-              <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
-                <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center justify-center gap-3">
-                  <ListChecks className="w-8 h-8 text-purple-400" />
-                  MCQ <span className="text-purple-400">Mock Exams</span>
-                </h1>
-              </Cover>
-            </div>
-          </StarryBackground>
           
           <div className="flex flex-col items-center mb-8">
             <SearchInputSubjects setSearchTerm={setSearchTerm} />

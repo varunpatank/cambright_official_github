@@ -29,9 +29,9 @@ const Footerer = () => {
             <div className="mb-6 md:mb-0">
               <a href="/" className="flex items-center">
                 <img
-                  src="/logo.png"
-                  className="h-12 me-3 transition-transform duration-300 transform hover:scale-110"
-                  alt="Cambright Logo"
+                  src="/logo-clean.png"
+                  className="h-14 me-3 transition-transform duration-300 transform hover:scale-110 object-contain"
+                  alt="CamBright"
                 />
               </a>
             </div>

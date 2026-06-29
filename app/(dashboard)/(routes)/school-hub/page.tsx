@@ -72,27 +72,21 @@ export default function SchoolHubPage() {
   }
 
   return (
-    <div className="min-h-screen bg-n-8 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-n-8">
+      {/* Starry Hero Header */}
+<StarryBackground height="240px" intensity="medium" showMeteors={true} className="mb-10 rounded-none">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+          <Cover className="inline-block px-8 py-6">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+              School <span className="text-purple-400">Chapters</span>.
+            </h1>
+            <p className="text-gray-400 text-center">Meet the incredible schools making a difference with CamBright</p>
+          </Cover>
+        </div>
+      </StarryBackground>
+
+      <div className="p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-7xl mx-auto">
-        {/* Starry Hero Header */}
-        <StarryBackground height="220px" intensity="high" className="mb-10">
-          <div className="flex items-center justify-center h-full py-8">
-            <Cover className="inline-block px-10 py-6 bg-neutral-900/60 rounded-xl">
-              <div className="text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 border border-purple-500/30 mb-4">
-                  <Sparkles className="w-4 h-4 text-purple-400" />
-                  <span className="text-purple-300 text-sm font-medium">Global Community</span>
-                </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-n-1 tracking-tight">
-                  School <span className="text-purple-400">Chapters</span>
-                </h1>
-                <p className="text-n-3 text-base sm:text-lg max-w-2xl mx-auto mt-4 leading-relaxed">
-                  Meet the incredible schools making a difference with CamBright
-                </p>
-              </div>
-            </Cover>
-          </div>
-        </StarryBackground>
 
         {/* About Section */}
         <div className="mb-10">
@@ -346,6 +340,7 @@ export default function SchoolHubPage() {
             </p>
           </div>
         )}
+      </div>
       </div>
     </div>
   )

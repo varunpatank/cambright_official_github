@@ -48,7 +48,7 @@ export default function ChatInput({
                 loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
               placeholder={
-                loading ? "Thinking..." : "Ask Tuto AI anything..."
+                loading ? "Thinking..." : "Ask Tuto anything..."
               }
               value={message}
               onChange={handleChange}

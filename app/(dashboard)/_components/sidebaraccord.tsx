@@ -18,11 +18,11 @@ export const SidebarAccord = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-x-2 text-sm font-[500] pl-6 transition-all cursor-pointer w-full hover:text-slate-500 hover:bg-n-8"
+        "flex items-center gap-x-2 text-base font-[500] pl-6 transition-all cursor-pointer w-full hover:text-slate-500 hover:bg-n-8"
       )}
     >
       <div className="flex items-center text-slate-500 gap-x-2 py-4 w-full">
-        <Icon size={22} className={cn("text-slate-500")} />
+        <Icon size={24} className={cn("text-slate-500")} />
         {label}
         <ChevronDown
           size={20}

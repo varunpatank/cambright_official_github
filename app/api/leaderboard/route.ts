@@ -1,5 +1,3 @@
-// app/api/leaderboard/route.ts
-
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -7,6 +5,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 // Export the GET method
 export async function GET() {
   try {
+    const clerk = await clerkClient();
     // Fetch the leaderboard data sorted by XP
     const leaderboard = await db.userModel.findMany({
       orderBy: {
@@ -30,7 +29,7 @@ export async function GET() {
       leaderboard.map(async (user) => {
         try {
           // Get latest user data from Clerk
-          const clerkUser = await clerkClient.users.getUser(user.userId);
+          const clerkUser = await clerk.users.getUser(user.userId);
           
           return {
             id: user.id,
@@ -74,7 +73,7 @@ export async function GET() {
     // Get additional Clerk users who might not be in our database yet
     try {
       // First get total count to know how many users exist
-      const userCount = await clerkClient.users.getCount();
+      const userCount = await clerk.users.getCount();
       console.log(`Total Clerk users: ${userCount}`);
       
       // Fetch all users in batches (Clerk API limit is usually 500 per request)
@@ -83,7 +82,7 @@ export async function GET() {
       const limit = 500;
       
       while (offset < userCount) {
-        const batch = await clerkClient.users.getUserList({
+        const batch = await clerk.users.getUserList({
           limit: limit,
           offset: offset,
           orderBy: '-created_at'

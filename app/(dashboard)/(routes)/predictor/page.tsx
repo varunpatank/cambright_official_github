@@ -408,23 +408,16 @@ const PredictorPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-n-8 text-white">
       {/* Starry Header */}
-      <StarryBackground height="280px" intensity="medium" showMeteors={true}>
+      <StarryBackground height="240px" intensity="medium" showMeteors={true}>
         <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-sm mb-4">
-            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-            CamBright Intelligence
-          </div>
           <Cover className="inline-block px-8 py-6">
-            <h1 className="text-5xl md:text-6xl font-sora font-bold text-white mb-3 text-center">
+            <h1 className="text-5xl md:text-6xl font-sora font-bold mb-4 text-center">
               Grade <span className="text-purple-400">Predictor</span>.
             </h1>
-            <p className="text-lg text-gray-400 mb-2 text-center">
-              Most Reliable IGCSE Predictor - Based on 10-Year Averaged Cambridge Thresholds
-            </p>
-            <p className="text-sm text-gray-500 text-center">
-              Threshold data averaged from 2015-2024 Cambridge grade boundaries
+            <p className="text-gray-400 text-center">
+              Most Reliable IGCSE Predictor — Based on 10-Year Averaged Cambridge Thresholds
             </p>
           </Cover>
         </div>
@@ -433,7 +426,7 @@ const PredictorPage = () => {
       <div className="relative z-10 p-6 mx-auto max-w-7xl">
 
         {/* Configuration Panel */}
-        <div className="bg-gray-900/90 backdrop-blur-xl rounded-2xl p-6 mb-6 border border-white/10">
+        <div className="bg-n-7 rounded-2xl p-6 mb-6 border border-white/10">
           <h2 className="text-lg font-sora font-medium text-white mb-4 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-purple-500"></span>
             Exam Configuration
@@ -526,7 +519,7 @@ const PredictorPage = () => {
               const subjectDetail = subjectInfo[subjectId] || {};
               
               return (
-                <div key={subjectId} className="bg-gray-900/90 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+                <div key={subjectId} className="bg-n-7 rounded-2xl p-6 border border-white/10">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-xl bg-purple-500/20">
                       <SubjectIcon icon={iconMap[subject?.name || "Mathematics"]} />
@@ -591,7 +584,7 @@ const PredictorPage = () => {
                                 min="0"
                                 max={getMaxMarks(subjectId, paper)}
                                 onChange={(e) => handleMarkChange(subjectId, paper, e.target.value)}
-                                className="bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-white w-20 text-center focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all"
+                                className="bg-n-8/60 border border-white/10 rounded-lg px-3 py-2 text-white w-20 text-center focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 transition-all"
                                 placeholder="0"
                               />
                               <span className="text-gray-500">/ {getMaxMarks(subjectId, paper)}</span>
@@ -631,7 +624,7 @@ const PredictorPage = () => {
         {showResults && Object.keys(predictions).length > 0 && (
           <div className="space-y-6">
             {/* Results Card */}
-            <div className="bg-gray-900/90 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+            <div className="bg-n-7 rounded-2xl p-6 border border-white/10">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-2xl font-sora font-bold text-white">
@@ -693,7 +686,7 @@ const PredictorPage = () => {
             </div>
 
             {/* Intelligence Overview Section */}
-            <div className="bg-gray-900/90 backdrop-blur-xl rounded-2xl p-8 border border-white/10">
+            <div className="bg-n-7 rounded-2xl p-8 border border-white/10">
               <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-purple-500/20 mb-4">
                   <svg className="w-8 h-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

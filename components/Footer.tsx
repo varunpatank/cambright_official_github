@@ -13,41 +13,13 @@ interface FooterProps {
 }
 const Footer = ({ signed }: FooterProps) => {
   return (
-    <footer className="w-full pt-20 pb-10" id="contact">
-      {/* background grid */}
-      <div className="w-full absolute left-0 -bottom-72 min-h-96">
-        <Image
-          src="/footer-grid.svg"
-          alt="grid"
-          fill
-          className="opacity-50 object-cover"
-          sizes="100vw"
-        />
-      </div>
-
-      <div className="flex flex-col items-center">
-        <h1 className="heading lg:max-w-[45vw]">
-          Ready to <span className="text-purple-300">ACE</span> those exams?
-        </h1>
-        <p className="text-white-200 md:mt-10 my-5 text-center">
-          Why not start now? everything is free!
+    <footer className="w-full py-8 border-t border-white/[0.06]" id="contact">
+      <div className="flex md:flex-row flex-col justify-between items-center px-6 gap-4">
+        <p className="text-sm text-gray-500">
+          Copyright © 2024 CamBright
         </p>
 
-        <a href={`${signed ? "/dashboard" : "/sign-up"}`}>
-          <MagicButton
-            title="Launch"
-            icon={<PointerIcon />}
-            position="right"
-            width="60"
-          />
-        </a>
-      </div>
-      <div className="flex mt-16 md:flex-row flex-col justify-between items-center">
-        <p className="md:text-base text-sm md:font-normal font-light">
-          Copyright © 2024 Cambright
-        </p>
-
-        <div className="flex items-center md:gap-3 gap-6">
+        <div className="flex items-center gap-3">
           {socialMedia.map((info) => (
             <Link
               key={info.id}

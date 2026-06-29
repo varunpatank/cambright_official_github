@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
+import Image from "next/image";
 import { 
   BookOpen, 
   Brain, 
@@ -24,7 +25,11 @@ import {
   Globe,
   MapPin,
   TrendingUp,
-  Activity
+  Activity,
+  Sparkles,
+  Bot,
+  FlaskConical,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { StarryBackground } from "@/components/ui/starry-background";
-import { Cover } from "@/components/ui/cover";
+import { useConfettiStore } from "@/hooks/use-confetti-store";
 
 interface DashboardClientProps {
   userId: string;
@@ -67,26 +72,44 @@ interface DashboardStats {
 
 const tools = [
   {
-    title: "Courses",
-    description: "Access comprehensive IGCSE & A-Level courses",
-    icon: BookOpen,
-    href: "/dashboard/mycourses",
-    color: "bg-blue-500",
-    bgGradient: "from-blue-500/20 to-blue-600/20",
-    borderColor: "border-blue-500/30"
+    title: "Tuto",
+    description: "CamBright Intelligence tutor for any IGCSE subject",
+    icon: Bot,
+    href: "/tuto-ai",
+    color: "bg-cyan-500",
+    bgGradient: "from-cyan-500/20 to-cyan-600/20",
+    borderColor: "border-cyan-500/30"
   },
   {
-    title: "Notes",
-    description: "Study with premium revision notes",
+    title: "Past Papers",
+    description: "Cambridge past papers with model answers",
     icon: FileText,
-    href: "/dashboard/mynotes",
+    href: "/past-papers",
     color: "bg-green-500",
     bgGradient: "from-green-500/20 to-green-600/20",
     borderColor: "border-green-500/30"
   },
   {
+    title: "Revision Notes",
+    description: "Premium notes for all IGCSE subjects",
+    icon: BookOpen,
+    href: "/search-notes",
+    color: "bg-blue-500",
+    bgGradient: "from-blue-500/20 to-blue-600/20",
+    borderColor: "border-blue-500/30"
+  },
+  {
+    title: "Intelligence Flashcards",
+    description: "Generate flashcards instantly with Gemini",
+    icon: Layers,
+    href: "/flashcards",
+    color: "bg-pink-500",
+    bgGradient: "from-pink-500/20 to-pink-600/20",
+    borderColor: "border-pink-500/30"
+  },
+  {
     title: "Grade Predictor",
-    description: "Predict your IGCSE grades accurately",
+    description: "Cambridge-calibrated grade predictions",
     icon: Calculator,
     href: "/predictor",
     color: "bg-purple-500",
@@ -94,8 +117,8 @@ const tools = [
     borderColor: "border-purple-500/30"
   },
   {
-    title: "Quiz Generator",
-    description: "Generate practice questions with AI",
+    title: "Question Quizzer",
+    description: "CamBright Intelligence-generated practice questions",
     icon: Target,
     href: "/quizzer",
     color: "bg-orange-500",
@@ -103,31 +126,22 @@ const tools = [
     borderColor: "border-orange-500/30"
   },
   {
-    title: "Progress Tracker",
-    description: "Track your academic progress",
-    icon: BarChart3,
-    href: "/tracker/select-group",
-    color: "bg-cyan-500",
-    bgGradient: "from-cyan-500/20 to-cyan-600/20",
-    borderColor: "border-cyan-500/30"
+    title: "MCQ Mock Exam",
+    description: "Timed mock exams with auto marking",
+    icon: Brain,
+    href: "/mcq-mock",
+    color: "bg-teal-500",
+    bgGradient: "from-teal-500/20 to-teal-600/20",
+    borderColor: "border-teal-500/30"
   },
   {
-    title: "Schools",
-    description: "Connect with CamBright schools",
-    icon: School,
-    href: "/schools",
-    color: "bg-indigo-500",
-    bgGradient: "from-indigo-500/20 to-indigo-600/20",
-    borderColor: "border-indigo-500/30"
-  },
-  {
-    title: "Profile",
-    description: "Manage your account and achievements",
-    icon: Users,
-    href: "/profile",
-    color: "bg-red-500",
-    bgGradient: "from-red-500/20 to-red-600/20",
-    borderColor: "border-red-500/30"
+    title: "Leaderboard",
+    description: "Earn XP and compete worldwide",
+    icon: Trophy,
+    href: "/leaderboard",
+    color: "bg-yellow-500",
+    bgGradient: "from-yellow-500/20 to-yellow-600/20",
+    borderColor: "border-yellow-500/30"
   }
 ];
 
@@ -135,6 +149,18 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
   const { user } = useUser();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const confetti = useConfettiStore();
+
+  useEffect(() => {
+    // Fire confetti once ever per browser on v2 launch
+    try {
+      const key = "cambright_v2_welcomed";
+      if (typeof window !== "undefined" && !localStorage.getItem(key)) {
+        setTimeout(() => confetti.onOpen(), 1200);
+        localStorage.setItem(key, "1");
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -166,23 +192,72 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
   const progressPercentage = totalCourses > 0 ? (coursesData.completed / totalCourses) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-black-100 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Starry Header Section */}
-        <StarryBackground height="180px" intensity="medium" className="mt-4">
-          <div className="flex items-center justify-center h-full py-8">
-            <Cover className="inline-block px-8 py-6 bg-neutral-900/60 rounded-xl">
-              <div className="text-center space-y-3">
-                <h1 className="text-4xl md:text-5xl font-sora font-bold text-white">
-                  Welcome Back, <span className="text-purple-400">{capitalizedName}</span>!
-                </h1>
-                <p className="text-lg md:text-xl text-gray-300 font-code">
-                  Continue your educational journey with CamBright
-                </p>
+    <div className="h-[calc(100vh-80px)] overflow-hidden bg-black-100">
+      <style>{`
+        @keyframes logo-shine {
+          0%   { background-position: 200% center; }
+          100% { background-position: -200% center; }
+        }
+
+        @keyframes welcome-ambient {
+          0%   { opacity: 0.28; transform: translateX(-3%) scale(1); }
+          50%  { opacity: 0.48; transform: translateX(2%) scale(1.03); }
+          100% { opacity: 0.28; transform: translateX(-3%) scale(1); }
+        }
+
+      `}</style>
+      {/* Starry Header Section */}
+      <StarryBackground height="270px" intensity="medium" showMeteors={false} className="rounded-none">
+        <div className="relative z-10 h-full px-8 pt-7 pb-2">
+          <div className="mx-auto grid h-full w-full max-w-7xl items-stretch gap-6 md:grid-cols-[minmax(0,1fr)_380px]">
+            {/* left: welcome card */}
+            <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-black/35 px-6 py-5 flex flex-col justify-center">
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  background: "radial-gradient(circle at 20% 50%, rgba(139,92,246,0.20), transparent 55%), radial-gradient(circle at 80% 40%, rgba(59,130,246,0.12), transparent 50%)",
+                  animation: "welcome-ambient 8s ease-in-out infinite",
+                }}
+              />
+              <div className="relative z-10 inline-flex w-fit items-center gap-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full px-3 py-1 mb-3">
+                <Sparkles className="w-3 h-3 text-purple-400" />
+                <span className="text-[10px] font-semibold text-purple-300 tracking-widest uppercase">CamBright v2 - Now Live</span>
               </div>
-            </Cover>
+              <h1 className="relative z-10 text-4xl md:text-5xl font-bold mb-2 font-sora text-left leading-tight">
+                Welcome Back, <span className="text-purple-400">{capitalizedName}</span>!
+              </h1>
+              <p className="relative z-10 text-sm text-gray-400 text-left">Tuto &middot; Intelligence Flashcards &middot; Grade Predictor &middot; MCQ Mocks &middot; and more</p>
+            </div>
+
+            {/* right: logo card */}
+            <div className="hidden md:flex h-full items-center">
+              <div className="relative h-full w-full rounded-2xl border border-white/10 bg-black/35 px-3 py-5 flex items-center justify-start overflow-hidden -ml-2">
+                <Image
+                  src="/logo-clean.png"
+                  alt="CamBright v2"
+                  width={340}
+                  height={82}
+                  className="object-contain relative z-10 -ml-1"
+                  priority
+                  quality={100}
+                  style={{ filter: "drop-shadow(0 0 18px rgba(139,92,246,0.4))" }}
+                />
+                <div
+                  className="absolute inset-0 z-20 pointer-events-none"
+                  style={{
+                    background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.5) 50%, transparent 70%)",
+                    backgroundSize: "200% 100%",
+                    animation: "logo-shine 8.5s ease-in-out infinite",
+                  }}
+                />
+              </div>
+            </div>
           </div>
-        </StarryBackground>
+        </div>
+      </StarryBackground>
+
+      <div className="px-8 py-6">
+      <div className="max-w-7xl mx-auto space-y-6">
 
         {/* User Profile Card */}
         <Card className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 border-purple-500/30 backdrop-blur-sm">
@@ -219,27 +294,55 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
           </CardHeader>
         </Card>
 
+        {/* ✨ What's New in v2 */}
+        <div className="relative overflow-hidden rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-950/40 via-n-7 to-blue-950/40 p-6">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              <span className="text-xs font-semibold text-purple-300 tracking-widest uppercase">What&apos;s New in CamBright v2</span>
+            </div>
+            <p className="text-xs text-gray-500 -mt-2">The biggest update yet — CamBright Intelligence tools built for IGCSE success</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {[
+                { icon: Bot, label: "Tuto", desc: "CamBright Intelligence tutor", color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/30" },
+                { icon: FlaskConical, label: "Intelligence Flashcards", desc: "Generate with CamBright", color: "text-green-400", bg: "bg-green-500/10 border-green-500/30" },
+                { icon: Target, label: "Question Quizzer", desc: "Intelligence practice Qs", color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/30" },
+                { icon: Calculator, label: "Grade Predictor", desc: "Cambridge thresholds", color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/30" },
+                { icon: Brain, label: "MCQ Mock Exams", desc: "Auto-marked mocks", color: "text-rose-400", bg: "bg-rose-500/10 border-rose-500/30" },
+              ].map(({ icon: Icon, label, desc, color, bg }) => (
+                <div key={label} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${bg}`}>
+                  <Icon className={`w-4 h-4 ${color} shrink-0`} />
+                  <div className="text-left">
+                    <p className={`text-xs font-semibold ${color}`}>{label}</p>
+                    <p className="text-xs text-gray-500">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="bg-gradient-to-br from-blue-900/50 to-blue-800/50 border-blue-500/30 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-yellow-900/50 to-yellow-800/50 border-yellow-500/30 backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center space-x-3">
-                <Clock className="w-8 h-8 text-blue-400" />
+                <Zap className="w-8 h-8 text-yellow-400" />
                 <div>
-                  <p className="text-2xl font-bold text-white">{coursesData.inProgress}</p>
-                  <p className="text-sm text-gray-300">Courses in Progress</p>
+                  <p className="text-2xl font-bold text-white">{stats?.userProfile?.XP ?? 0}</p>
+                  <p className="text-sm text-gray-300">XP Earned</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-900/50 to-green-800/50 border-green-500/30 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-cyan-900/50 to-cyan-800/50 border-cyan-500/30 backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center space-x-3">
-                <CheckCircle className="w-8 h-8 text-green-400" />
+                <Brain className="w-8 h-8 text-cyan-400" />
                 <div>
-                  <p className="text-2xl font-bold text-white">{coursesData.completed}</p>
-                  <p className="text-sm text-gray-300">Courses Completed</p>
+                  <p className="text-2xl font-bold text-white">8</p>
+                  <p className="text-sm text-gray-300">CamBright Intelligence Tools</p>
                 </div>
               </div>
             </CardContent>
@@ -251,64 +354,24 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
                 <FileText className="w-8 h-8 text-purple-400" />
                 <div>
                   <p className="text-2xl font-bold text-white">{notesData.inProgress}</p>
-                  <p className="text-sm text-gray-300">Notes in Progress</p>
+                  <p className="text-sm text-gray-300">Notes Active</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-yellow-900/50 to-orange-800/50 border-yellow-500/30 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-green-900/50 to-green-800/50 border-green-500/30 backdrop-blur-sm">
             <CardContent className="p-6">
               <div className="flex items-center space-x-3">
-                <Trophy className="w-8 h-8 text-yellow-400" />
+                <CheckCircle className="w-8 h-8 text-green-400" />
                 <div>
-                  <p className="text-2xl font-bold text-white">{Math.round(progressPercentage)}%</p>
-                  <p className="text-sm text-gray-300">Completion Rate</p>
+                  <p className="text-2xl font-bold text-white">{notesData.completed}</p>
+                  <p className="text-sm text-gray-300">Notes Completed</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* Platform Stats */}
-        {!isLoading && stats && (
-          <Card className="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border-indigo-500/30 backdrop-blur-sm">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-white font-sora flex items-center justify-center space-x-2 text-xl">
-                <TrendingUp className="w-6 h-6 text-indigo-400" />
-                <span>CamBright Community</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pb-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="flex flex-col items-center space-y-2">
-                    <Users className="w-8 h-8 text-cyan-400" />
-                    <span className="text-3xl font-bold text-cyan-400">{stats.totalUsers > 2000 ? '2000+' : stats.totalUsers.toLocaleString()}</span>
-                    <p className="text-sm text-gray-300 font-semibold">Students</p>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="flex flex-col items-center space-y-2">
-                    <Activity className="w-8 h-8 text-emerald-400" />
-                    <AnimatedCounter 
-                      baseValue={stats.activeUsers} 
-                      className="text-3xl font-bold text-emerald-400"
-                    />
-                    <p className="text-sm text-gray-300 font-semibold">Active Users</p>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="flex flex-col items-center space-y-2">
-                    <School className="w-8 h-8 text-violet-400" />
-                    <span className="text-3xl font-bold text-violet-400">{stats.totalSchools > 5 ? '5+' : stats.totalSchools}</span>
-                    <p className="text-sm text-gray-300 font-semibold">Schools</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* User Schools */}
         {stats?.userSchools && stats.userSchools.length > 0 && (
@@ -351,39 +414,7 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
           </Card>
         )}
 
-        {/* Tools & Resources Grid */}
-        <Card className="bg-black/50 border-white/10 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="text-white font-sora text-2xl flex items-center space-x-2">
-              <Star className="w-6 h-6 text-yellow-400" />
-              <span>Tools & Resources</span>
-            </CardTitle>
-            <CardDescription className="text-gray-300">
-              Access all CamBright educational tools and resources
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {tools.map((tool) => (
-                <Link key={tool.title} href={tool.href}>
-                  <Card className={`bg-gradient-to-br ${tool.bgGradient} border ${tool.borderColor} hover:scale-105 transition-all duration-300 cursor-pointer group h-full`}>
-                    <CardContent className="p-6 h-full flex flex-col justify-center">
-                      <div className="text-center space-y-4">
-                        <div className={`w-16 h-16 mx-auto ${tool.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                          <tool.icon className="w-8 h-8 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-white text-lg font-sora">{tool.title}</h3>
-                          <p className="text-sm text-gray-300 mt-1 font-code">{tool.description}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      </div>
       </div>
     </div>
   );

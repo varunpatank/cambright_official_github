@@ -31,7 +31,7 @@ export default function ClientChat({ userImg }: ClientChatProps) {
     temperature: 0.7,
     model: "google/gemma-3-4b-it:free",
     sysTemInstructions:
-      `You are Tuto AI, a helpful and knowledgeable assistant for students who do IGCSE and A-Levels Cambridge and Edexcel, to help them ace their exams. You are trained by Cambright. Your name is Tuto AI.
+      `You are Tuto, a helpful and knowledgeable assistant for students who do IGCSE and A-Levels Cambridge and Edexcel, to help them ace their exams. You are trained by Cambright. Your name is Tuto.
 
 FORMATTING RULES (CRITICAL - ALWAYS FOLLOW):
 - NEVER use hashtags (#, ##, ###) for headings
@@ -100,88 +100,58 @@ FORMATTING RULES (CRITICAL - ALWAYS FOLLOW):
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-gradient-to-b from-[#0a0a0f] via-[#0e0c15] to-[#0a0a0f]">
-      {/* Collapsible Header - Large when no messages, compact when chat started */}
+      {/* Collapsible Header */}
       <div className={`flex-shrink-0 border-b border-white/5 bg-black/60 backdrop-blur-xl transition-all duration-500 ease-out ${
-        hasMessages ? 'py-3 px-6' : 'py-8 px-6'
+        hasMessages ? 'py-3 px-6' : 'py-10 px-6'
       }`}>
         <div className={`max-w-5xl mx-auto transition-all duration-500 ${hasMessages ? '' : 'text-center'}`}>
-          {/* Header Content */}
           <div className={`flex items-center transition-all duration-500 ${
-            hasMessages ? 'gap-3' : 'flex-col gap-4'
+            hasMessages ? 'gap-3' : 'flex-col gap-3'
           }`}>
             {/* Logo */}
-            <div className={`relative transition-all duration-500 ${hasMessages ? '' : 'mb-2'}`}>
-              <div className={`rounded-2xl bg-gradient-to-br from-purple-600 via-purple-500 to-purple-700 flex items-center justify-center shadow-xl shadow-purple-500/30 transition-all duration-500 ${
-                hasMessages ? 'w-10 h-10' : 'w-20 h-20'
+            <div className="relative flex-shrink-0">
+              <div className={`rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shadow-lg shadow-purple-500/20 transition-all duration-500 ${
+                hasMessages ? 'w-9 h-9' : 'w-16 h-16'
               }`}>
-                <Bot size={hasMessages ? 22 : 40} className="text-white" />
+                <Bot size={hasMessages ? 18 : 32} className="text-white" />
               </div>
               <span className={`absolute bg-green-500 rounded-full border-2 border-[#0e0c15] transition-all duration-500 ${
-                hasMessages ? '-bottom-0.5 -right-0.5 w-2.5 h-2.5' : '-bottom-1 -right-1 w-4 h-4'
+                hasMessages ? '-bottom-0.5 -right-0.5 w-2 h-2' : '-bottom-1 -right-1 w-3.5 h-3.5'
               }`}></span>
             </div>
-            
-            {/* Title & Status */}
-            <div className={`transition-all duration-500 ${hasMessages ? '' : ''}`}>
+
+            {/* Title */}
+            <div>
               {hasMessages ? (
                 <>
-                  <h1 className="font-bold text-white font-sora text-lg">Tuto AI</h1>
-                  <p className="text-gray-400 text-xs">Online • Ready to help</p>
+                  <h1 className="font-bold text-white font-sora text-base">Tuto</h1>
+                  <p className="text-gray-500 text-xs">Online • Ready to help</p>
                 </>
               ) : (
-                <Cover className="px-6 py-4">
-                  <h1 className="font-bold text-white font-sora text-3xl mb-1">Welcome to <span className="text-purple-400">Tuto AI</span>.</h1>
-                  <p className="text-gray-400 text-base">Your intelligent study companion for IGCSE and A-Level exams</p>
-                </Cover>
+                <>
+                  <h1 className="font-bold text-white font-sora text-4xl mb-1">
+                    Tuto <span className="text-purple-400">Intelligence</span>.
+                  </h1>
+                  <p className="text-gray-500 text-sm">Your CamBright study companion</p>
+                </>
               )}
             </div>
           </div>
 
-          {/* Quick Prompts - Only show when no messages */}
+          {/* Quick prompts — only when no messages */}
           {!hasMessages && (
-            <div className="mt-8">
-              <p className="text-xs text-gray-500 uppercase tracking-wider mb-4">Quick Start</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 max-w-5xl mx-auto">
-                {SUGGESTION_PROMPTS.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion.text)}
-                    className="group relative p-4 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/50 hover:bg-white/10 transition-all duration-300 text-left overflow-hidden"
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${suggestion.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
-                    <div className="relative flex flex-col items-center gap-2 text-center">
-                      <div className={`p-2 rounded-lg bg-gradient-to-br ${suggestion.color} shadow-lg`}>
-                        <suggestion.icon size={16} className="text-white" />
-                      </div>
-                      <span className="text-xs text-gray-300 group-hover:text-white transition-colors leading-relaxed line-clamp-2">
-                        {suggestion.text}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              
-              {/* Features Row */}
-              <div className="flex items-center justify-center gap-6 mt-6 text-xs text-gray-500">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                  All Subjects
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                  Exam Tips
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                  Step-by-Step Solutions
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                  Essay Help
-                </span>
-              </div>
-              
-              <p className="text-[10px] text-purple-400/60 mt-4">Powered by CamBright</p>
+            <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-2 max-w-xl mx-auto">
+              {SUGGESTION_PROMPTS.slice(0, 3).map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionClick(suggestion.text)}
+                  className="p-3 rounded-xl bg-white/5 border border-white/10 hover:border-purple-500/40 hover:bg-white/8 transition-all duration-200 text-left"
+                >
+                  <span className="text-xs text-gray-400 hover:text-gray-200 transition-colors line-clamp-2 leading-relaxed">
+                    {suggestion.text}
+                  </span>
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -215,7 +185,7 @@ FORMATTING RULES (CRITICAL - ALWAYS FOLLOW):
         currentSettings={{
           temperature: settings.temperature || 0.7,
           model: settings.model || "google/gemma-3-4b-it:free",
-          systemInstruction: settings.sysTemInstructions || "You are Tuto AI, a helpful assistant for students who do IGCSE and A-Levels Cambridge and Edexcel, to help them ace their exams. You are trained by Cambright. Your name is Tuto AI.",
+          systemInstruction: settings.sysTemInstructions || "You are Tuto, a helpful assistant for students who do IGCSE and A-Levels Cambridge and Edexcel, to help them ace their exams. You are trained by Cambright. Your name is Tuto.",
         }}
       />
     </div>

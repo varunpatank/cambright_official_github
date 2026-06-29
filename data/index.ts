@@ -5,7 +5,7 @@ export const navItems = [{ name: "Join", link: "/sign-up" }];
 export const gridItems = [
   {
     id: 1,
-    title: "Comprehensive Resources & Online Courses",
+    title: "Past Papers & Revision Notes",
     description: "",
     className: "lg:col-span-3 md:col-span-6 md:row-span-4 lg:min-h-[60vh]",
     imgClassName: "w-full h-full",
@@ -15,7 +15,7 @@ export const gridItems = [
   },
   {
     id: 2,
-    title: "Expert tutors wherever you are!",
+    title: "CamBright Intelligence, built right in.",
     description: "",
     className: "lg:col-span-2 md:col-span-3 md:row-span-2",
     imgClassName: "",
@@ -25,8 +25,8 @@ export const gridItems = [
   },
   {
     id: 3,
-    title: "Unlimited resources",
-    description: "For all subjects",
+    title: "Every subject covered",
+    description: "IGCSE, AS & A Level",
     className: "lg:col-span-2 md:col-span-3 md:row-span-2",
     imgClassName: "",
     titleClassName: "justify-center",
@@ -66,8 +66,8 @@ export const gridItems = [
   },
   {
     id: 7,
-    title: "Next-Level Progress Tracker",
-    description: "Boost your Productivity",
+    title: "Intelligence Flashcard Generator.",
+    description: "Generate flashcards instantly with CamBright Intelligence",
     className: "md:col-span-3 md:row-span-2",
     imgClassName: "absolute right-0 bottom-0 md:w-96 w-60",
     titleClassName: "justify-center md:justify-start lg:justify-center",
@@ -86,8 +86,8 @@ export const gridItems = [
   },
   {
     id: 9,
-    title: "StudyHub.",
-    description: "Create & Join Studyhubs",
+    title: "Grade Predictor.",
+    description: "Cambridge-calibrated grade estimates",
     className: "md:col-span-3 md:row-span-2",
     imgClassName: "",
     titleClassName: "justify-start",
@@ -134,7 +134,7 @@ export const workExperience = [
     "id": 1,
     "title": "Mock Exam Setup",
     "desc":
-      "With CamBright, you can effortlessly set up a comprehensive mock exams experience. Features include a built-in timer, a realistic exam paper, full-screen mode, an AI invigilator, and optional camera integration for enhanced examination conditions.",
+      "With CamBright, you can effortlessly set up a comprehensive mock exams experience. Features include a built-in timer, a realistic exam paper, full-screen mode, a CamBright Intelligence invigilator, and optional camera integration for enhanced examination conditions.",
     "className": "md:col-span-2",
     "thumbnail": "/exp3.svg",
   },

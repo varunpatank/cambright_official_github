@@ -64,6 +64,7 @@ const ProfilePage = () => {
   const [isAddingTag, setIsAddingTag] = useState<boolean>(false); // Toggle for showing the tag input
   const [userRank, setUserRank] = useState<number | null>(null); // Store rank
   const [rankColor, setRankColor] = useState<string>(""); // Store rank color
+  const [fetchError, setFetchError] = useState<boolean>(false);
 
   // Fetch user profile data after loading
   useEffect(() => {
@@ -108,9 +109,11 @@ const ProfilePage = () => {
           }
         } else {
           console.log("Failed to fetch account data");
+          setFetchError(true);
         }
       } catch (error) {
         console.log("Error fetching account data", error);
+        setFetchError(true);
       }
     };
     const fetchRank = async () => {
@@ -243,8 +246,19 @@ const ProfilePage = () => {
   const bioContent =
     bio === "<p></p>" || !bio || bio === "<h3><br></h3>" ? "No bio set" : bio;
 
-  if (!isLoaded || !account) {
+  if (!isLoaded || (!account && !fetchError)) {
     return <LoadingOverlay />;
+  }
+
+  if (fetchError && !account) {
+    return (
+      <div className="flex items-center justify-center h-full text-white text-center p-8">
+        <div>
+          <p className="text-xl font-semibold mb-2">Could not load profile</p>
+          <p className="text-gray-400 text-sm">There was an issue connecting to the database. Please try again later.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

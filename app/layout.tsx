@@ -24,7 +24,6 @@ import { TutorService } from "@/lib/tutor-service";
 import { StartupChecker } from "@/components/startup-checker";
 
 const inter = Sora({ subsets: ["latin"] });
-const CrispWithNoSSR = dynamic(() => import("../components/crisp"));
 
 export const metadata: Metadata = {
   title: "CamBright | Top Scores & Bright Futures",
@@ -70,7 +69,7 @@ export default function RootLayout({
             />{" "} */}
               <QueryProvider>
                 <StartupChecker showDetailedErrors={process.env.NODE_ENV === 'development'}>
-                  {children} <CrispWithNoSSR />
+                  {children}
                 </StartupChecker>
               </QueryProvider>
             </Suspense>

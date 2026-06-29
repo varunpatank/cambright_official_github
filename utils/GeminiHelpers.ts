@@ -1,4 +1,4 @@
-// OpenRouter API helper for Gemma 3 and other models
+// Gemini Flash API helper for Tuto AI
 
 export type ChatSettings = {
   model?: string;
@@ -11,24 +11,21 @@ export type ChatHistory = Array<{
   parts: Array<{ text: string }>;
 }>;
 
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'google/gemma-3-4b-it:free';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 export async function chatToGemini(
   userMessage: string,
   history: ChatHistory,
   settings: ChatSettings
 ): Promise<string> {
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API;
   
   if (!apiKey) {
-    throw new Error('OPENROUTER_API_KEY not found - Please set it in your .env file');
+    throw new Error('Gemini API key not found - Please set NEXT_PUBLIC_GEMINI_API_KEY in your .env file');
   }
 
-  try {
-    // System instruction to prepend to first message (Gemma 3 doesn't support system role)
-    const systemInstruction = settings.sysTemInstructions || 
-      `You are Tuto AI, a helpful and knowledgeable assistant for students who do IGCSE and A-Levels Cambridge and Edexcel, to help them ace their exams. You are trained by Cambright. Your name is Tuto AI.
+  const systemInstruction = settings.sysTemInstructions || 
+    `You are Tuto AI, a helpful and knowledgeable assistant for students who do IGCSE and A-Levels Cambridge and Edexcel, to help them ace their exams. You are trained by Cambright. Your name is Tuto AI.
 
 FORMATTING RULES (CRITICAL - ALWAYS FOLLOW):
 - NEVER use hashtags (#, ##, ###) for headings
@@ -40,60 +37,32 @@ FORMATTING RULES (CRITICAL - ALWAYS FOLLOW):
 - Keep paragraphs short and well-spaced for readability
 - Use underscores for emphasis on key points: _like this_
 - Start responses with a brief, friendly acknowledgment when appropriate`;
-    
-    const messages: Array<{ role: string; content: string }> = [];
 
-    // Convert history
-    for (const msg of history) {
-      messages.push({
-        role: msg.role === 'model' ? 'assistant' : 'user',
-        content: msg.parts.map(p => p.text).join('')
-      });
-    }
+  const contents = [
+    ...history.map(msg => ({ role: msg.role, parts: msg.parts })),
+    { role: 'user', parts: [{ text: userMessage }] }
+  ];
 
-    // For the current message, prepend system instruction if this is the first message
-    const isFirstMessage = history.length === 0;
-    const currentMessage = isFirstMessage 
-      ? `[INSTRUCTIONS: ${systemInstruction}]\n\nUser: ${userMessage}`
-      : userMessage;
-
-    // Add the current user message
-    messages.push({
-      role: 'user',
-      content: currentMessage
-    });
-
-    const response = await fetch(OPENROUTER_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://cambright.org',
-        'X-Title': 'Cambright Tuto AI'
-      },
-      body: JSON.stringify({
-        model: settings.model || DEFAULT_MODEL,
-        messages: messages,
+  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: systemInstruction }] },
+      contents,
+      generationConfig: {
         temperature: settings.temperature || 0.7,
-        max_tokens: 4096
-      })
-    });
+        maxOutputTokens: 4096,
+      }
+    })
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('OpenRouter API Error:', response.status, errorData);
-      throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-    const data = await response.json();
-    
-    if (!data.choices || !data.choices[0]?.message?.content) {
-      throw new Error('Invalid response from OpenRouter API');
-    }
-
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.error('Chat API Error:', error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`Gemini API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
   }
+
+  const data = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Invalid response from Gemini API');
+  return text;
 }

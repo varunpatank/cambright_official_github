@@ -84,17 +84,16 @@ const DonatePage = () => {
   return (
     <main className="relative bg-black-100 flex justify-center items-center flex-col overflow-hidden mx-auto px-0">
       {/* Starry Header */}
-      <div className="w-full max-w-7xl px-4 pt-8">
-        <StarryBackground height="160px" intensity="high" className="mb-4">
-          <div className="flex items-center justify-center h-full py-6">
-            <Cover className="inline-block px-8 py-4 bg-neutral-900/60 rounded-xl">
-              <h1 className="text-4xl sm:text-5xl font-bold text-white text-center">
-                Support <span className="text-purple-400">Our Mission</span>
-              </h1>
-            </Cover>
-          </div>
-        </StarryBackground>
-      </div>
+      <StarryBackground height="240px" intensity="medium" showMeteors={true} className="mb-4 rounded-none w-full">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+          <Cover className="inline-block px-8 py-6">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+              Support <span className="text-purple-400">Our Mission</span>.
+            </h1>
+            <p className="text-gray-400 text-center">Help us keep education free for every student</p>
+          </Cover>
+        </div>
+      </StarryBackground>
       
       <div className="max-w-7xl w-full">
         {/* If HeroParallax accepts animation strength, reduce dip here */}

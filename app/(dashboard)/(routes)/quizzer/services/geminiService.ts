@@ -1,47 +1,37 @@
-// OpenRouter API for quiz generation with Gemma 3
+// Gemini Flash API for quiz generation
 
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'google/gemma-3-4b-it:free';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
-// Helper function to call OpenRouter API
+// Helper function to call Gemini Flash API
 async function callOpenRouter(prompt: string): Promise<string> {
-  const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   
   if (!apiKey) {
-    throw new Error('OpenRouter API key not found');
+    throw new Error('Gemini API key not found. Set NEXT_PUBLIC_GEMINI_API_KEY in .env');
   }
 
-  // Gemma 3 doesn't support system role, so we prepend instructions to the user message
-  const systemContext = '[INSTRUCTIONS: You are an expert IGCSE and A-Level question generator. Generate high-quality questions based on Cambridge past paper standards. Always respond with valid JSON only. Do not include any text before or after the JSON array.]\n\n';
+  const systemInstruction = 'You are an expert IGCSE and A-Level question generator. Generate high-quality questions based on Cambridge past paper standards. Always respond with valid JSON only. Do not include any text before or after the JSON array.';
 
-  const response = await fetch(OPENROUTER_API_URL, {
+  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://cambright.org',
-      'X-Title': 'Cambright Quiz Generator'
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: DEFAULT_MODEL,
-      messages: [
-        {
-          role: 'user',
-          content: systemContext + prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 4096
+      system_instruction: { parts: [{ text: systemInstruction }] },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 4096,
+      }
     })
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    throw new Error(`Gemini API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
 // Function to clean mathematical notation and remove LaTeX

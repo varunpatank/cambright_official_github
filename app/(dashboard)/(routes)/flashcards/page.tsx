@@ -249,34 +249,18 @@ const FlashcardsPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-n-8 text-white">
       {/* Starry Header */}
-      <StarryBackground height="280px" intensity="high" showMeteors={true}>
-        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 border border-purple-500/30 mb-6"
-          >
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span className="text-purple-300 text-sm font-medium">AI-Powered</span>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Cover className="inline-block px-8 py-6">
-              <h1 className="text-5xl md:text-6xl font-bold mb-4">
-                Flashcard <span className="text-purple-400">Generator</span>.
-              </h1>
-              <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                Generate AI-powered flashcards tailored to your subjects and topics.
-                Perfect for IGCSE, AS, and A-Level revision.
-              </p>
-            </Cover>
-          </motion.div>
+      <StarryBackground height="240px" intensity="medium" showMeteors={true}>
+        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+          <Cover className="inline-block px-8 py-6">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+              Flashcard <span className="text-purple-400">Generator</span>.
+            </h1>
+            <p className="text-gray-400 text-center">
+              Generate CamBright Intelligence flashcards tailored to your subjects and topics
+            </p>
+          </Cover>
         </div>
       </StarryBackground>
       
@@ -288,7 +272,7 @@ const FlashcardsPage: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-800 p-6 mb-8 space-y-6"
+          className="bg-n-7 rounded-2xl border border-white/10 p-6 mb-8 space-y-6"
         >
           {/* Subject Selection */}
           <SubjectSelector
@@ -434,7 +418,7 @@ const FlashcardsPage: React.FC = () => {
             </h3>
             <p className="text-gray-500 max-w-md mx-auto">
               Select a subject and topics above, then click Generate to create
-              AI-powered flashcards for your revision.
+              CamBright Intelligence flashcards for your revision.
             </p>
           </motion.div>
         )}

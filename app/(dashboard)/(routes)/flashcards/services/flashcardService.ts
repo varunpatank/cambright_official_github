@@ -1,7 +1,6 @@
-// OpenRouter API for AI flashcard generation
+// Gemini API for AI flashcard generation
 
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'google/gemma-3-4b-it:free';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 export interface GeneratedFlashcard {
   id: number;
@@ -17,44 +16,35 @@ export interface GenerationProgress {
   percentage: number;
 }
 
-// Helper function to call OpenRouter API
-async function callOpenRouter(prompt: string): Promise<string> {
-  const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+// Helper function to call Gemini API
+async function callGemini(prompt: string): Promise<string> {
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
   
   if (!apiKey) {
-    throw new Error('OpenRouter API key not found');
+    throw new Error('Gemini API key not found');
   }
 
-  const systemContext = '[INSTRUCTIONS: You are an expert IGCSE and A-Level flashcard generator. Generate high-quality flashcards with concise questions and answers. Always respond with valid JSON only. Do not include any text before or after the JSON array.]\n\n';
+  const systemInstruction = 'You are an expert IGCSE and A-Level flashcard generator. Generate high-quality flashcards with concise questions and answers. Always respond with valid JSON only. Do not include any text before or after the JSON array.';
 
-  const response = await fetch(OPENROUTER_API_URL, {
+  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
-      'HTTP-Referer': 'https://cambright.org',
-      'X-Title': 'Cambright Flashcard Generator'
     },
     body: JSON.stringify({
-      model: DEFAULT_MODEL,
-      messages: [
-        {
-          role: 'user',
-          content: systemContext + prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 4096
+      system_instruction: { parts: [{ text: systemInstruction }] },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 4096 }
     })
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    throw new Error(`Gemini API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
 // Parse JSON from AI response
@@ -123,7 +113,7 @@ Return ONLY a JSON array with this exact format:
 Generate exactly ${numCards} flashcards. No explanation, just the JSON array.`;
 
     try {
-      const response = await callOpenRouter(prompt);
+      const response = await callGemini(prompt);
       const flashcards = parseFlashcardsFromResponse(response);
       allFlashcards.push(...flashcards.slice(0, numCards));
       updateProgress(1, 'Complete!');
@@ -155,7 +145,7 @@ Return ONLY a JSON array with this exact format:
 Generate exactly ${cardsToGenerate} flashcards. No explanation, just the JSON array.`;
 
       try {
-        const response = await callOpenRouter(prompt);
+        const response = await callGemini(prompt);
         const flashcards = parseFlashcardsFromResponse(response);
         
         // Add topic to flashcards

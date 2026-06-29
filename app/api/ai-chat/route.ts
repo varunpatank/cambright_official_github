@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     };
 
     // Check if API key is available
-    const apiKey = process.env.GOOGLE_GEMINI_API || process.env.GEMINI_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       console.error("No Gemini API key found in environment variables");
       return NextResponse.json({ error: "API key not configured" }, { status: 500 });
