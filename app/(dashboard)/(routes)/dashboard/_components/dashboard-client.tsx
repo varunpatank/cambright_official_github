@@ -209,7 +209,7 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
       {/* Starry Header Section */}
       <StarryBackground height="270px" intensity="medium" showMeteors={false} className="rounded-none">
         <div className="relative z-10 h-full px-8 pt-7 pb-2">
-          <div className="mx-auto grid h-full w-full max-w-7xl items-stretch gap-6 md:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="mx-auto grid h-full w-full max-w-7xl items-stretch gap-4 md:grid-cols-[minmax(0,0.62fr)_minmax(0,0.38fr)]">
             {/* left: welcome card */}
             <div className="relative h-full overflow-hidden rounded-2xl border border-white/10 bg-black/35 px-6 py-5 flex flex-col justify-center">
               <div
@@ -231,13 +231,13 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
 
             {/* right: logo card */}
             <div className="hidden md:flex h-full items-center">
-              <div className="relative h-full w-full rounded-2xl border border-white/10 bg-black/35 px-3 py-5 flex items-center justify-start overflow-hidden -ml-2">
+              <div className="relative h-full w-full rounded-2xl border border-white/10 bg-black/35 px-5 py-5 flex items-center justify-center overflow-hidden">
                 <Image
                   src="/logo-clean.png"
                   alt="CamBright v2"
-                  width={340}
-                  height={82}
-                  className="object-contain relative z-10 -ml-1"
+                  width={400}
+                  height={96}
+                  className="object-contain relative z-10 w-full"
                   priority
                   quality={100}
                   style={{ filter: "drop-shadow(0 0 18px rgba(139,92,246,0.4))" }}
