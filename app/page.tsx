@@ -46,7 +46,7 @@ export default function Page() {
         <Hero showThem={!user} />
 
         {/* ── BRIGHT ACRONYM STRIP ── */}
-        <section className="mb-5 overflow-hidden rounded-3xl border border-white/[0.07] bg-black/30 backdrop-blur-sm">
+        <section className="mb-5 overflow-hidden rounded-3xl border border-white/[0.07] bg-black/30 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-6 duration-700">
           <div className="grid grid-cols-6 divide-x divide-white/[0.07]">
             {ACRONYM.map(({ letter, word, sub, grad, glow }, i) => (
               <div
@@ -67,11 +67,11 @@ export default function Page() {
         </section>
 
         {/* ── TOOL GRID ── */}
-        <section className="mb-5 overflow-hidden rounded-3xl border border-white/[0.07] bg-black/30 backdrop-blur-sm">
+        <section className="mb-5 overflow-hidden rounded-3xl border border-white/[0.07] bg-black/30 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-6 duration-700" style={{animationDelay:"150ms",animationFillMode:"both"}}>
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
-            <div className="flex items-center gap-2.5">
-              <Image src="/logo-clean.png" alt="CamBright" width={100} height={26} className="opacity-90" />
-              <span className="rounded-full border border-violet-400/40 bg-violet-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-violet-300">v2</span>
+            <div className="flex items-center gap-3">
+              <Image src="/logo-clean.png" alt="CamBright" width={150} height={38} className="opacity-95 drop-shadow-[0_0_16px_rgba(139,92,246,0.5)]" />
+              <span className="rounded-full border border-violet-400/50 bg-gradient-to-r from-violet-500/20 to-cyan-500/20 px-3 py-1 text-xs font-black uppercase tracking-widest text-violet-200 shadow-[0_0_14px_rgba(139,92,246,0.4)]">v2</span>
             </div>
             <span className="text-xs text-white/40">8 tools. Zero cost.</span>
           </div>
@@ -96,7 +96,7 @@ export default function Page() {
         </section>
 
         {/* ── BOTTOM ROW: LEADERBOARD + CTA ── */}
-        <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2 animate-in fade-in slide-in-from-bottom-6 duration-700" style={{animationDelay:"300ms",animationFillMode:"both"}}>
 
           {/* Leaderboard */}
           <Link

@@ -32,7 +32,7 @@ const Hero = ({ showThem }: HeroProps) => {
   };
 
   return (
-    <div className="pb-10 pt-32 relative">
+    <div className="pb-10 pt-16 relative">
       <div
         className="h-screen w-full bg-grid-white/[0.03]
         absolute top-0 left-0 flex items-center justify-center"

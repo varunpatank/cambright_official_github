@@ -72,14 +72,14 @@ const guestRoutes: RouteItem[] = [
   //   href: "/search",
   // },
   {
-    icon: BarChartBigIcon,
-    label: "Leaderboard",
-    href: "/leaderboard",
-  },
-  {
     icon: GraduationCap,
     label: "Courses",
     href: "/tutoring-program",
+  },
+  {
+    icon: BarChartBigIcon,
+    label: "Leaderboard",
+    href: "/leaderboard",
   },
   // {
   //   icon: Award,

@@ -258,21 +258,19 @@ const AboutPage = () => {
 
   return (
     <div className="bg-black-100 text-white min-h-screen flex flex-col">
-      <StarryBackground height="240px" intensity="medium" showMeteors={true} className="rounded-none">
-        <div className="relative z-10 h-full px-8">
-          <div className="mx-auto h-full max-w-7xl flex items-center justify-center">
-            <Cover className="inline-block px-6 py-5 text-center mx-auto translate-y-10" noSparkles>
-              <div className="inline-flex items-center gap-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full px-3 py-1 mb-3">
-                <span className="text-[10px] font-semibold text-purple-300 tracking-widest uppercase">CamBright Team</span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-bold font-sora leading-tight">
-                About <span className="text-purple-400">CamBright</span>
-              </h1>
-              <p className="text-gray-400 text-sm mt-2">
-                Student-built. Community-powered. Helping learners worldwide reach top scores for free.
-              </p>
-            </Cover>
-          </div>
+      <StarryBackground height="240px" intensity="medium" showMeteors={true} className="rounded-none mb-8">
+        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+          <Cover className="inline-block px-8 py-6">
+            <div className="inline-flex items-center gap-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full px-3 py-1 mb-3">
+              <span className="text-[10px] font-semibold text-purple-300 tracking-widest uppercase">CamBright Team</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold font-sora leading-tight">
+              About <span className="text-purple-400">CamBright</span>
+            </h1>
+            <p className="text-gray-400 text-sm mt-2">
+              Student-built. Community-powered. Helping learners worldwide reach top scores for free.
+            </p>
+          </Cover>
         </div>
       </StarryBackground>
 

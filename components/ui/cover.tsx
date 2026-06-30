@@ -112,7 +112,7 @@ export const Cover = ({
       onMouseLeave={handleMouseLeave}
       ref={ref}
       className={cn(
-        "relative hover:bg-neutral-900/80 group/cover inline-block bg-neutral-900 px-2 py-2 transition duration-200 rounded-2xl",
+        "relative hover:bg-neutral-900/80 group/cover inline-block bg-neutral-900 px-2 py-2 transition duration-700 rounded-2xl",
         className
       )}
     >
@@ -135,7 +135,7 @@ export const Cover = ({
           filter: isActive ? "brightness(1.1)" : "brightness(1)",
         }}
         transition={{
-          duration: 0.6,
+          duration: 1.2,
           ease: "easeInOut",
         }}
         className={cn(
