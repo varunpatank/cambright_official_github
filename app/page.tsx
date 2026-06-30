@@ -41,7 +41,7 @@ export default function Page() {
   const { user } = useUser();
 
   return (
-    <main className="min-h-screen text-white">
+    <main className="min-h-screen text-white" style={{zoom:"1.1"}}>
       <div className="relative mx-auto max-w-6xl px-4 pb-12 md:px-6">
         <Hero showThem={!user} />
 
