@@ -8,7 +8,7 @@ import { SparklesCore } from "./sparkles";
 const SparkleCanvas = React.memo(({ overlayRef }: { overlayRef: React.RefObject<HTMLDivElement> }) => (
   <div
     ref={overlayRef}
-    style={{ opacity: 0.08, transition: "opacity 0.8s ease-in-out" }}
+    style={{ opacity: 0.08, transition: "opacity 1.4s ease-in-out" }}
     className="h-full w-full overflow-hidden absolute inset-0 rounded-lg pointer-events-none"
   >
     <motion.div
@@ -39,9 +39,11 @@ const SparkleCanvas = React.memo(({ overlayRef }: { overlayRef: React.RefObject<
 export const Cover = ({
   children,
   className,
+  noSparkles,
 }: {
   children?: React.ReactNode;
   className?: string;
+  noSparkles?: boolean;
 }) => {
   const [hovered, setHovered] = useState(false);
   const [active, setActive] = useState(false);
@@ -114,7 +116,7 @@ export const Cover = ({
         className
       )}
     >
-      <SparkleCanvas overlayRef={overlayRef} />
+      {!noSparkles && <SparkleCanvas overlayRef={overlayRef} />}
       {beamData.map((beam, index) => (
         <Beam
           key={index}

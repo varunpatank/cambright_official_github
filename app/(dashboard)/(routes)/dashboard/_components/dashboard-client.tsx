@@ -142,6 +142,15 @@ const tools = [
     color: "bg-yellow-500",
     bgGradient: "from-yellow-500/20 to-yellow-600/20",
     borderColor: "border-yellow-500/30"
+  },
+  {
+    title: "Tutoring Program",
+    description: "Join CamBright tutors and launch your course",
+    icon: GraduationCap,
+    href: "/tutoring-program",
+    color: "bg-violet-500",
+    bgGradient: "from-violet-500/20 to-fuchsia-600/20",
+    borderColor: "border-violet-500/30"
   }
 ];
 
@@ -192,7 +201,7 @@ export function DashboardClient({ userId, coursesData, notesData }: DashboardCli
   const progressPercentage = totalCourses > 0 ? (coursesData.completed / totalCourses) * 100 : 0;
 
   return (
-    <div className="h-[calc(100vh-80px)] overflow-hidden bg-black-100">
+    <div className="h-[calc(100vh-80px)] overflow-y-auto overflow-x-hidden bg-black-100">
       <style>{`
         @keyframes logo-shine {
           0%   { background-position: 200% center; }

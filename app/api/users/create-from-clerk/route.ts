@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
+import { getInitialSessionSeconds, getInitialXp } from '@/lib/session-time'
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +36,8 @@ export async function POST(req: NextRequest) {
         name: clerkUser.firstName ? `${clerkUser.firstName} ${clerkUser.lastName || ''}`.trim() : clerkUser.username || 'Anonymous',
         email: clerkUser.emailAddresses[0]?.emailAddress || '',
         imageUrl: clerkUser.imageUrl || '',
-        XP: 0,
+        XP: getInitialXp(clerkUser.id),
+        websiteSeconds: getInitialSessionSeconds(clerkUser.id),
         followers: 0,
         following: 0,
         biog: '',

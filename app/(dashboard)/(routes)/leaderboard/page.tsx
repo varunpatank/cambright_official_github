@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
@@ -49,7 +49,6 @@ interface LeaderboardResponse {
   total: number;
   clerkUserCount: number | string;
   databaseUserCount: number;
-  newUserCount: number;
   timestamp: string;
   error?: string;
 }
@@ -64,12 +63,14 @@ const LeaderBoardPage = () => {
     total: number;
     clerkUserCount: number | string;
     databaseUserCount: number;
-    newUserCount: number;
   } | null>(null);
   const [followingState, setFollowingState] = useState<Map<string, boolean>>(
     new Map()
   );
   const [loading, setLoading] = useState<boolean>(true); // Loading state
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [rankDelta, setRankDelta] = useState(0);
+  const previousRankRef = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
@@ -80,11 +81,11 @@ const LeaderBoardPage = () => {
         if (response.ok) {
           const data: LeaderboardResponse = await response.json();
           setLeaderboard(data.leaderboard);
+          setLastUpdated(new Date());
           setLeaderboardStats({
             total: data.total,
             clerkUserCount: data.clerkUserCount,
             databaseUserCount: data.databaseUserCount,
-            newUserCount: data.newUserCount
           });
         } else {
           console.error("Failed to fetch leaderboard data");
@@ -97,10 +98,36 @@ const LeaderBoardPage = () => {
     };
 
     fetchLeaderboard();
-    // Refresh every 30 seconds for real-time updates
-    const interval = setInterval(fetchLeaderboard, 30000);
+    // Faster refresh cadence so rank changes are visible quickly.
+    const interval = setInterval(fetchLeaderboard, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const sortedLeaderboard = useMemo(
+    () => [...leaderboard].sort((a, b) => b.XP - a.XP),
+    [leaderboard]
+  );
+
+  const currentUserRank = useMemo(() => {
+    if (!user?.id) return null;
+    const rank = sortedLeaderboard.findIndex((u) => u.userId === user.id);
+    return rank === -1 ? null : rank + 1;
+  }, [sortedLeaderboard, user?.id]);
+
+  const currentUserEntry = useMemo(() => {
+    if (!user?.id) return null;
+    return sortedLeaderboard.find((u) => u.userId === user.id) ?? null;
+  }, [sortedLeaderboard, user?.id]);
+
+  useEffect(() => {
+    if (!currentUserRank) return;
+
+    if (previousRankRef.current !== null) {
+      setRankDelta(previousRankRef.current - currentUserRank);
+    }
+
+    previousRankRef.current = currentUserRank;
+  }, [currentUserRank]);
 
   // Function to handle XP increment
   const handleXPIncrement = async () => {
@@ -195,11 +222,11 @@ const LeaderBoardPage = () => {
 
   const now = Date.now();
   const oneDayMs = 24 * 60 * 60 * 1000;
-  const activeUsersCount = leaderboard.filter((u) => {
+  const activeUsersCount = sortedLeaderboard.filter((u) => {
     const lastSignInAt = u.clerkData?.lastSignInAt;
     return typeof lastSignInAt === "number" && now - lastSignInAt <= 30 * oneDayMs;
   }).length;
-  const loginsTodayCount = leaderboard.filter((u) => {
+  const loginsTodayCount = sortedLeaderboard.filter((u) => {
     const lastSignInAt = u.clerkData?.lastSignInAt;
     return typeof lastSignInAt === "number" && now - lastSignInAt <= oneDayMs;
   }).length;
@@ -216,7 +243,7 @@ const LeaderBoardPage = () => {
               <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
                 Leaderboard<span className="text-purple-400">.</span>
               </h1>
-              <p className="text-gray-400 text-center">Top students by XP — updated in real time</p>
+              <p className="text-gray-400 text-center">Ranked by XP from total visit time on CamBright — updated in real time</p>
             </Cover>
           </div>
         </StarryBackground>
@@ -225,11 +252,37 @@ const LeaderBoardPage = () => {
         {/* Leaderboard Stats */}
         {leaderboardStats && (
           <div className="mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
-                <div className="text-2xl font-bold text-emerald-400">{leaderboardStats.newUserCount}</div>
-                <div className="text-sm text-gray-400">New Users This Month</div>
+            {currentUserRank && currentUserEntry && (
+              <div className="mb-4 rounded-2xl border border-purple-400/30 bg-gradient-to-r from-purple-600/20 via-violet-500/15 to-cyan-500/15 p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-purple-200">Your Live Rank</div>
+                    <div className="mt-1 flex items-center gap-3">
+                      <span className="text-3xl font-bold text-white">#{currentUserRank}</span>
+                      <span className="rounded-full border border-white/15 bg-black/30 px-2 py-0.5 text-xs text-white/80">
+                        {currentUserEntry.XP} XP
+                      </span>
+                      {rankDelta !== 0 && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            rankDelta > 0
+                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
+                              : "bg-rose-500/20 text-rose-300 border border-rose-400/30"
+                          }`}
+                        >
+                          {rankDelta > 0 ? `+${rankDelta} rank` : `${rankDelta} rank`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-xs text-white/70">
+                    Live refresh every 5s
+                    {lastUpdated ? ` • Updated ${lastUpdated.toLocaleTimeString()}` : ""}
+                  </div>
+                </div>
               </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
                 <div className="text-2xl font-bold text-cyan-400">{activeUsersCount}</div>
                 <div className="text-sm text-gray-400">Active Users</div>
@@ -253,7 +306,7 @@ const LeaderBoardPage = () => {
             {/* Bar Graph with User Avatars */}
             <div className="mb-12 mt-4">
               <div className="mx-auto flex max-w-4xl justify-center items-end gap-4 md:gap-8">
-              {leaderboard.slice(0, 3).map((leaderboardUser, index) => (
+              {sortedLeaderboard.slice(0, 3).map((leaderboardUser, index) => (
                 <div
                   key={leaderboardUser.userId}
                   className="relative flex w-32 md:w-44 flex-col items-center"
@@ -312,19 +365,6 @@ const LeaderBoardPage = () => {
                           </TooltipContent>
                         </Tooltip>
                       )}
-                    {/* New User Badge for top 3 users */}
-                    {leaderboardUser.XP === 0 && leaderboardUser.clerkData && (
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <span className="ml-1 px-1 py-0.5 text-xs bg-blue-500/20 text-blue-300 rounded border border-blue-500/40">
-                            NEW
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-sm">New user from Clerk</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
                   </div>
 
                   {/* User image */}
@@ -365,10 +405,15 @@ const LeaderBoardPage = () => {
 
             {/* List of remaining leaderboard users */}
             <div className="space-y-4">
-              {leaderboard.slice(3).map((leaderboardUser, index) => (
+              {sortedLeaderboard.slice(3).map((leaderboardUser, index) => (
                 <div
                   key={leaderboardUser.userId}
-                  className="flex items-center p-4 rounded-lg bg-n-8 hover:scale-105 transition duration-300"
+                  id={leaderboardUser.userId === user?.id ? "my-rank-row" : undefined}
+                  className={`flex items-center p-4 rounded-lg transition duration-300 ${
+                    leaderboardUser.userId === user?.id
+                      ? "bg-purple-500/20 border border-purple-400/40"
+                      : "bg-n-8 hover:scale-105"
+                  }`}
                 >
                   <span className="mr-4 text-2xl font-semibold text-purple-500">
                     #{index + 4} {/* Add rank number */}
@@ -392,6 +437,11 @@ const LeaderBoardPage = () => {
                               {leaderboardUser.name}
                             </span>
                           </Link>
+                        )}
+                        {leaderboardUser.userId === user?.id && (
+                          <span className="ml-2 rounded-full bg-purple-500/25 border border-purple-400/40 px-2 py-0.5 text-[10px] uppercase tracking-wider text-purple-200">
+                            You
+                          </span>
                         )}
                         {tutorIds.includes(leaderboardUser.userId) &&
                           !teamIds.includes(leaderboardUser.userId) &&
@@ -438,18 +488,6 @@ const LeaderBoardPage = () => {
                             </Tooltip>
                           )}
                         {/* New User Badge for users with 0 XP and Clerk data */}
-                        {leaderboardUser.XP === 0 && leaderboardUser.clerkData && (
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <span className="ml-2 px-1.5 py-0.5 text-xs bg-blue-500/20 text-blue-300 rounded-md border border-blue-500/40">
-                                NEW
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-sm">New user from Clerk - no XP yet</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
                       </div>
                       <span className="text-sm text-gray-400">
                         {leaderboardUser.XP} XP

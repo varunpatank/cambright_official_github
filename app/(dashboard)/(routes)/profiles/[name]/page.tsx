@@ -194,7 +194,10 @@ const ProfilePage = async ({ params }: { params: { name: string } }) => {
               </h2>
               <div className="mt-2 flex flex-wrap gap-2">
                 {user.tags
-                  .filter((tag) => tag.name !== "Beginner") // Filter out the "Beginner" tag
+                  .filter(
+                    (tag) =>
+                      tag.name !== "Beginner" && tag.name.toLowerCase() !== "new"
+                  ) // Filter out system tags
                   .map((tag, index) => (
                     <div
                       key={index}

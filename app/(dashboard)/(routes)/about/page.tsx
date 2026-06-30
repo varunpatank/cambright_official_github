@@ -8,6 +8,7 @@ import "react-photo-view/dist/react-photo-view.css";
 import Footerer from "@/components/Footerer";
 import Link from "next/link";
 import { StarryBackground } from "@/components/ui/starry-background";
+import { Cover } from "@/components/ui/cover";
 import { Button } from "@/components/ui/button";
 
 interface SocialLinks {
@@ -260,17 +261,17 @@ const AboutPage = () => {
       <StarryBackground height="240px" intensity="medium" showMeteors={true} className="rounded-none">
         <div className="relative z-10 h-full px-8">
           <div className="mx-auto h-full max-w-7xl flex items-center justify-center">
-            <div className="w-full max-w-4xl translate-y-4 md:translate-y-5 rounded-2xl border border-white/10 bg-black/35 px-8 py-7 text-center">
+            <Cover className="inline-block px-6 py-5 text-center mx-auto translate-y-10" noSparkles>
               <div className="inline-flex items-center gap-1.5 bg-purple-500/20 border border-purple-500/30 rounded-full px-3 py-1 mb-3">
                 <span className="text-[10px] font-semibold text-purple-300 tracking-widest uppercase">CamBright Team</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold font-sora leading-tight">
+              <h1 className="text-3xl md:text-4xl font-bold font-sora leading-tight">
                 About <span className="text-purple-400">CamBright</span>
               </h1>
               <p className="text-gray-400 text-sm mt-2">
                 Student-built. Community-powered. Helping learners worldwide reach top scores for free.
               </p>
-            </div>
+            </Cover>
           </div>
         </div>
       </StarryBackground>

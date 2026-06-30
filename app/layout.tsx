@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/context-menu";
 import { ArrowBigLeft, Copy } from "lucide-react";
 import { ConfettiProvider } from "@/components/providers/confetti-provider";
+import { SessionTimeTracker } from "@/components/providers/session-time-tracker";
 import { Banner } from "@/components/bannerimp";
 import { Suspense } from "react";
 import Loading from "@/components/loading";
@@ -63,6 +64,7 @@ export default function RootLayout({
             <Suspense>
               <ConfettiProvider />
               <ToastProvider />
+              <SessionTimeTracker />
               {/* <Banner
               label="Site is still under development. Features are still being worked on!"
               variant={"development"}

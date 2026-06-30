@@ -7,8 +7,8 @@ const features = [
   {
     id: 1,
     icon: Bot,
-    title: "Tuto",
-    description: "CamBright Intelligence tutor — ask anything about your IGCSE subjects",
+    title: "CBI Tutor",
+    description: "CamBright Intelligence (CBI) tutor — ask anything about your IGCSE subjects",
     color: "from-cyan-500 to-blue-500"
   },
   {

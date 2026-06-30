@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { clerkClient } from "@clerk/nextjs/server";
+import { getInitialSessionSeconds, getInitialXp } from "@/lib/session-time";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -11,9 +12,6 @@ export async function GET() {
     const clerk = await clerkClient();
     // Fetch existing leaderboard users from DB
     const leaderboard = await db.userModel.findMany({
-      orderBy: {
-        XP: "desc",
-      },
       select: {
         id: true,
         userId: true,
@@ -24,6 +22,9 @@ export async function GET() {
         following: true,
         biog: true,
         XP: true,
+        createdAt: true,
+        updatedAt: true,
+        websiteSeconds: true,
       },
     });
 
@@ -59,6 +60,11 @@ export async function GET() {
         const derivedName = clerkUser?.firstName
           ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
           : clerkUser?.username || "Anonymous";
+        const seededXp = Math.max(
+          user.XP,
+          Math.floor((user.websiteSeconds ?? 0) / 60),
+          getInitialXp(user.userId)
+        );
 
         return {
           id: user.id,
@@ -69,7 +75,9 @@ export async function GET() {
           followers: user.followers,
           following: user.following,
           biog: user.biog,
-          XP: user.XP,
+          XP: seededXp,
+          websiteSeconds: user.websiteSeconds ?? 0,
+          createdAt: user.createdAt.getTime(),
           clerkData: clerkUser
             ? {
                 firstName: clerkUser.firstName,
@@ -97,7 +105,9 @@ export async function GET() {
         followers: 0,
         following: 0,
         biog: "",
-        XP: 0,
+        XP: getInitialXp(clerkUser.id),
+        websiteSeconds: getInitialSessionSeconds(clerkUser.id),
+        createdAt: clerkUser.createdAt,
         clerkData: {
           firstName: clerkUser.firstName,
           lastName: clerkUser.lastName,
@@ -108,7 +118,13 @@ export async function GET() {
         }
       }));
 
-      const completeLeaderboard = [...enrichedLeaderboard, ...newUserEntries].sort((a, b) => b.XP - a.XP);
+      const completeLeaderboard = [...enrichedLeaderboard, ...newUserEntries].sort((a, b) => {
+        if (b.XP !== a.XP) return b.XP - a.XP;
+        const aCreated = a.createdAt ?? 0;
+        const bCreated = b.createdAt ?? 0;
+        if (aCreated !== bCreated) return aCreated - bCreated;
+        return a.name.localeCompare(b.name);
+      });
 
       return NextResponse.json(
         {
@@ -116,7 +132,6 @@ export async function GET() {
           total: userCount,
           clerkUserCount: userCount,
           databaseUserCount: leaderboard.length,
-          newUserCount: newUsers.length,
           timestamp: new Date().toISOString(),
         },
         {
@@ -136,7 +151,6 @@ export async function GET() {
           total: leaderboard.length,
           clerkUserCount: "Error fetching",
           databaseUserCount: leaderboard.length,
-          newUserCount: 0,
           error: "Could not fetch all Clerk users",
           timestamp: new Date().toISOString(),
         },

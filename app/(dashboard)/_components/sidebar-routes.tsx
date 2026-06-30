@@ -76,6 +76,11 @@ const guestRoutes: RouteItem[] = [
     label: "Leaderboard",
     href: "/leaderboard",
   },
+  {
+    icon: GraduationCap,
+    label: "Courses",
+    href: "/tutoring-program",
+  },
   // {
   //   icon: Award,
   //   label: "Our Schools",
@@ -220,7 +225,7 @@ export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
   const { userId } = useAuth();
   const { hasAdminAccess } = useAdminStatus(userId);
   
-  const isTutorPage = pathname?.includes("/tutor");
+  const isTutorPage = pathname?.startsWith("/tutor/") || pathname === "/tutor";
 
   const [openItem, setOpenItem] = useState<string | null>(null);
 

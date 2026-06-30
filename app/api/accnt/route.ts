@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db"; // Adjust the path if necessary
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { getInitialSessionSeconds, getInitialXp } from "@/lib/session-time";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,8 @@ export async function GET(req: Request) {
           followers: 0,
           following: 0,
           biog: "",
-          XP: 0,
+          XP: getInitialXp(clerkUser.id),
+          websiteSeconds: getInitialSessionSeconds(clerkUser.id),
         },
         include: {
           tags: { select: { name: true } },

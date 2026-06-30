@@ -315,7 +315,10 @@ const ProfilePage = () => {
             <h2 className="text-lg font-semibold text-none-300">Tags</h2>
             <div className="mt-2 flex flex-wrap gap-2">
               {account.tags
-                .filter((tag) => tag.name !== "Beginner") // Filter out the "Beginner" tag
+                .filter(
+                  (tag) =>
+                    tag.name !== "Beginner" && tag.name.toLowerCase() !== "new"
+                ) // Filter out system tags
                 .map((tag, index) => (
                   <div
                     key={index}
