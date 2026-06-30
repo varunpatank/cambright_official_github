@@ -74,7 +74,9 @@ const LeaderBoardPage = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const response = await fetch("/api/leaderboard");
+        const response = await fetch("/api/leaderboard", {
+          cache: "no-store",
+        });
         if (response.ok) {
           const data: LeaderboardResponse = await response.json();
           setLeaderboard(data.leaderboard);
