@@ -130,7 +130,7 @@ FORMATTING RULES (CRITICAL - ALWAYS FOLLOW):
               ) : (
                 <>
                   <h1 className="font-bold text-white font-sora text-4xl mb-1">
-                    Tuto <span className="text-purple-400">Intelligence</span>.
+                    Tuto <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(192,132,252,0.7)]">Intelligence</span>.
                   </h1>
                   <p className="text-gray-500 text-sm">Your CamBright study companion</p>
                 </>

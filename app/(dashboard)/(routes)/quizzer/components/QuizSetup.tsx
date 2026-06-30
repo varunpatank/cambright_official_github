@@ -174,7 +174,7 @@ export function QuizSetup({ onStartQuiz, availableSubjects }: QuizSetupProps) {
         <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
           <Cover className="inline-block px-8 py-6">
             <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
-              Question <span className="text-purple-400">Quizzer</span>.
+              Question <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(192,132,252,0.7)]">Quizzer</span>.
             </h1>
             <p className="text-gray-400 text-center">CamBright Intelligence powered exam practice with authentic past paper questions</p>
           </Cover>

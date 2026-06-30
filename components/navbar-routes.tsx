@@ -90,35 +90,7 @@ const NavbarRoutes = () => {
         </div>
       )}{" "}
       <div className="flex gap-x-2 ml-auto">
-        {shouldShowExitButton ? (
-          <Link
-            href={
-              isTutorPage
-                ? "/dashboard"
-                : isNotePage
-                ? "/search-notes"
-                : isCoursePage
-                ? "/search-courses"
-                : isTrackerPage
-                ? "/tracker/select-group"
-                : "/dashboard"
-            }
-          >
-            <Button
-              className="mt-1
-           hover:bg-slate-800
-           bg-n-7
-           "
-              variant={"default"}
-            >
-              <LogOut className="h-4 w-4 mr-2" /> Exit
-            </Button>
-          </Link>
-        ) : shouldShowTutorButton ? (
-          null
-        ) : tutorStatusLoading && userId ? (
-          null
-        ) : null}
+        {shouldShowExitButton ? null : null}
         <ClerkLoading>
           <Loader className="h-5 w-5 to-muted-foreground animate-spin" />
         </ClerkLoading>

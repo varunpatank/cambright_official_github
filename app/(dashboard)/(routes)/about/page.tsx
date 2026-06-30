@@ -265,7 +265,7 @@ const AboutPage = () => {
               <span className="text-[10px] font-semibold text-purple-300 tracking-widest uppercase">CamBright Team</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold font-sora leading-tight">
-              About <span className="text-purple-400">CamBright</span>
+              About <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(192,132,252,0.7)]">CamBright</span>
             </h1>
             <p className="text-gray-400 text-sm mt-2">
               Student-built. Community-powered. Helping learners worldwide reach top scores for free.

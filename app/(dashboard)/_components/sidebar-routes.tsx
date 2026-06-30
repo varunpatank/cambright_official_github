@@ -167,38 +167,6 @@ const nextroutes: RouteItem[] = [
       },
     ],
   },
-  {
-    icon: Earth,
-    label: "Site",
-    href: "/site",
-    children: [
-      {
-        icon: Home,
-        label: "Landpage",
-        href: "/home",
-      },
-      // {
-      //   icon: GraduationCap,
-      //   label: "Become a tutor",
-      //   href: "/tutor-apply",
-      // },
-      {
-        icon: HelpCircle,
-        label: "Help Center",
-        href: "/help",
-      },
-      // {
-      //   icon: HandHeart,
-      //   label: "Donate",
-      //   href: "/donate",
-      // },
-      {
-        icon: User,
-        label: "Profile",
-        href: "/profile",
-      },
-    ],
-  },
 ];
 
 // Admin routes as a dropdown section
@@ -249,6 +217,7 @@ export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
           onClick={onClose}
         />
       ))}
+      {/* About Us — above accordion */}
       <Accordion type="single" collapsible className="w-full">
         {accordionRoutes.map((route) => (
           <AccordionItem key={route.href} value={route.href} className="w-full">
@@ -278,7 +247,7 @@ export const SidebarRoutes = ({ onClose }: SidebarRoutesProps) => {
           </AccordionItem>
         ))}
       </Accordion>
-      {/* About Us — standalone below Site */}
+      {/* About Us — below Resources */}
       <SidebarItem
         icon={NotebookPen}
         label="About Us"

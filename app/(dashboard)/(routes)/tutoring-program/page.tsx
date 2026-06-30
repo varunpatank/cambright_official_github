@@ -12,13 +12,10 @@ export default function TutoringProgramPage() {
       <StarryBackground height="280px" intensity="medium" showMeteors={true} className="mb-8 rounded-none">
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-center" style={{paddingTop:"60px"}}>
           <Cover className="inline-block px-6 py-4">
-            <div className="mb-1.5 inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-purple-300">
-              <Star className="h-2.5 w-2.5" /> For Tutors &amp; Teachers
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-1.5 font-sora text-center">
-              Feature your course<span className="text-purple-400">.</span>
+            <h1 className="text-5xl md:text-6xl font-black font-sora text-center leading-tight">
+              Feature Your <span className="text-purple-400 drop-shadow-[0_0_20px_rgba(192,132,252,0.7)]">Course.</span>
             </h1>
-            <p className="text-gray-400 text-sm text-center max-w-lg mx-auto">
+            <p className="text-gray-400 text-sm text-center max-w-lg mx-auto mt-2">
               Get your Cambridge classes listed on CamBright for free — seen by 2,000+ students every day.
             </p>
           </Cover>
