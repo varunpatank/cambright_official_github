@@ -32,7 +32,7 @@ const Hero = ({ showThem }: HeroProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-start pt-24 relative">
+    <div className="min-h-screen flex flex-col justify-center relative">
       <div
         className="h-screen w-full bg-grid-white/[0.03]
         absolute top-0 left-0 flex items-center justify-center"
@@ -118,14 +118,14 @@ const Hero = ({ showThem }: HeroProps) => {
       <div className="flex justify-center relative z-10 pt-4 pb-6">
         <div className="max-w-[92vw] md:max-w-3xl lg:max-w-[65vw] flex flex-col items-center justify-center">
           {/* Tight group: logo → tagline → description → button */}
-          <div className="flex flex-col items-center gap-0.5 w-full">
+          <div className="flex flex-col items-center w-full">
             <Image src={"/logo-clean.png"} alt="CamBright" height={150} width={640} className="object-contain drop-shadow-[0_0_80px_rgba(139,92,246,0.5)] w-full max-w-[640px]" />
 
-            <p className="uppercase tracking-[0.3em] text-[11px] text-center text-white/45 font-sora font-semibold">
+            <p className="uppercase tracking-[0.3em] text-[13px] text-center text-white/50 font-sora font-semibold -mt-3">
               CamBright IGCSE LLC
             </p>
 
-            <p className="text-center text-xl md:text-2xl font-bold font-sora text-white/85 leading-snug whitespace-nowrap animate-in fade-in duration-1000" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
+            <p className="text-center text-xl md:text-2xl font-bold font-sora text-white/85 leading-snug whitespace-nowrap mt-1 animate-in fade-in duration-1000" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
               Courses &middot; Past Papers &middot; Flashcards &middot;{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-cyan-300">Zero Cost.</span>
             </p>
@@ -149,7 +149,7 @@ const Hero = ({ showThem }: HeroProps) => {
           </div>
 
           {/* Gap then stats */}
-          <div className="w-full mt-5">
+          <div className="w-full mt-10">
             <div className="w-full bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl px-6 py-4">
               <div className="grid grid-cols-4 gap-4 text-center">
                 <div className="flex flex-col items-center">

@@ -744,8 +744,7 @@ function PdfCard({ mat, accentFrom, accentTo, glowRgb }: { mat: PdfLocal|PdfDriv
 type Tab = "overview" | "materials";
 
 export default function CourseDetailPage() {
-  const params = useParams<{ courseId: string }>();
-  const courseId = params?.courseId ?? "";
+  const { courseId } = (useParams() ?? {}) as { courseId: string };
   const base = COURSES.find((c) => c.id === courseId);
   const detail = DETAILS[courseId];
   if (!base || !detail) return notFound();
