@@ -32,7 +32,7 @@ const Hero = ({ showThem }: HeroProps) => {
   };
 
   return (
-    <div className="pb-10 pt-16 relative">
+    <div className="min-h-screen flex flex-col justify-start pt-24 relative">
       <div
         className="h-screen w-full bg-grid-white/[0.03]
         absolute top-0 left-0 flex items-center justify-center"
@@ -115,75 +115,58 @@ const Hero = ({ showThem }: HeroProps) => {
       <StarsBackground />
       <BackgroundBeams />
 
-      <div className="flex justify-center relative my-20 z-10">
-        <div className="max-w-[89vw] md:max-w-2xl lg:max-w-[60vw] flex flex-col items-center justify-center">
-          <Image src={"/logo-clean.png"} alt="CamBright" height={130} width={520} className="object-contain drop-shadow-[0_0_60px_rgba(139,92,246,0.4)]" />
+      <div className="flex justify-center relative z-10 pt-4 pb-6">
+        <div className="max-w-[92vw] md:max-w-3xl lg:max-w-[65vw] flex flex-col items-center justify-center">
+          {/* Tight group: logo → tagline → description → button */}
+          <div className="flex flex-col items-center gap-0.5 w-full">
+            <Image src={"/logo-clean.png"} alt="CamBright" height={150} width={640} className="object-contain drop-shadow-[0_0_80px_rgba(139,92,246,0.5)] w-full max-w-[640px]" />
 
-          <p className="uppercase tracking-widest text-xs text-center text-blue-100 max-w-80">
-            IGCSE Excellence Made Simple
-          </p>
+            <p className="uppercase tracking-[0.3em] text-[11px] text-center text-white/45 font-sora font-semibold">
+              CamBright IGCSE LLC
+            </p>
 
-          <div className="mt-2">
-            <TextGenerateEffect
-              className="text-center md:tracking-wider mb-4 text-sm md:text-lg lg:text-2xl"
-              words="Free CamBright Intelligence tools and Cambridge resources to help you ace your IGCSEs — available to every student, everywhere."
-            />
-          </div>
+            <p className="text-center text-xl md:text-2xl font-bold font-sora text-white/85 leading-snug whitespace-nowrap animate-in fade-in duration-1000" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
+              Courses &middot; Past Papers &middot; Flashcards &middot;{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-cyan-300">Zero Cost.</span>
+            </p>
 
-          <div className="flex flex-col items-center space-y-4 mt-2">
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
+            <div className="flex flex-row gap-3 mt-1">
               {showThem ? (
                 <>
                   <a href="/sign-up">
-                    <MagicButton
-                      width="60"
-                      title="Get Started"
-                      icon={<FaLocationArrow />}
-                      position="right"
-                    />
+                    <MagicButton width="60" title="Get Started" icon={<FaLocationArrow />} position="right" />
                   </a>
                   <a href="/sign-in">
-                    <MagicButton
-                      width="25"
-                      title="Sign In"
-                      icon={<FaLocationArrow />}
-                      position="right"
-                    />
+                    <MagicButton width="25" title="Sign In" icon={<FaLocationArrow />} position="right" />
                   </a>
                 </>
               ) : (
                 <a href="/dashboard">
-                  <MagicButton
-                    width="60"
-                    title="Dashboard"
-                    icon={<GraduationCap />}
-                    position="right"
-                  />
+                  <MagicButton width="60" title="Dashboard" icon={<GraduationCap />} position="right" />
                 </a>
               )}
             </div>
+          </div>
 
-            {/* Statistics Box */}
-            <div className="bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-5 mb-2">
-              <div className="flex flex-wrap justify-center gap-8 text-center">
+          {/* Gap then stats */}
+          <div className="w-full mt-5">
+            <div className="w-full bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-2xl px-6 py-4">
+              <div className="grid grid-cols-4 gap-4 text-center">
                 <div className="flex flex-col items-center">
-                  <span className="text-4xl font-bold text-cyan-400 mb-0.5">2000+</span>
-                  <span className="text-sm text-white font-medium">Total Users</span>
+                  <span className="text-4xl md:text-5xl font-bold text-cyan-400 leading-none">2000+</span>
+                  <span className="text-sm text-white/60 font-medium mt-1">Total Users</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <AnimatedCounter 
-                    baseValue={156} 
-                    className="text-4xl font-bold text-emerald-400 mb-0.5"
-                  />
-                  <span className="text-sm text-white font-medium">Active Users</span>
+                  <AnimatedCounter baseValue={156} className="text-4xl md:text-5xl font-bold text-emerald-400 leading-none" />
+                  <span className="text-sm text-white/60 font-medium mt-1">Active Users</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-4xl font-bold text-violet-400 mb-0.5">5+</span>
-                  <span className="text-sm text-white font-medium">Partner Schools</span>
+                  <span className="text-4xl md:text-5xl font-bold text-violet-400 leading-none">5+</span>
+                  <span className="text-sm text-white/60 font-medium mt-1">Partner Schools</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-4xl font-bold text-purple-400 mb-0.5">100%</span>
-                  <span className="text-sm text-white font-medium">Free</span>
+                  <span className="text-4xl md:text-5xl font-bold text-purple-400 leading-none">100%</span>
+                  <span className="text-sm text-white/60 font-medium mt-1">Free</span>
                 </div>
               </div>
             </div>

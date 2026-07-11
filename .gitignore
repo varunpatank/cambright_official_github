@@ -36,6 +36,7 @@ yarn-error.log*
 next-env.d.ts
 
 # ignore cursor
+public/spotlight_course/spotligt.mp4
 /.cursor
 .cursorignore
 # .cursorrules

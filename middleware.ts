@@ -14,7 +14,18 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
   '/api/health(.*)',
   '/api/assets(.*)',
-  '/home(.*)'
+  '/home(.*)',
+  // static files in /public
+  '/(.*)\\.mp4',
+  '/(.*)\\.webm',
+  '/(.*)\\.ogg',
+  '/(.*)\\.html',
+  '/(.*)\\.png',
+  '/(.*)\\.jpg',
+  '/(.*)\\.jpeg',
+  '/(.*)\\.svg',
+  '/(.*)\\.ico',
+  '/(.*)\\.pdf',
 ])
 
 export default clerkMiddleware(async (auth, request) => {

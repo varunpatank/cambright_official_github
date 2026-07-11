@@ -95,7 +95,7 @@ const NavbarRoutes = () => {
           <Loader className="h-5 w-5 to-muted-foreground animate-spin" />
         </ClerkLoading>
         <ClerkLoaded>
-          <UserButton afterSwitchSessionUrl="/home">
+          <UserButton afterSwitchSessionUrl="/home" afterSignOutUrl="/">
             <UserButton.UserProfileLink
               label="Dashboard"
               url="/dashboard"

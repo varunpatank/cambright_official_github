@@ -20,9 +20,6 @@ import { Banner } from "@/components/bannerimp";
 import { Suspense } from "react";
 import Loading from "@/components/loading";
 import { QueryProvider } from "@/components/providers/query-provider";
-import dynamic from "next/dynamic";
-import { TutorService } from "@/lib/tutor-service";
-import { StartupChecker } from "@/components/startup-checker";
 
 const inter = Sora({ subsets: ["latin"] });
 
@@ -70,9 +67,7 @@ export default function RootLayout({
               variant={"development"}
             />{" "} */}
               <QueryProvider>
-                <StartupChecker showDetailedErrors={process.env.NODE_ENV === 'development'}>
-                  {children}
-                </StartupChecker>
+                {children}
               </QueryProvider>
             </Suspense>
           </ThemeProvider>

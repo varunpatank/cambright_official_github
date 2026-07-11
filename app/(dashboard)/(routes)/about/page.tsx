@@ -1,7 +1,7 @@
 ﻿"use client";
 import { useState } from "react";
 import Image from "next/image";
-import { FaLinkedinIn, FaGithub } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
 import { FaInstagram } from "react-icons/fa6";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import "react-photo-view/dist/react-photo-view.css";
@@ -12,7 +12,6 @@ import { Cover } from "@/components/ui/cover";
 import { Button } from "@/components/ui/button";
 
 interface SocialLinks {
-  linkedin?: string;
   instagram?: string;
   github?: string;
 }
@@ -32,7 +31,7 @@ const founders: User[] = [
     role: "Head of Operations",
     bio: "Lifelong Football fan | Avid Badminton Coach & Player | App Development Enthusiast | Cambridge Glazer",
     tags: ["Co-Founder", "Head of Operations"],
-    socialLinks: { linkedin: "https://www.linkedin.com/in/alicejohnson" },
+    socialLinks: { },
     avatar: "/varun.png",
   },
   {
@@ -40,7 +39,7 @@ const founders: User[] = [
     role: "Head of Business",
     bio: "",
     tags: ["Co-Founder", "Business Strategist"],
-    socialLinks: { linkedin: "https://www.linkedin.com/in/emmalee", github: "https://github.com/varram" },
+    socialLinks: { github: "https://github.com/varram" },
     avatar: "/varram.png",
   },
   {
@@ -64,7 +63,7 @@ const founders: User[] = [
     role: "Marketing",
     bio: "I love helping students reach their full potential! Outside of academia, I love animals and drawing!",
     tags: ["Co-Founder", "Marketing"],
-    socialLinks: { linkedin: "https://www.linkedin.com/in/davidwilson" },
+    socialLinks: { },
     avatar: "/aru.webp",
   },
 ];
@@ -83,7 +82,7 @@ const board: User[] = [
     role: "Resources & Ex-Lead",
     bio: "I am a student from Myanmar studying AS and A Levels with a soft spot for cats.",
     tags: ["Top Member", "Cat Lover"],
-    socialLinks: { linkedin: "https://www.linkedin.com/in/khant-thiha-zaw-b998a932a" },
+    socialLinks: { },
     avatar: "/khant.png",
   },
   {
@@ -115,7 +114,7 @@ const board: User[] = [
     role: "Community Manager",
     bio: "I'm Daro, an aspiring medic with a passion for learning and teaching. My goal is to make students enjoy learning!",
     tags: ["Moderator", "Top Volunteer"],
-    socialLinks: { linkedin: "https://www.linkedin.com/in/michaelclark" },
+    socialLinks: { },
     avatar: "/daru.png",
   },
 ];
@@ -196,11 +195,6 @@ const UserModal = ({ user, onClose }: { user: User; onClose: () => void }) => (
         )}
         {user.bio && <p className="text-sm text-gray-400 mt-4 leading-relaxed">{user.bio}</p>}
         <div className="flex gap-4 mt-5">
-          {user.socialLinks.linkedin && (
-            <a href={user.socialLinks.linkedin} target="_blank" rel="noopener noreferrer">
-              <FaLinkedinIn className="text-gray-400 text-xl hover:text-white transition-colors" />
-            </a>
-          )}
           {user.socialLinks.instagram && (
             <a href={user.socialLinks.instagram} target="_blank" rel="noopener noreferrer">
               <FaInstagram className="text-gray-400 text-xl hover:text-white transition-colors" />
