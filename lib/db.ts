@@ -20,9 +20,7 @@ const createPrismaClient = () => {
 
 export const db = globalThis.prisma || createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = db;
-}
+globalThis.prisma = db;
 
 // Performance monitoring utilities
 export const withPerformanceLogging = async <T>(
