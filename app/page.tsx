@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Volume2, VolumeX, Users, ArrowRight, FileText, Trophy, Brain, BookOpen } from "lucide-react";
+import { Mail, Users, ArrowRight, FileText, Trophy, Brain, BookOpen } from "lucide-react";
 import Hero from "@/components/Hero";
 
 const FEATURE_CARDS = [
@@ -76,84 +77,98 @@ function ExploreCards({ keyPrefix }: { keyPrefix: string }) {
   );
 }
 
-function IntroVideo({ onDone }: { onDone: () => void }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [fading, setFading] = useState(false);
+type VideoStage = "hidden" | "video" | "leaving";
+const INTRO_PLAYBACK_RATE = 1.25;
 
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    // Start unmuted directly — no toggling needed
-    v.play().catch(() => {
-      // If browser blocks unmuted autoplay, mute and retry
-      v.muted = true;
-      v.play().catch(() => {});
-    });
-  }, []);
+interface VideoOverlayProps {
+  stage: VideoStage;
+  videoRef: React.RefObject<HTMLVideoElement>;
+  onFinish: () => void;
+}
 
-  const finish = () => {
-    setFading(true);
-    setTimeout(onDone, 900);
-  };
+// The video element is always mounted (just invisible) so Launch can call
+// videoRef.play() synchronously inside its own click handler — required for
+// browsers (Safari especially) to allow audio.
+function VideoOverlay({ stage, videoRef, onFinish }: VideoOverlayProps) {
+  const active = stage !== "hidden";
 
   return (
-    <div style={{
-      position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-      zIndex: 9999, background: "#000",
-      opacity: fading ? 0 : 1,
-      transition: fading ? "opacity 0.9s ease" : "none",
-    }}>
+    <div
+      style={{
+        position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+        zIndex: active ? 9999 : -1, background: "#020207", overflow: "hidden",
+        opacity: stage === "leaving" || stage === "hidden" ? 0 : 1,
+        pointerEvents: active ? "auto" : "none",
+        transition: "opacity 0.9s ease",
+      }}
+    >
       <video
         ref={videoRef}
-        autoPlay
         playsInline
         preload="auto"
-        onEnded={finish}
-        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }}
-        src="/intro.mp4"
+        onEnded={onFinish}
+        onLoadedMetadata={(e) => { e.currentTarget.playbackRate = INTRO_PLAYBACK_RATE; }}
+        style={{
+          position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover",
+          opacity: active ? 1 : 0,
+          transform: active ? "scale(1)" : "scale(1.04)",
+          transition: "opacity 1.1s ease, transform 1.4s ease",
+        }}
+        src="/introvid.mp4"
       />
 
-      {/* vignette only */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.6) 100%)", zIndex: 1, pointerEvents: "none" }} />
-
-      {/* skip button */}
-      <div style={{ position: "absolute", bottom: 10, right: 28, zIndex: 10 }}>
-        <button
-          onClick={finish}
-          style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "7px 18px", color: "rgba(255,255,255,0.9)", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: "0.06em" }}
-        >
-          Skip
-          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 5l7 7-7 7" /></svg>
-        </button>
-      </div>
+      {stage === "video" && (
+        <>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.6) 100%)", zIndex: 1, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: 10, right: 28, zIndex: 10 }}>
+            <button
+              onClick={onFinish}
+              style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(0,0,0,0.7)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 10, padding: "7px 18px", color: "rgba(255,255,255,0.9)", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: "0.06em" }}
+            >
+              Skip
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 export default function HomePage() {
-  const { user } = useUser();
-  const [introDone, setIntroDone] = useState(false);
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [stage, setStage] = useState<VideoStage>("hidden");
 
-  useEffect(() => {
-    // Only play once per browser — checked client-side after mount to avoid a hydration mismatch
-    if (localStorage.getItem("cb_intro_played")) {
-      setIntroDone(true);
+  const handleLaunch = () => {
+    // play() is called synchronously inside this click handler so it carries
+    // the click's user-activation — the browser will allow sound.
+    const v = videoRef.current;
+    if (v) {
+      v.currentTime = 0;
+      v.muted = false;
+      v.playbackRate = INTRO_PLAYBACK_RATE;
+      v.play().catch(() => {});
     }
-  }, []);
+    setStage("video");
+  };
 
-  const handleIntroDone = () => {
-    localStorage.setItem("cb_intro_played", "1");
-    setIntroDone(true);
+  const handleFinish = () => {
+    setStage("leaving");
+    setTimeout(() => {
+      router.push(isLoaded && user ? "/dashboard" : "/sign-in");
+    }, 900);
   };
 
   return (
     <>
-      {!introDone && <IntroVideo onDone={handleIntroDone} />}
+      <VideoOverlay stage={stage} videoRef={videoRef} onFinish={handleFinish} />
 
       <main className="min-h-screen text-white">
         <div className="mx-auto max-w-6xl px-4 pb-12 md:px-6">
 
-          <Hero showThem={!user} />
+          <Hero onLaunch={handleLaunch} />
 
           {/* Auto-scrolling marquee of feature cards — pauses on hover so cards are still clickable */}
           <section className="mt-8 md:mt-10">
@@ -174,7 +189,7 @@ export default function HomePage() {
               <Image src="/logo-clean.png" alt="CamBright" width={80} height={22} className="opacity-60" />
               <span className="text-xs text-white/30">v2.0</span>
             </div>
-            <div className="flex flex-wrap gap-4 text-xs text-white/50">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-white/50">
               {[["Revision Notes","/search-notes"],["Quizzer","/quizzer"],["Past Papers","/past-papers"],["Leaderboard","/leaderboard"],["Tutoring","/tutoring-program"]].map(([label,href]) => (
                 <Link key={href} href={href} className="transition hover:text-white">{label}</Link>
               ))}

@@ -1,6 +1,5 @@
 // v0.0.01 salah
 
-import { FaLocationArrow } from "react-icons/fa6";
 import MagicButton from "./MagicButton";
 import { TextGenerateEffect } from "./ui/TextGenerateEffect";
 import Image from "next/image";
@@ -10,6 +9,7 @@ import {
   LayoutDashboard,
   Home,
   Heart,
+  Rocket,
 } from "lucide-react";
 import { FaMouse } from "react-icons/fa";
 import { BackgroundBeams } from "./ui/background-beams";
@@ -20,9 +20,9 @@ import { AnimatedCounter } from "./ui/AnimatedCounter";
 const CAP_ROTATIONS = [25, -15, 45, -30, 60, -45, 30, 15, -20, 35, -35, 20, 10, -50, 40, -10, 55, -25, 5, 65];
 
 interface HeroProps {
-  showThem?: boolean | true;
+  onLaunch: () => void;
 }
-const Hero = ({ showThem }: HeroProps) => {
+const Hero = ({ onLaunch }: HeroProps) => {
   const scrollToNextSection = () => {
     const nextSection = document.querySelector("#typer") as HTMLElement;
     if (nextSection) {
@@ -132,21 +132,10 @@ const Hero = ({ showThem }: HeroProps) => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-cyan-300">Zero Cost.</span>
             </p>
 
-            <div className="flex flex-row justify-center gap-4 mt-3 w-full max-w-sm sm:max-w-none sm:w-auto px-6 sm:px-0">
-              {showThem ? (
-                <>
-                  <a href="/sign-up" className="flex-1 sm:flex-none">
-                    <MagicButton width="72" title="Get Started" icon={<FaLocationArrow />} position="right" />
-                  </a>
-                  <a href="/sign-in" className="flex-1 sm:flex-none">
-                    <MagicButton width="36" title="Sign In" icon={<FaLocationArrow />} position="right" />
-                  </a>
-                </>
-              ) : (
-                <a href="/dashboard" className="flex-1 sm:flex-none">
-                  <MagicButton width="72" title="Dashboard" icon={<GraduationCap />} position="right" />
-                </a>
-              )}
+            <div className="flex flex-row justify-center mt-5 mb-2 w-full max-w-sm sm:max-w-none sm:w-auto px-6 sm:px-0">
+              <div className="scale-110 sm:scale-125">
+                <MagicButton width="56" title="Launch" icon={<Rocket className="h-5 w-5" />} position="right" handleClick={onLaunch} otherClasses="text-base sm:text-lg tracking-wide" />
+              </div>
             </div>
           </div>
 
