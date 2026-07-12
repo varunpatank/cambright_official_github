@@ -58,14 +58,6 @@ const founders: User[] = [
     socialLinks: {},
     avatar: "/ellie.png",
   },
-  {
-    name: "Arunima",
-    role: "Marketing",
-    bio: "I love helping students reach their full potential! Outside of academia, I love animals and drawing!",
-    tags: ["Co-Founder", "Marketing"],
-    socialLinks: { },
-    avatar: "/aru.webp",
-  },
 ];
 
 const board: User[] = [
@@ -84,14 +76,6 @@ const board: User[] = [
     tags: ["Board Member", "Tutor"],
     socialLinks: {},
     avatar: "/user1.png",
-  },
-  {
-    name: "Lukas C.",
-    role: "Math & Developer",
-    bio: "",
-    tags: ["Developer", "Volunteer"],
-    socialLinks: {},
-    avatar: "/coolerdude.png",
   },
   {
     name: "Vijay P.",

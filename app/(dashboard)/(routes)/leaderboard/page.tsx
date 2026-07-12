@@ -87,13 +87,15 @@ const LeaderBoardPage = () => {
             clerkUserCount: data.clerkUserCount,
             databaseUserCount: data.databaseUserCount,
           });
+          // Only clear loading once data has actually arrived — an early
+          // retry (e.g. a cold-start db connection) shouldn't flash an
+          // empty board before the next poll fills it in.
+          setLoading(false);
         } else {
           console.error("Failed to fetch leaderboard data");
         }
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
-      } finally {
-        setLoading(false);
       }
     };
 

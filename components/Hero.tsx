@@ -17,8 +17,6 @@ import { StarsBackground } from "./ui/shooting-stars";
 import { Banner } from "./banner";
 import { AnimatedCounter } from "./ui/AnimatedCounter";
 
-const CAP_ROTATIONS = [25, -15, 45, -30, 60, -45, 30, 15, -20, 35, -35, 20, 10, -50, 40, -10, 55, -25, 5, 65];
-
 interface HeroProps {
   onLaunch: () => void;
 }
@@ -159,21 +157,6 @@ const Hero = ({ onLaunch }: HeroProps) => {
                   <span className="text-3xl sm:text-5xl md:text-6xl font-bold text-purple-400 leading-none">100%</span>
                   <span className="text-xs sm:text-base text-white/60 font-medium mt-2">Free</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Static row of graduation caps — no animation */}
-            <div className="relative mt-5 md:mt-7 overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_15%,white_85%,transparent)]">
-              <div className="flex items-center justify-center gap-6 sm:gap-10">
-                {CAP_ROTATIONS.map((deg, i) => (
-                  <GraduationCap
-                    key={i}
-                    size={22}
-                    color="currentColor"
-                    className="shrink-0 text-white/25"
-                    style={{ transform: `rotate(${deg}deg)` }}
-                  />
-                ))}
               </div>
             </div>
           </div>
