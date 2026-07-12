@@ -65,6 +65,8 @@ function ProfileModal({
   boardIds,
   verifiedIds,
   onClose,
+  onFollowChange,
+  onXpGiven,
 }: {
   profile: LeaderboardUser;
   currentUserId?: string;
@@ -74,6 +76,8 @@ function ProfileModal({
   boardIds: string[];
   verifiedIds: string[];
   onClose: () => void;
+  onFollowChange: (targetUserId: string, isFollowing: boolean) => void;
+  onXpGiven: (targetUserId: string, currentUserXP: number, targetUserXP: number) => void;
 }) {
   const isSelf = profile.userId === currentUserId;
   const isFounder = teamIds.includes(profile.userId);
@@ -125,8 +129,16 @@ function ProfileModal({
 
           {!isSelf && currentUserId && (
             <div className="flex gap-3 mt-5">
-              <FollowButton userId={profile.userId} currentUserId={currentUserId} />
-              <GiveXpButton userIdx={profile.userId} userXXP={currentUserXp} />
+              <FollowButton
+                userId={profile.userId}
+                currentUserId={currentUserId}
+                onFollowChange={(isFollowing) => onFollowChange(profile.userId, isFollowing)}
+              />
+              <GiveXpButton
+                userIdx={profile.userId}
+                userXXP={currentUserXp}
+                onSuccess={(r) => onXpGiven(profile.userId, r.currentUserXP, r.targetUserXP)}
+              />
             </div>
           )}
         </div>
@@ -208,6 +220,31 @@ const LeaderBoardPage = () => {
 
     previousRankRef.current = currentUserRank;
   }, [currentUserRank]);
+
+  // Update follower/XP counts immediately from the action's response rather
+  // than waiting for the next 5s poll — patch both the underlying list (so
+  // ranks/totals stay correct) and the currently-open modal snapshot (since
+  // it's a separate object reference and won't pick up the list change).
+  const handleFollowChange = (targetUserId: string, isFollowing: boolean) => {
+    const delta = isFollowing ? 1 : -1;
+    setLeaderboard((prev) =>
+      prev.map((u) => (u.userId === targetUserId ? { ...u, followers: u.followers + delta } : u))
+    );
+    setSelectedProfile((prev) =>
+      prev && prev.userId === targetUserId ? { ...prev, followers: prev.followers + delta } : prev
+    );
+  };
+
+  const handleXpGiven = (targetUserId: string, currentUserXP: number, targetUserXP: number) => {
+    setLeaderboard((prev) =>
+      prev.map((u) => {
+        if (u.userId === targetUserId) return { ...u, XP: targetUserXP };
+        if (u.userId === user?.id) return { ...u, XP: currentUserXP };
+        return u;
+      })
+    );
+    setSelectedProfile((prev) => (prev && prev.userId === targetUserId ? { ...prev, XP: targetUserXP } : prev));
+  };
 
   if (!isLoaded) {
     return <LoadingOverlay />;
@@ -301,7 +338,11 @@ const LeaderBoardPage = () => {
         )}
         {/* Loading state */}
         {loading ? (
-          <div className="text-center text-xl">Loading...</div>
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+            <div className="h-10 w-10 rounded-full border-2 border-white/15 border-t-purple-400 animate-spin" />
+            <p className="text-lg font-bold text-white">Loading leaderboard…</p>
+            <p className="text-sm text-white/40">This can sometimes take up to 30 seconds — hang tight!</p>
+          </div>
         ) : (
           <div className="space-y-6">
             {/* Bar Graph with User Avatars */}
@@ -370,7 +411,10 @@ const LeaderBoardPage = () => {
 
                   {/* User image */}
                   <div className="relative text-center mb-1">
-                    <div className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 rounded-full bg-gray-200 overflow-hidden hover:ring-2 transition-all hover:ring-purple-400 ring-2 ring-white/10">
+                    <button
+                      onClick={() => setSelectedProfile(leaderboardUser)}
+                      className="w-16 sm:w-20 md:w-24 h-16 sm:h-20 md:h-24 rounded-full bg-gray-200 overflow-hidden hover:ring-2 transition-all hover:ring-purple-400 ring-2 ring-white/10"
+                    >
                       <Image
                         src={leaderboardUser.imageUrl || "/default-avatar.png"}
                         alt={leaderboardUser.name}
@@ -378,7 +422,7 @@ const LeaderBoardPage = () => {
                         height={80}
                         className="object-cover w-full h-full"
                       />
-                    </div>
+                    </button>
                   </div>
 
                   {/* Static Rectangular Bars */}
@@ -420,13 +464,15 @@ const LeaderBoardPage = () => {
                     #{index + 4} {/* Add rank number */}
                   </span>
                   <div className="flex items-center space-x-4">
-                    <Image
-                      src={leaderboardUser.imageUrl || "/default-avatar.png"}
-                      alt={leaderboardUser.name}
-                      width={50}
-                      height={50}
-                      className="rounded-full"
-                    />
+                    <button onClick={() => setSelectedProfile(leaderboardUser)} className="shrink-0 rounded-full hover:ring-2 hover:ring-purple-400 transition-all">
+                      <Image
+                        src={leaderboardUser.imageUrl || "/default-avatar.png"}
+                        alt={leaderboardUser.name}
+                        width={50}
+                        height={50}
+                        className="rounded-full"
+                      />
+                    </button>
                     <div className="flex flex-col ">
                       {" "}
                       <div className="flex ">
@@ -512,6 +558,8 @@ const LeaderBoardPage = () => {
           boardIds={boardIds}
           verifiedIds={verifiedIds}
           onClose={() => setSelectedProfile(null)}
+          onFollowChange={handleFollowChange}
+          onXpGiven={handleXpGiven}
         />
       )}
     </TooltipProvider>

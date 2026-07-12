@@ -47,6 +47,15 @@ export default function RootLayout({
       // publishableKey={clerkPubKey}
     >
       <html lang="en">
+        <head>
+          {/* Warm up the connection to Google Drive ahead of time so every
+              embedded course video / PDF (rendered as an iframe pointed at
+              drive.google.com) skips the DNS + TLS handshake latency on
+              first load and starts noticeably faster. */}
+          <link rel="preconnect" href="https://drive.google.com" />
+          <link rel="preconnect" href="https://docs.google.com" crossOrigin="" />
+          <link rel="dns-prefetch" href="https://drive.google.com" />
+        </head>
         <body className={inter.className} suppressHydrationWarning={true}>
           {/* <ContextMenu> */}
           {/* <ContextMenuTrigger> */}

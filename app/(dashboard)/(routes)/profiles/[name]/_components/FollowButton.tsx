@@ -6,11 +6,16 @@ import toast from "react-hot-toast";
 interface FollowButtonProps {
   userId: string; // The user to follow/unfollow (Clerk userId)
   currentUserId: string; // The current logged-in user's Clerk userId
+  // Fired right after a successful follow/unfollow so the caller can update
+  // any follower-count UI (e.g. leaderboard, profile modal) immediately
+  // instead of waiting for the next poll.
+  onFollowChange?: (isFollowing: boolean) => void;
 }
 
 const FollowButton: React.FC<FollowButtonProps> = ({
   userId,
   currentUserId,
+  onFollowChange,
 }) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,6 +45,7 @@ const FollowButton: React.FC<FollowButtonProps> = ({
         return;
       }
       setIsFollowing(data.isFollowing);
+      onFollowChange?.(data.isFollowing);
     } catch (error) {
       toast.error("Something went wrong — please try again.");
     } finally {

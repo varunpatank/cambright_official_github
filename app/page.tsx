@@ -6,8 +6,18 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Users, ArrowRight, FileText, Trophy, Brain, BookOpen } from "lucide-react";
+import { Mail, Users, ArrowRight, FileText, Trophy, Brain, BookOpen, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
 import Hero from "@/components/Hero";
+import { COURSES, SPOTLIGHT_VIDEO_ID } from "./(dashboard)/(routes)/tutoring-program/_data";
+
+// Preview video for each showcased course — kept here rather than imported
+// from the course detail page's DETAILS map, since that's a route file, not
+// a shared data module.
+const SHOWCASE_VIDEO_IDS: Record<string, string> = {
+  "addmaths-0606": SPOTLIGHT_VIDEO_ID,
+  "biology-igcse": "1BW2YvuoStn5ePfDmTrlgfQZQ0XZbw7Oh",
+  "chemistry-igcse": "1yGhT6VQFMkPM4-H9I46wfjOfQYcAB2xD",
+};
 
 const FEATURE_CARDS = [
   { title: "Past Papers", desc: "Every session, every year.", href: "/past-papers", icon: FileText, color: "#38bdf8" },
@@ -15,6 +25,122 @@ const FEATURE_CARDS = [
   { title: "Quizzer", desc: "Practice with instant feedback.", href: "/quizzer", icon: Brain, color: "#34d399" },
   { title: "Revision Notes", desc: "Concise notes, every topic.", href: "/search-notes", icon: BookOpen, color: "#f472b6" },
 ];
+
+function SpotlightCourses() {
+  const [loadedIds, setLoadedIds] = useState<Set<string>>(new Set());
+  const showcaseCourses = COURSES.filter((c) => c.id in SHOWCASE_VIDEO_IDS);
+  const [active, setActive] = useState(0);
+
+  if (showcaseCourses.length === 0) return null;
+
+  const activeCourse = showcaseCourses[active];
+  const goTo = (index: number) => {
+    setActive((index + showcaseCourses.length) % showcaseCourses.length);
+  };
+  const markLoaded = (id: string) => setLoadedIds((prev) => (prev.has(id) ? prev : new Set(prev).add(id)));
+
+  return (
+    <section className="mt-8 md:mt-10">
+      <div className="mb-4 flex items-center gap-2 px-1">
+        <Sparkles className="h-4 w-4 text-amber-300" />
+        <h2 className="text-sm font-bold uppercase tracking-widest text-white/40">Spotlight Courses</h2>
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.3fr_1fr]">
+        <div
+          className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-black/30"
+          style={{ paddingTop: "56.25%", boxShadow: "0 0 50px rgba(251,191,36,0.12)" }}
+        >
+          {!loadedIds.has(activeCourse.id) && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2.5 bg-black/80 backdrop-blur-sm">
+              <div className="h-8 w-8 rounded-full border-2 border-white/15 border-t-amber-300 animate-spin" />
+              <p className="text-sm font-bold text-white">Video loading…</p>
+              <p className="text-xs text-white/40">This can take a few seconds</p>
+            </div>
+          )}
+          {/* All previews are mounted at once (instead of swapped in/out) so
+              they load in parallel in the background — once loaded, switching
+              between them is instant instead of re-fetching from Drive. */}
+          {showcaseCourses.map((c, i) => (
+            <iframe
+              key={c.id}
+              src={`https://drive.google.com/file/d/${SHOWCASE_VIDEO_IDS[c.id]}/preview`}
+              className="absolute inset-0 h-full w-full"
+              style={{ opacity: i === active ? 1 : 0, pointerEvents: i === active ? "auto" : "none", zIndex: i === active ? 1 : 0 }}
+              allow="autoplay"
+              allowFullScreen
+              title={`${c.title} preview`}
+              onLoad={() => markLoaded(c.id)}
+            />
+          ))}
+
+          {/* Swap between course previews */}
+          <button
+            onClick={() => goTo(active - 1)}
+            className="absolute left-3 top-1/2 z-20 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white hover:bg-black/90 transition"
+            aria-label="Previous course preview"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => goTo(active + 1)}
+            className="absolute right-3 top-1/2 z-20 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white hover:bg-black/90 transition"
+            aria-label="Next course preview"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 gap-1.5">
+            {showcaseCourses.map((c, i) => (
+              <button
+                key={c.id}
+                onClick={() => goTo(i)}
+                aria-label={`Show ${c.title} preview`}
+                className="h-1.5 rounded-full transition-all"
+                style={{ width: i === active ? "20px" : "6px", background: i === active ? "#fbbf24" : "rgba(255,255,255,0.3)" }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex h-full flex-col gap-3">
+          {showcaseCourses.map((course, i) => (
+            <div
+              key={course.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => goTo(i)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") goTo(i); }}
+              className="group relative flex flex-1 items-center gap-4 rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 cursor-pointer"
+              style={{
+                borderColor: i === active ? course.accentFrom : `${course.accentFrom}33`,
+                background: "rgba(0,0,0,0.3)",
+                boxShadow: i === active ? `0 0 30px rgba(${course.glowRgb},0.25)` : `0 0 30px rgba(${course.glowRgb},0.1)`,
+              }}
+            >
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10">
+                <Image src={course.image} alt={course.title} fill className="object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-400/15 px-2 py-0.5 text-[10px] font-black text-amber-300">
+                  <Sparkles className="h-2.5 w-2.5" /> SPOTLIGHT
+                </span>
+                <h3 className="mt-1 truncate font-black text-white">{course.title}</h3>
+                <p className="truncate text-xs text-white/50">{course.subtitle}</p>
+              </div>
+              <Link
+                href={`/tutoring-program/${course.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="shrink-0 rounded-full p-1.5 text-white/30 transition hover:bg-white/10 hover:text-white"
+                aria-label={`View ${course.title} course page`}
+              >
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function ExploreCards({ keyPrefix }: { keyPrefix: string }) {
   return (
@@ -169,6 +295,8 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 pb-12 md:px-6">
 
           <Hero onLaunch={handleLaunch} />
+
+          <SpotlightCourses />
 
           {/* Auto-scrolling marquee of feature cards — pauses on hover so cards are still clickable */}
           <section className="mt-8 md:mt-10">

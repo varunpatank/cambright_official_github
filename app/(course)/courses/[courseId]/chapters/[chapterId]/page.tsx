@@ -222,26 +222,7 @@ const ChapterIdPage = async ({
             </div>
           </div>
 
-          {/* Chapter Notes - Compact and Beautiful */}
-          <div className="bg-gradient-to-br from-slate-800/30 to-purple-900/10 backdrop-blur-xl rounded-2xl border border-purple-500/10 shadow-lg">
-            <div className="p-6 border-b border-purple-500/10">
-              <h3 className="text-xl font-semibold text-white flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-600 to-purple-500 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                Chapter Notes
-              </h3>
-            </div>
-            <div className="p-6">
-              <div className="prose prose-slate prose-4xl max-w-none">
-                <Preview value={chapter.description || "No notes available for this chapter."} classs="!bg-transparent !text-slate-200 !text-3xl leading-relaxed" />
-              </div>
-            </div>
-          </div>
-
-          {/* Course Materials - Moved Above Video Player */}
+          {/* Course Materials — student-uploaded, shown above the generated chapter notes */}
           {!!attachments.length && (
             <div className="bg-gradient-to-br from-slate-800/30 to-purple-900/10 backdrop-blur-xl rounded-2xl border border-purple-500/10 shadow-lg overflow-hidden">
               <div className="p-6 border-b border-purple-500/10">
@@ -293,6 +274,25 @@ const ChapterIdPage = async ({
               </div>
             </div>
           )}
+
+          {/* Chapter Notes - Compact and Beautiful */}
+          <div className="bg-gradient-to-br from-slate-800/30 to-purple-900/10 backdrop-blur-xl rounded-2xl border border-purple-500/10 shadow-lg">
+            <div className="p-6 border-b border-purple-500/10">
+              <h3 className="text-xl font-semibold text-white flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-600 to-purple-500 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                Chapter Notes
+              </h3>
+            </div>
+            <div className="p-6">
+              <div className="prose prose-slate prose-4xl max-w-none">
+                <Preview value={chapter.description || "No notes available for this chapter."} classs="!bg-transparent !text-slate-200 !text-3xl leading-relaxed" />
+              </div>
+            </div>
+          </div>
 
           {/* Video Player */}
           <div className="bg-gradient-to-br from-slate-900/50 to-purple-900/20 backdrop-blur-xl rounded-3xl border border-purple-500/10 shadow-2xl overflow-hidden">

@@ -574,13 +574,19 @@ const DETAILS: Record<string, CourseDetail> = {
     description: "Full IGCSE Biology notes by Miki — cells, molecules, enzymes, transport in plants and more. Everything you need to crush the biology exam!",
     shoutout: "Course by @MikiGoesBoom — 2nd member of the CamBright tutoring board",
     overviewVideo: { kind: "video-drive", label: "Unit 8: Transport In Plants", fileId: "1BW2YvuoStn5ePfDmTrlgfQZQ0XZbw7Oh" },
-    materials: [...BIO_CHAPTERS],
+    materials: [
+      ...BIO_CHAPTERS,
+      { kind: "pdf-drive", label: "Biology Notes", fileId: "1ViJZyPKRCeXCZHHIHziBxt4zFI0c2p61" },
+    ],
   },
   "chemistry-igcse": {
     description: "Full IGCSE Chemistry notes by Miki — particles, equations, acids, bases, salts and more. Together we will ace the chemistry exam!",
     shoutout: "Course by @MikiGoesBoom — 2nd member of the CamBright tutoring board",
     overviewVideo: { kind: "video-drive", label: "Unit 7: Acids, Bases and Salts", fileId: "1yGhT6VQFMkPM4-H9I46wfjOfQYcAB2xD" },
-    materials: [...CHEM_CHAPTERS],
+    materials: [
+      ...CHEM_CHAPTERS,
+      { kind: "pdf-drive", label: "Chemistry Notes", fileId: "1y5tgiYvulThUfLyduf_7A7XIN_zqE3fd" },
+    ],
   },
 };
 
@@ -738,7 +744,18 @@ function ChapterSlider({ chapters, accentFrom, accentTo, glowRgb }: { chapters: 
 
 interface VideoItem { label: string; video: VideoLocal | VideoDrive; badge?: string }
 
+function VideoLoadingOverlay({ label = "Video loading…" }: { label?: string }) {
+  return (
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2.5 bg-black/80 backdrop-blur-sm">
+      <div className="h-8 w-8 rounded-full border-2 border-white/15 border-t-white animate-spin" />
+      <p className="text-sm font-bold text-white">{label}</p>
+      <p className="text-xs text-white/40">This can take a few seconds</p>
+    </div>
+  );
+}
+
 function VideoBlock({ item, author, accentFrom, accentTo, glowRgb }: { item: VideoItem; author: string; accentFrom: string; accentTo: string; glowRgb: string }) {
+  const [loaded, setLoaded] = useState(false);
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3 mb-2">
@@ -750,12 +767,16 @@ function VideoBlock({ item, author, accentFrom, accentTo, glowRgb }: { item: Vid
         {item.badge && <span className="ml-auto text-xs font-bold text-amber-300 border border-amber-400/30 bg-amber-400/10 rounded-full px-3 py-1">{item.badge}</span>}
       </div>
       {item.video.kind==="video-local" ? (
-        <video controls className="w-full rounded-2xl border border-white/10 bg-black" style={{ boxShadow:`0 0 60px rgba(${glowRgb},0.25)` }}>
-          <source src={(item.video as VideoLocal).src} type="video/mp4" />
-        </video>
+        <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black" style={{ boxShadow:`0 0 60px rgba(${glowRgb},0.25)` }}>
+          {!loaded && <VideoLoadingOverlay />}
+          <video controls className="w-full" onLoadedData={() => setLoaded(true)}>
+            <source src={(item.video as VideoLocal).src} type="video/mp4" />
+          </video>
+        </div>
       ) : (
         <div className="relative rounded-2xl overflow-hidden border border-white/10" style={{ paddingTop:"56.25%", boxShadow:`0 0 60px rgba(${glowRgb},0.25)` }}>
-          <iframe src={`https://drive.google.com/file/d/${(item.video as VideoDrive).fileId}/preview`} className="absolute inset-0 w-full h-full" allow="autoplay" allowFullScreen title={item.label} />
+          {!loaded && <VideoLoadingOverlay />}
+          <iframe src={`https://drive.google.com/file/d/${(item.video as VideoDrive).fileId}/preview`} className="absolute inset-0 w-full h-full" allow="autoplay" allowFullScreen title={item.label} onLoad={() => setLoaded(true)} />
         </div>
       )}
     </div>
@@ -802,10 +823,11 @@ function VideoChapterSlider({ items, author, accentFrom, accentTo, glowRgb }: { 
 
 function PdfCard({ mat, accentFrom, accentTo, glowRgb }: { mat: PdfLocal|PdfDrive; accentFrom: string; accentTo: string; glowRgb: string }) {
   const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const src = mat.kind==="pdf-local" ? mat.src : `https://drive.google.com/file/d/${(mat as PdfDrive).fileId}/preview`;
   return (
     <div className="rounded-2xl border bg-black/30 overflow-hidden transition-all duration-300" style={{ borderColor: open ? `${accentFrom}55` : "rgba(255,255,255,0.1)", boxShadow: open ? `0 8px 40px rgba(${glowRgb},0.15)` : "none" }}>
-      <button onClick={() => setOpen(v => !v)} className="w-full flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 hover:bg-white/[0.03] transition text-left">
+      <button onClick={() => { setOpen(v => !v); if (open) setLoaded(false); }} className="w-full flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 hover:bg-white/[0.03] transition text-left">
         <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${accentFrom}, ${accentTo})`, boxShadow: `0 4px 16px ${accentFrom}44` }}><FileText className="h-4 w-4 text-white" /></div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-white text-sm truncate">{mat.label}</p>
@@ -814,7 +836,12 @@ function PdfCard({ mat, accentFrom, accentTo, glowRgb }: { mat: PdfLocal|PdfDriv
         <span className="hidden sm:inline text-xs text-white/30 mr-1 shrink-0">{open ? "hide" : "view"}</span>
         <ChevronRight className="h-4 w-4 text-white/30 shrink-0 transition-transform" style={{ transform: open ? "rotate(90deg)" : "rotate(0)" }} />
       </button>
-      {open && <div className="border-t border-white/[0.07]" style={{ height:"min(680px, 75vh)" }}><iframe src={src} className="w-full h-full" title={mat.label} /></div>}
+      {open && (
+        <div className="relative border-t border-white/[0.07]" style={{ height:"min(680px, 75vh)" }}>
+          {!loaded && <VideoLoadingOverlay label="Document loading…" />}
+          <iframe src={src} className="w-full h-full" title={mat.label} onLoad={() => setLoaded(true)} />
+        </div>
+      )}
     </div>
   );
 }

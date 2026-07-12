@@ -16,9 +16,13 @@ import toast from "react-hot-toast";
 interface GiveXpButtonProps {
   userIdx: string; // Expecting a user ID to be passed as a prop
   userXXP: number; // Expecting a user ID to be passed as a prop
+  // Fired right after a successful give with both updated balances, so the
+  // caller can update any XP UI (leaderboard, profile modal) immediately
+  // instead of waiting for the next poll.
+  onSuccess?: (result: { currentUserXP: number; targetUserXP: number }) => void;
 }
 
-const GiveXpButton = ({ userIdx, userXXP }: GiveXpButtonProps) => {
+const GiveXpButton = ({ userIdx, userXXP, onSuccess }: GiveXpButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -48,6 +52,7 @@ const GiveXpButton = ({ userIdx, userXXP }: GiveXpButtonProps) => {
       } else {
         const data = await response.json();
         toast.success(`Successfully gave ${xpAmount} XP!`);
+        onSuccess?.(data);
       }
     } catch (error) {
       toast.error("An error occurred while giving XP.");
