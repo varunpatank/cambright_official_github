@@ -1,7 +1,45 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
 import { getInitialSessionSeconds, getInitialXp } from "@/lib/session-time";
+
+type Clerk = Awaited<ReturnType<typeof clerkClient>>;
+
+// Counts how many Clerk users have `field` >= `sinceMs`, without walking the
+// whole directory: users are fetched sorted newest-`field`-first and we stop
+// as soon as one falls before the cutoff (everything after is even older).
+// Bounded by (matching users / 100) + 1 API calls, not total user count.
+async function countUsersSince(
+  clerk: Clerk,
+  field: "created_at" | "last_active_at",
+  sinceMs: number,
+  getTimestamp: (u: { createdAt: number; lastActiveAt: number | null }) => number | null
+): Promise<number> {
+  const limit = 100;
+  const maxPages = 10; // safety cap — 1000 users scanned is plenty for a daily/30-day window
+  let count = 0;
+  let offset = 0;
+
+  for (let page = 0; page < maxPages; page++) {
+    const batch = await clerk.users.getUserList({ limit, offset, orderBy: `-${field}` });
+    if (batch.data.length === 0) break;
+
+    let crossedBoundary = false;
+    for (const u of batch.data) {
+      const ts = getTimestamp(u);
+      if (ts !== null && ts >= sinceMs) {
+        count += 1;
+      } else {
+        crossedBoundary = true;
+        break;
+      }
+    }
+    if (crossedBoundary || batch.data.length < limit) break;
+    offset += limit;
+  }
+
+  return count;
+}
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -106,6 +144,21 @@ export async function GET() {
 
       const clerkUsersById = new Map(allClerkUsers.map((u) => [u.id, u]));
 
+      // Site-wide counts (total / new today / active) must reflect Clerk's
+      // full user directory, not just the users who happen to have a DB row
+      // yet — otherwise brand-new signups who haven't triggered row-creation
+      // undercount "new users today" relative to what Clerk itself reports.
+      // getCount() is a single cheap call; the other two use a bounded,
+      // early-exit scan (see countUsersSince) instead of walking everyone.
+      const now = Date.now();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      const thirtyDaysMs = 30 * oneDayMs;
+      const [totalClerkUsers, newUsersTodayCount, activeUsersCount] = await Promise.all([
+        clerk.users.getCount(),
+        countUsersSince(clerk, "created_at", now - oneDayMs, (u) => u.createdAt),
+        countUsersSince(clerk, "last_active_at", now - thirtyDaysMs, (u) => u.lastActiveAt),
+      ]);
+
       const enrichedLeaderboard = leaderboard.map((user) => {
         const clerkUser = clerkUsersById.get(user.userId);
         const derivedName = clerkUser?.firstName
@@ -150,9 +203,11 @@ export async function GET() {
 
       const responseBody = {
         leaderboard: completeLeaderboard,
-        total: leaderboard.length,
-        clerkUserCount: allClerkUsers.length,
+        total: totalClerkUsers,
+        clerkUserCount: totalClerkUsers,
         databaseUserCount: leaderboard.length,
+        newUsersTodayCount,
+        activeUsersCount,
         timestamp: new Date().toISOString(),
       };
       cachedLeaderboard = { body: responseBody, timestamp: Date.now() };
@@ -173,6 +228,8 @@ export async function GET() {
           total: leaderboard.length,
           clerkUserCount: "Error fetching",
           databaseUserCount: leaderboard.length,
+          newUsersTodayCount: null,
+          activeUsersCount: null,
           error: "Could not fetch all Clerk users",
           timestamp: new Date().toISOString(),
         },

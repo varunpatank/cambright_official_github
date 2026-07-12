@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useUser } from "@clerk/nextjs";
@@ -50,11 +50,34 @@ interface LeaderboardResponse {
   total: number;
   clerkUserCount: number | string;
   databaseUserCount: number;
+  newUsersTodayCount: number | null;
+  activeUsersCount: number | null;
   timestamp: string;
   error?: string;
 }
 export const dynamic = "force-dynamic";
 // export const maxDuration = 300;
+
+// The page polls every 5s, which re-renders everything below it — including
+// this banner's particle animation, which was re-initializing (visible as a
+// "freeze and restart" stutter) on every single poll. It takes no props tied
+// to the polling state, so memoizing it lets React skip re-rendering it
+// entirely on those updates, keeping the animation continuous like every
+// other (non-polling) page's banner.
+const LeaderboardHeaderBanner = memo(function LeaderboardHeaderBanner() {
+  return (
+    <StarryBackground height="240px" intensity="medium" showMeteors={true} className="mb-8 rounded-none">
+      <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
+        <Cover className="inline-block px-8 py-6">
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
+            Leaderboard<span className="text-purple-400">.</span>
+          </h1>
+          <p className="text-gray-400 text-center">Ranked by XP from total visit time on CamBright — updated in real time</p>
+        </Cover>
+      </div>
+    </StarryBackground>
+  );
+});
 
 function ProfileModal({
   profile,
@@ -155,6 +178,8 @@ const LeaderBoardPage = () => {
     total: number;
     clerkUserCount: number | string;
     databaseUserCount: number;
+    newUsersTodayCount: number | null;
+    activeUsersCount: number | null;
   } | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -176,6 +201,8 @@ const LeaderBoardPage = () => {
             total: data.total,
             clerkUserCount: data.clerkUserCount,
             databaseUserCount: data.databaseUserCount,
+            newUsersTodayCount: data.newUsersTodayCount,
+            activeUsersCount: data.activeUsersCount,
           });
           // Only clear loading once data has actually arrived — an early
           // retry (e.g. a cold-start db connection) shouldn't flash an
@@ -258,16 +285,12 @@ const LeaderBoardPage = () => {
   const boardIds =
     process.env.NEXT_PUBLIC_BOARD_IDS?.split(",") || defaultIds.boardIds;
 
-  const now = Date.now();
-  const oneDayMs = 24 * 60 * 60 * 1000;
-  const activeUsersCount = sortedLeaderboard.filter((u) => {
-    const lastSignInAt = u.clerkData?.lastSignInAt;
-    return typeof lastSignInAt === "number" && now - lastSignInAt <= 30 * oneDayMs;
-  }).length;
-  const loginsTodayCount = sortedLeaderboard.filter((u) => {
-    const lastSignInAt = u.clerkData?.lastSignInAt;
-    return typeof lastSignInAt === "number" && now - lastSignInAt <= oneDayMs;
-  }).length;
+  // Sourced straight from the API's authoritative Clerk counts (see
+  // app/api/leaderboard/route.ts) rather than derived from sortedLeaderboard,
+  // which only includes users with a DB row and would undercount relative to
+  // what Clerk itself reports for brand-new signups.
+  const activeUsersCount = leaderboardStats?.activeUsersCount ?? 0;
+  const loginsTodayCount = leaderboardStats?.newUsersTodayCount ?? 0;
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -275,16 +298,7 @@ const LeaderBoardPage = () => {
         <StarsBackground />
         
         {/* Starry Header */}
-        <StarryBackground height="240px" intensity="medium" showMeteors={true} className="mb-8 rounded-none">
-          <div className="relative z-10 flex flex-col items-center justify-center h-full pt-8 text-center">
-            <Cover className="inline-block px-8 py-6">
-              <h1 className="text-5xl md:text-6xl font-bold mb-4 font-sora text-center">
-                Leaderboard<span className="text-purple-400">.</span>
-              </h1>
-              <p className="text-gray-400 text-center">Ranked by XP from total visit time on CamBright — updated in real time</p>
-            </Cover>
-          </div>
-        </StarryBackground>
+        <LeaderboardHeaderBanner />
         
         <div className="max-w-4xl mx-auto px-6 pb-6">
         {/* Leaderboard Stats */}
