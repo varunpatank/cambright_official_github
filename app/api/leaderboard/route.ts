@@ -6,8 +6,27 @@ import { getInitialSessionSeconds, getInitialXp } from "@/lib/session-time";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// The client polls this endpoint every 5s from every open tab. Recomputing
+// it fully means paginating Clerk's *entire* user directory each time
+// (getCount + repeated getUserList calls) just to find newly-registered
+// users — that's the source of multi-second latency under load. Cache the
+// computed result briefly so concurrent/rapid polls reuse it instead of
+// each re-walking the whole Clerk directory.
+let cachedLeaderboard: { body: unknown; timestamp: number } | null = null;
+const CACHE_TTL_MS = 15000;
+
 // Export the GET method
 export async function GET() {
+  if (cachedLeaderboard && Date.now() - cachedLeaderboard.timestamp < CACHE_TTL_MS) {
+    return NextResponse.json(cachedLeaderboard.body, {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+    });
+  }
+
   try {
     const clerk = await clerkClient();
     // Fetch existing leaderboard users from DB
@@ -126,22 +145,22 @@ export async function GET() {
         return a.name.localeCompare(b.name);
       });
 
-      return NextResponse.json(
-        {
-          leaderboard: completeLeaderboard,
-          total: userCount,
-          clerkUserCount: userCount,
-          databaseUserCount: leaderboard.length,
-          timestamp: new Date().toISOString(),
+      const responseBody = {
+        leaderboard: completeLeaderboard,
+        total: userCount,
+        clerkUserCount: userCount,
+        databaseUserCount: leaderboard.length,
+        timestamp: new Date().toISOString(),
+      };
+      cachedLeaderboard = { body: responseBody, timestamp: Date.now() };
+
+      return NextResponse.json(responseBody, {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
         },
-        {
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-            Pragma: "no-cache",
-            Expires: "0",
-          },
-        }
-      );
+      });
 
     } catch (clerkListError) {
       console.warn("Could not fetch Clerk users list:", clerkListError);
