@@ -18,11 +18,12 @@ export const SidebarAccord = ({
   return (
     <div
       className={cn(
-        "flex items-center gap-x-2 text-base font-[500] pl-6 transition-all cursor-pointer w-full hover:text-slate-500 hover:bg-n-8"
+        "relative flex items-center text-base font-[500] pl-6 transition-all cursor-pointer w-full hover:text-slate-500 hover:bg-n-8",
+        isOpen && "text-purple-500 bg-n-8 hover:bg-n-8 hover:text-purple-600"
       )}
     >
       <div className="flex items-center text-slate-500 gap-x-2 py-4 w-full">
-        <Icon size={24} className={cn("text-slate-500")} />
+        <Icon size={24} className={cn("text-slate-500", isOpen && "text-purple-500")} />
         {label}
         <ChevronDown
           size={20}
@@ -32,6 +33,12 @@ export const SidebarAccord = ({
           )}
         />
       </div>
+      <div
+        className={cn(
+          "absolute right-0 top-0 h-full opacity-0 border-2 border-purple-600 transition-all",
+          isOpen && "opacity-100"
+        )}
+      />
     </div>
   );
 };

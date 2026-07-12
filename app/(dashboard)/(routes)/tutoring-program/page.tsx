@@ -30,8 +30,8 @@ function CourseCard({ course }: { course: CourseData }) {
         style={{ background: `linear-gradient(90deg, transparent, ${course.accentFrom}, ${course.accentTo}, transparent)`, opacity: hovered ? 1 : 0.4, transition: "opacity 0.3s" }}
       />
 
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "16/9" }}>
-        <Image src={course.image} alt={course.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+      <div className="relative w-full overflow-hidden rounded-t-3xl isolate" style={{ aspectRatio: "16/9" }}>
+        <Image src={course.image} alt={course.title} fill className="object-cover scale-[1.02] transition-transform duration-700 ease-out group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
         <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-300" style={{ opacity: hovered ? 1 : 0 }}>
           <div className="h-14 w-14 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20" style={{ background: `linear-gradient(135deg, ${course.accentFrom}cc, ${course.accentTo}cc)` }}>
@@ -96,8 +96,8 @@ export default function TutoringProgramPage() {
           <div key={course.id} className="mb-6">
             <Link href={`/tutoring-program/${course.id}`} className="group relative flex flex-col md:flex-row rounded-3xl overflow-hidden border border-white/10 bg-black/35 backdrop-blur-xl transition-all duration-500 hover:border-white/25 hover:-translate-y-1 cursor-pointer" style={{ boxShadow: `0 8px 50px rgba(${course.glowRgb},0.2), 0 0 0 1px rgba(255,255,255,0.05)` }}>
               <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${course.accentFrom}, ${course.accentTo}, transparent)` }} />
-              <div className="relative md:w-2/5 overflow-hidden" style={{ minHeight: "220px" }}>
-                <Image src={course.image} alt={course.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              <div className="relative md:w-2/5 overflow-hidden rounded-t-3xl md:rounded-t-none md:rounded-l-3xl isolate" style={{ minHeight: "220px" }}>
+                <Image src={course.image} alt={course.title} fill className="object-cover scale-[1.02] transition-transform duration-700 ease-out group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/60 md:block hidden" />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40 md:hidden" />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">

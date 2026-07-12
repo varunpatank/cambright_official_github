@@ -644,9 +644,9 @@ function InteractiveContent({ c, accentFrom, accentTo }: { c: ChapterContent; ac
         <div className="rounded-xl border border-white/10 bg-black/40 p-4 space-y-2">
           <p className="text-xs font-black text-white/50 uppercase tracking-widest mb-3 flex items-center gap-2"><BookOpen className="h-3.5 w-3.5" /> Key Formulas</p>
           {c.formulas.map((f, i) => (
-            <div key={i} className="flex items-center gap-3 text-sm">
-              <span className="text-white/40 text-xs w-40 shrink-0">{f.label}</span>
-              <code className="font-mono text-white bg-white/8 rounded-lg px-3 py-1.5 text-xs flex-1">{f.expr}</code>
+            <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+              <span className="text-white/40 text-xs sm:w-40 shrink-0">{f.label}</span>
+              <code className="font-mono text-white bg-white/8 rounded-lg px-3 py-1.5 text-xs flex-1 break-words">{f.expr}</code>
             </div>
           ))}
         </div>
@@ -680,18 +680,35 @@ function ChapterSlider({ chapters, accentFrom, accentTo, glowRgb }: { chapters: 
   const sliderRef = useRef<HTMLDivElement>(null);
   const ch = chapters[active];
   const scroll = (dir: -1 | 1) => sliderRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });
+  const progressPct = ((active + 1) / chapters.length) * 100;
   return (
     <div className="space-y-4">
+      {/* progress row */}
+      <div className="flex items-center gap-3">
+        <button disabled={active===0} onClick={() => setActive(v => Math.max(0,v-1))} className="h-7 w-7 rounded-full border border-white/10 flex items-center justify-center shrink-0 disabled:opacity-20 hover:border-white/30 hover:bg-white/[0.04] transition">
+          <ChevronLeft className="h-3.5 w-3.5 text-white/70" />
+        </button>
+        <div className="flex-1 flex items-center gap-2.5 min-w-0">
+          <span className="text-xs font-bold shrink-0 tabular-nums" style={{ color: accentFrom }}>{active + 1}/{chapters.length}</span>
+          <div className="flex-1 h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
+            <div className="h-full rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPct}%`, background: `linear-gradient(90deg, ${accentFrom}, ${accentTo})` }} />
+          </div>
+        </div>
+        <button disabled={active===chapters.length-1} onClick={() => setActive(v => Math.min(chapters.length-1,v+1))} className="h-7 w-7 rounded-full border border-white/10 flex items-center justify-center shrink-0 disabled:opacity-20 hover:border-white/30 hover:bg-white/[0.04] transition">
+          <ChevronRight className="h-3.5 w-3.5 text-white/70" />
+        </button>
+      </div>
+
       <div className="relative">
         <button onClick={() => scroll(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/80 border border-white/15 flex items-center justify-center hover:bg-white/10 transition shadow-lg">
           <ChevronLeft className="h-4 w-4 text-white" />
         </button>
-        <div ref={sliderRef} className="flex gap-2 overflow-x-auto px-10 pb-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+        <div ref={sliderRef} className="flex gap-2 overflow-x-auto px-10 pb-1 scroll-smooth" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
           {chapters.map((c, i) => (
-            <button key={i} onClick={() => setActive(i)} className="shrink-0 flex flex-col items-start rounded-xl border px-4 py-3 transition-all duration-200 text-left min-w-[140px]"
+            <button key={i} onClick={() => setActive(i)} className="shrink-0 flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 transition-all duration-200 text-left min-w-[160px] max-w-[200px]"
               style={{ background: i===active ? `linear-gradient(135deg, ${accentFrom}33, ${accentTo}22)` : "rgba(0,0,0,0.3)", borderColor: i===active ? accentFrom : "rgba(255,255,255,0.1)", boxShadow: i===active ? `0 0 20px rgba(${glowRgb},0.25)` : "none" }}>
-              <span className="text-[10px] font-black mb-1 px-2 py-0.5 rounded-md" style={{ background: i===active ? `linear-gradient(135deg, ${accentFrom}, ${accentTo})` : "rgba(255,255,255,0.08)", color: i===active ? "#fff" : "rgba(255,255,255,0.4)" }}>Ch {c.num}</span>
-              <span className="text-xs font-semibold leading-tight" style={{ color: i===active ? "#fff" : "rgba(255,255,255,0.5)" }}>{c.title}</span>
+              <span className="h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-black shrink-0" style={{ background: i===active ? `linear-gradient(135deg, ${accentFrom}, ${accentTo})` : "rgba(255,255,255,0.08)", color: i===active ? "#fff" : "rgba(255,255,255,0.4)" }}>{i + 1}</span>
+              <span className="text-xs font-semibold leading-tight line-clamp-2" style={{ color: i===active ? "#fff" : "rgba(255,255,255,0.5)" }}>{c.title}</span>
             </button>
           ))}
         </div>
@@ -699,22 +716,18 @@ function ChapterSlider({ chapters, accentFrom, accentTo, glowRgb }: { chapters: 
           <ChevronRight className="h-4 w-4 text-white" />
         </button>
       </div>
-      <div className="flex items-center justify-between text-xs text-white/40">
-        <button disabled={active===0} onClick={() => setActive(v => Math.max(0,v-1))} className="flex items-center gap-1 disabled:opacity-30 hover:text-white transition"><ChevronLeft className="h-3.5 w-3.5" /> Prev</button>
-        <span className="font-bold" style={{ color: accentFrom }}>Chapter {ch.num} of {chapters.length}</span>
-        <button disabled={active===chapters.length-1} onClick={() => setActive(v => Math.min(chapters.length-1,v+1))} className="flex items-center gap-1 disabled:opacity-30 hover:text-white transition">Next <ChevronRight className="h-3.5 w-3.5" /></button>
-      </div>
+
       <div key={active} className="rounded-2xl border border-white/10 bg-black/30 overflow-hidden animate-in fade-in duration-300" style={{ boxShadow: `0 8px 40px rgba(${glowRgb},0.15)` }}>
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.07]" style={{ background: `linear-gradient(90deg, ${accentFrom}18, transparent)` }}>
-          <span className="shrink-0 text-xs font-black px-3 py-1 rounded-lg text-white" style={{ background: `linear-gradient(135deg, ${accentFrom}, ${accentTo})` }}>Ch {ch.num}</span>
-          <span className="font-bold text-white">{ch.title}</span>
-          {ch.img && <span className="ml-auto text-xs text-white/30 flex items-center gap-1"><Maximize2 className="h-3 w-3" /> click to zoom</span>}
+        <div className="flex items-center gap-3 px-4 sm:px-5 py-4 border-b border-white/[0.07]" style={{ background: `linear-gradient(90deg, ${accentFrom}18, transparent)` }}>
+          <span className="shrink-0 text-xs font-black px-3 py-1 rounded-lg text-white" style={{ background: `linear-gradient(135deg, ${accentFrom}, ${accentTo})` }}>Ch {active + 1}</span>
+          <span className="font-bold text-white truncate">{ch.title}</span>
+          {ch.img && <span className="ml-auto shrink-0 text-xs text-white/30 hidden sm:flex items-center gap-1"><Maximize2 className="h-3 w-3" /> click to zoom</span>}
         </div>
-        {ch.img && <ZoomableImage src={ch.img} alt={`Ch ${ch.num} — ${ch.title}`} />}
+        {ch.img && <ZoomableImage src={ch.img} alt={`Ch ${active + 1} — ${ch.title}`} />}
         {ch.content && <InteractiveContent c={ch.content} accentFrom={accentFrom} accentTo={accentTo} />}
         {ch.pdf && (
           <div className="border-t border-white/[0.07]" style={{ height: "680px" }}>
-            <iframe src={ch.pdf} className="w-full h-full" title={`Ch ${ch.num} notes`} />
+            <iframe src={ch.pdf} className="w-full h-full" title={`Ch ${active + 1} notes`} />
           </div>
         )}
       </div>
@@ -726,17 +739,17 @@ function PdfCard({ mat, accentFrom, accentTo, glowRgb }: { mat: PdfLocal|PdfDriv
   const [open, setOpen] = useState(false);
   const src = mat.kind==="pdf-local" ? mat.src : `https://drive.google.com/file/d/${(mat as PdfDrive).fileId}/preview`;
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/30 overflow-hidden transition-all" style={{ boxShadow: open ? `0 8px 40px rgba(${glowRgb},0.15)` : "none" }}>
-      <button onClick={() => setOpen(v => !v)} className="w-full flex items-center gap-4 px-5 py-4 hover:bg-white/[0.03] transition text-left">
-        <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${accentFrom}, ${accentTo})` }}><FileText className="h-4 w-4 text-white" /></div>
+    <div className="rounded-2xl border bg-black/30 overflow-hidden transition-all duration-300" style={{ borderColor: open ? `${accentFrom}55` : "rgba(255,255,255,0.1)", boxShadow: open ? `0 8px 40px rgba(${glowRgb},0.15)` : "none" }}>
+      <button onClick={() => setOpen(v => !v)} className="w-full flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-4 hover:bg-white/[0.03] transition text-left">
+        <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${accentFrom}, ${accentTo})`, boxShadow: `0 4px 16px ${accentFrom}44` }}><FileText className="h-4 w-4 text-white" /></div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-white text-sm">{mat.label}</p>
-          {"desc" in mat && mat.desc && <p className="text-xs text-white/40 mt-0.5">{mat.desc}</p>}
+          <p className="font-bold text-white text-sm truncate">{mat.label}</p>
+          {"desc" in mat && mat.desc && <p className="text-xs text-white/40 mt-0.5 truncate">{mat.desc}</p>}
         </div>
-        <span className="text-xs text-white/30 mr-2">{open ? "hide" : "view"}</span>
+        <span className="hidden sm:inline text-xs text-white/30 mr-1 shrink-0">{open ? "hide" : "view"}</span>
         <ChevronRight className="h-4 w-4 text-white/30 shrink-0 transition-transform" style={{ transform: open ? "rotate(90deg)" : "rotate(0)" }} />
       </button>
-      {open && <div className="border-t border-white/[0.07]" style={{ height:"680px" }}><iframe src={src} className="w-full h-full" title={mat.label} /></div>}
+      {open && <div className="border-t border-white/[0.07]" style={{ height:"min(680px, 75vh)" }}><iframe src={src} className="w-full h-full" title={mat.label} /></div>}
     </div>
   );
 }
@@ -923,8 +936,9 @@ export default function CourseDetailPage() {
             <div className="space-y-8">
               {chapters.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-sm font-bold text-white/60 uppercase tracking-widest">Chapter Notes</h3>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0" style={{ background:`linear-gradient(135deg,${base.accentFrom},${base.accentTo})` }}><BookOpen className="h-3.5 w-3.5 text-white" /></div>
+                    <h3 className="text-sm font-bold text-white/70 uppercase tracking-widest">Chapter Notes</h3>
                     <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background:`${base.accentFrom}33`, color:base.accentFrom }}>{chapters.length}</span>
                   </div>
                   <ChapterSlider chapters={chapters} accentFrom={base.accentFrom} accentTo={base.accentTo} glowRgb={base.glowRgb} />
@@ -932,7 +946,11 @@ export default function CourseDetailPage() {
               )}
               {pdfs.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-bold text-white/60 uppercase tracking-widest mb-4">Resources &amp; Past Papers</h3>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0" style={{ background:`linear-gradient(135deg,${base.accentFrom},${base.accentTo})` }}><FileText className="h-3.5 w-3.5 text-white" /></div>
+                    <h3 className="text-sm font-bold text-white/70 uppercase tracking-widest">Resources &amp; Past Papers</h3>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background:`${base.accentFrom}33`, color:base.accentFrom }}>{pdfs.length}</span>
+                  </div>
                   <div className="space-y-3">{pdfs.map((p,i) => <PdfCard key={i} mat={p} accentFrom={base.accentFrom} accentTo={base.accentTo} glowRgb={base.glowRgb} />)}</div>
                 </div>
               )}

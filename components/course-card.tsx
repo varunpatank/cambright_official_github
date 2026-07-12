@@ -64,7 +64,7 @@ export const CourseCard = ({
         </button>
       )}
       <Link href={`/courses/${id}`} className="block">
-        <div className="relative w-full aspect-video rounded-md overflow-hidden">
+        <div className="relative w-full aspect-video rounded-lg overflow-hidden isolate">
           <Image 
             fill 
             className="object-cover" 
