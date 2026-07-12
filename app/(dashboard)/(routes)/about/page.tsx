@@ -70,20 +70,20 @@ const founders: User[] = [
 
 const board: User[] = [
   {
+    name: "Jonathan K",
+    role: "Courses Manager",
+    bio: "",
+    tags: ["Board Member", "Courses Manager"],
+    socialLinks: {},
+    avatar: "/user1.png",
+  },
+  {
     name: "Vaishnav B",
     role: "Tutor",
     bio: "",
     tags: ["Board Member", "Tutor"],
     socialLinks: {},
     avatar: "/user1.png",
-  },
-  {
-    name: "Khant Thiha Zaw",
-    role: "Resources & Ex-Lead",
-    bio: "I am a student from Myanmar studying AS and A Levels with a soft spot for cats.",
-    tags: ["Top Member", "Cat Lover"],
-    socialLinks: { },
-    avatar: "/khant.png",
   },
   {
     name: "Lukas C.",
@@ -102,28 +102,12 @@ const board: User[] = [
     avatar: "/user1.png",
   },
   {
-    name: "Zisty",
-    role: "Marketing",
-    bio: "",
-    tags: ["Volunteer"],
-    socialLinks: {},
-    avatar: "/user1.png",
-  },
-  {
     name: "Daro",
     role: "Community Manager",
     bio: "I'm Daro, an aspiring medic with a passion for learning and teaching. My goal is to make students enjoy learning!",
     tags: ["Moderator", "Top Volunteer"],
     socialLinks: { },
     avatar: "/daru.png",
-  },
-  {
-    name: "Jonathan K",
-    role: "Courses Manager",
-    bio: "",
-    tags: ["Board Member", "Courses Manager"],
-    socialLinks: {},
-    avatar: "/user1.png",
   },
 ];
 
