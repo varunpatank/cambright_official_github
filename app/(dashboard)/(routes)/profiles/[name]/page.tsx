@@ -45,9 +45,12 @@ const ProfilePage = async ({ params }: { params: { name: string } }) => {
   if (!u) {
     return redirect("/dashboard");
   }
+  // The dynamic segment is either a stable userId (from the leaderboard,
+  // which is always present and unique) or a display name (from older
+  // hardcoded links elsewhere) — try both so neither style 404s.
   const user = await db.userModel.findFirst({
     where: {
-      name: name, // Use the profileId to search the database
+      OR: [{ userId: name }, { name: name }],
     },
     include: {
       tags: true, // Include tags (if necessary)

@@ -28,6 +28,7 @@ interface ChapterContent {
 interface ChapterMat {
   kind: "chapter"; num: string; title: string;
   img?: string; pdf?: string; content?: ChapterContent;
+  video?: VideoLocal | VideoDrive;
 }
 type Material = VideoLocal | VideoDrive | PdfLocal | PdfDrive | ChapterMat;
 interface CourseDetail {
@@ -535,25 +536,25 @@ const CHEM_CHAPTERS: ChapterMat[] = [
 
 const SC: ChapterMat[] = [
   { kind:"chapter", num:"1",  title:"Functions",                           img:"/spotlight_course/Ch%201%20-%20Functions.png",                                            pdf:"/spotlight_course/Ch%201%20-%20Functions.pdf" },
-  { kind:"chapter", num:"2",  title:"Quadratic Functions",                  img:"/spotlight_course/Ch%202%20-%20Quadratic%20Functions.png",                                pdf:"/spotlight_course/Ch%202%20-%20Quadratic%20Functions.pdf" },
-  { kind:"chapter", num:"3",  title:"Factors of Polynomials",               img:"/spotlight_course/Ch%203%20-%20Factors%20of%20Polynomials.png",                           pdf:"/spotlight_course/Ch%203%20-%20Factors%20of%20Polynomials.pdf" },
-  { kind:"chapter", num:"4",  title:"Equations, Inequalities & Graphs",     img:"/spotlight_course/Ch%204%20-%20Equations%2C%20inequalities%20and%20graphs.png",           pdf:"/spotlight_course/Ch%204%20-%20Equations%2C%20Inequlities%20and%20Graphs.pdf" },
-  { kind:"chapter", num:"5",  title:"Simultaneous Equations",               img:"/spotlight_course/Ch%205%20-%20Simulatneous%20Equations.png",                             pdf:"/spotlight_course/Ch%205%20-%20Simultaneous%20Equations.pdf" },
-  { kind:"chapter", num:"6",  title:"Logarithmic & Exponential Functions",  img:"/spotlight_course/Ch%206%20-%20Logarithmic%20and%20exponential%20functions.png",          pdf:"/spotlight_course/Ch%206%20-%20Logarithmic%20and%20Exponential%20Functions.pdf" },
-  { kind:"chapter", num:"7",  title:"Straight-Line Graphs",                 img:"/spotlight_course/Ch%207%20-%20Straight-line%20graphs.png",                               pdf:"/spotlight_course/Ch%207%20-%20Straight-Line%20Graphs.pdf" },
-  { kind:"chapter", num:"8",  title:"Coordinate Geometry of the Circle",    img:"/spotlight_course/Ch%208%20-%20Coordinate%20geometry%20of%20the%20circle.png",            pdf:"/spotlight_course/Ch%208%20-%20Coordinate%20Geometry%20of%20the%20Circle.pdf" },
-  { kind:"chapter", num:"9",  title:"Circular Measure",                     img:"/spotlight_course/Ch%209%20-%20Circular%20measure.png",                                   pdf:"/spotlight_course/Ch%209%20-%20Circular%20measure.pdf" },
-  { kind:"chapter", num:"10", title:"Trigonometry",                         img:"/spotlight_course/Ch%2010%20-%20Trigonometry.png",                                        pdf:"/spotlight_course/Ch%2010%20-%20Trigonometry.pdf" },
-  { kind:"chapter", num:"11", title:"Permutations & Combinations",          img:"/spotlight_course/Ch%2011%20-%20Permutations%20and%20combinations.png",                   pdf:"/spotlight_course/Ch%2011%20-%20Permutations%20and%20Combinations.pdf" },
-  { kind:"chapter", num:"12", title:"Series",                               img:"/spotlight_course/Ch%2012%20-%20Series.png",                                              pdf:"/spotlight_course/Ch%2012%20-%20Series.pdf" },
-  { kind:"chapter", num:"13", title:"Vectors in Two Dimensions",            img:"/spotlight_course/Ch%2013%20-%20Vectors%20in%20two%20dimensions.png",                     pdf:"/spotlight_course/Ch%2013%20-%20Vectors%20in%20two%20dimensions.pdf" },
-  { kind:"chapter", num:"14", title:"Calculus",                             img:"/spotlight_course/Ch%2014%20-%20Calculus.png",                                            pdf:"/spotlight_course/Ch%2014%20-%20Calculus.pdf" },
+  { kind:"chapter", num:"2",  title:"Quadratic Functions",                  img:"/spotlight_course/Ch%202%20-%20Quadratic%20Functions.png",                                pdf:"/spotlight_course/Ch%202%20-%20Quadratic%20Functions.pdf",                                video:{ kind:"video-drive", label:"Ch 2 — Quadratic Functions", fileId:"1NqNdQ9aVgqOb6sFeoSf5IDvjP8Tnr3sV" } },
+  { kind:"chapter", num:"3",  title:"Factors of Polynomials",               img:"/spotlight_course/Ch%203%20-%20Factors%20of%20Polynomials.png",                           pdf:"/spotlight_course/Ch%203%20-%20Factors%20of%20Polynomials.pdf",                           video:{ kind:"video-drive", label:"Ch 3 — Factors of Polynomials", fileId:"1jV0OjCxUyQgDTmg2vDy02rMDAWZeH-rC" } },
+  { kind:"chapter", num:"4",  title:"Equations, Inequalities & Graphs",     img:"/spotlight_course/Ch%204%20-%20Equations%2C%20inequalities%20and%20graphs.png",           pdf:"/spotlight_course/Ch%204%20-%20Equations%2C%20Inequlities%20and%20Graphs.pdf",             video:{ kind:"video-drive", label:"Ch 4 — Equations, Inequalities & Graphs", fileId:"1-Yyc6LD8gNqiXkS0H4eZq9h4bM-w8K7N" } },
+  { kind:"chapter", num:"5",  title:"Simultaneous Equations",               img:"/spotlight_course/Ch%205%20-%20Simulatneous%20Equations.png",                             pdf:"/spotlight_course/Ch%205%20-%20Simultaneous%20Equations.pdf",                             video:{ kind:"video-drive", label:"Ch 5 — Simultaneous Equations", fileId:"1ZryA67TwDDkWM0LQ4X9M1TwJtikQJUqz" } },
+  { kind:"chapter", num:"6",  title:"Logarithmic & Exponential Functions",  img:"/spotlight_course/Ch%206%20-%20Logarithmic%20and%20exponential%20functions.png",          pdf:"/spotlight_course/Ch%206%20-%20Logarithmic%20and%20Exponential%20Functions.pdf",          video:{ kind:"video-drive", label:"Ch 6 — Logarithmic & Exponential Functions", fileId:"1yQuYmcRzqeqvCSX7pG92NPph_hoZjOcB" } },
+  { kind:"chapter", num:"7",  title:"Straight-Line Graphs",                 img:"/spotlight_course/Ch%207%20-%20Straight-line%20graphs.png",                               pdf:"/spotlight_course/Ch%207%20-%20Straight-Line%20Graphs.pdf",                               video:{ kind:"video-drive", label:"Ch 7 — Straight-Line Graphs", fileId:"1ooweYFxVXHX73OYAD3hfSUYj3wRuwCdB" } },
+  { kind:"chapter", num:"8",  title:"Coordinate Geometry of the Circle",    img:"/spotlight_course/Ch%208%20-%20Coordinate%20geometry%20of%20the%20circle.png",            pdf:"/spotlight_course/Ch%208%20-%20Coordinate%20Geometry%20of%20the%20Circle.pdf",            video:{ kind:"video-drive", label:"Ch 8 — Coordinate Geometry of the Circle", fileId:"1Fu1LZFmC94Z79Zs3hGCx92jJDvpKX7zo" } },
+  { kind:"chapter", num:"9",  title:"Circular Measure",                     img:"/spotlight_course/Ch%209%20-%20Circular%20measure.png",                                   pdf:"/spotlight_course/Ch%209%20-%20Circular%20measure.pdf",                                   video:{ kind:"video-drive", label:"Ch 9 — Circular Measure", fileId:"1byWEdo-I_qaqrD8KCute5WyYPNbtpBvK" } },
+  { kind:"chapter", num:"10", title:"Trigonometry",                         img:"/spotlight_course/Ch%2010%20-%20Trigonometry.png",                                        pdf:"/spotlight_course/Ch%2010%20-%20Trigonometry.pdf",                                        video:{ kind:"video-drive", label:"Ch 10 — Trigonometry", fileId:"1iTfQgod2J026O4XptDkNcQ6MOUDyLNTi" } },
+  { kind:"chapter", num:"11", title:"Permutations & Combinations",          img:"/spotlight_course/Ch%2011%20-%20Permutations%20and%20combinations.png",                   pdf:"/spotlight_course/Ch%2011%20-%20Permutations%20and%20Combinations.pdf",                   video:{ kind:"video-drive", label:"Ch 11 — Permutations & Combinations", fileId:"1RTBb1JHR7lQUovX2cmYpDrCAEcmgfryO" } },
+  { kind:"chapter", num:"12", title:"Series",                               img:"/spotlight_course/Ch%2012%20-%20Series.png",                                              pdf:"/spotlight_course/Ch%2012%20-%20Series.pdf",                                              video:{ kind:"video-drive", label:"Ch 12 — Series", fileId:"1ZK4Kw9A7sULuwaeKmo5aMVK70LiKIjXH" } },
+  { kind:"chapter", num:"13", title:"Vectors in Two Dimensions",            img:"/spotlight_course/Ch%2013%20-%20Vectors%20in%20two%20dimensions.png",                     pdf:"/spotlight_course/Ch%2013%20-%20Vectors%20in%20two%20dimensions.pdf",                     video:{ kind:"video-drive", label:"Ch 13 — Vectors in Two Dimensions", fileId:"1w64wPtV_saodLMvor5DesP0aVg7njfwY" } },
+  { kind:"chapter", num:"14", title:"Calculus",                             img:"/spotlight_course/Ch%2014%20-%20Calculus.png",                                            pdf:"/spotlight_course/Ch%2014%20-%20Calculus.pdf",                                            video:{ kind:"video-drive", label:"Ch 14 — Calculus", fileId:"13coaHTn5W7Zgp522U-RSZEAJPWVCZdHy" } },
 ];
 
 const DETAILS: Record<string, CourseDetail> = {
   "addmaths-0606": {
     description: "CIE IGCSE Additional Mathematics 0606 by Ate. 14 chapters each with a whiteboard and PDF notes, plus 6 solved past papers.",
-    overviewVideo: { kind: "video-local", label: "Spotlight Preview", src: "/spotlight_course/spotligt.mp4" },
+    overviewVideo: { kind: "video-drive", label: "Spotlight Preview", fileId: "1G-j-GZTQk-p4aNsUAfFXiQ-73MX9CJYH" },
     driveFolder: "1CkPFYQ62ncIyPm1xxQmTobyoa41n4-mw",
     materials: [
       ...SC,
@@ -735,6 +736,70 @@ function ChapterSlider({ chapters, accentFrom, accentTo, glowRgb }: { chapters: 
   );
 }
 
+interface VideoItem { label: string; video: VideoLocal | VideoDrive; badge?: string }
+
+function VideoBlock({ item, author, accentFrom, accentTo, glowRgb }: { item: VideoItem; author: string; accentFrom: string; accentTo: string; glowRgb: string }) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ background:`linear-gradient(135deg,${accentFrom},${accentTo})` }}><Video className="h-4 w-4 text-white" /></div>
+        <div>
+          <h2 className="font-bold text-white text-lg leading-none">{item.label}</h2>
+          <p className="text-xs text-white/40 mt-0.5">by {author}</p>
+        </div>
+        {item.badge && <span className="ml-auto text-xs font-bold text-amber-300 border border-amber-400/30 bg-amber-400/10 rounded-full px-3 py-1">{item.badge}</span>}
+      </div>
+      {item.video.kind==="video-local" ? (
+        <video controls className="w-full rounded-2xl border border-white/10 bg-black" style={{ boxShadow:`0 0 60px rgba(${glowRgb},0.25)` }}>
+          <source src={(item.video as VideoLocal).src} type="video/mp4" />
+        </video>
+      ) : (
+        <div className="relative rounded-2xl overflow-hidden border border-white/10" style={{ paddingTop:"56.25%", boxShadow:`0 0 60px rgba(${glowRgb},0.25)` }}>
+          <iframe src={`https://drive.google.com/file/d/${(item.video as VideoDrive).fileId}/preview`} className="absolute inset-0 w-full h-full" allow="autoplay" allowFullScreen title={item.label} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VideoChapterSlider({ items, author, accentFrom, accentTo, glowRgb }: { items: VideoItem[]; author: string; accentFrom: string; accentTo: string; glowRgb: string }) {
+  const [active, setActive] = useState(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const scroll = (dir: -1 | 1) => sliderRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });
+
+  if (items.length === 1) {
+    return <VideoBlock item={items[0]} author={author} accentFrom={accentFrom} accentTo={accentTo} glowRgb={glowRgb} />;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="relative">
+        <button onClick={() => scroll(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/80 border border-white/15 flex items-center justify-center hover:bg-white/10 transition shadow-lg">
+          <ChevronLeft className="h-4 w-4 text-white" />
+        </button>
+        <div ref={sliderRef} className="flex gap-2 overflow-x-auto px-10 pb-1 scroll-smooth" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+          {items.map((it, i) => (
+            <button key={i} onClick={() => setActive(i)} className="shrink-0 flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 transition-all duration-200 text-left min-w-[160px] max-w-[200px]"
+              style={{ background: i===active ? `linear-gradient(135deg, ${accentFrom}33, ${accentTo}22)` : "rgba(0,0,0,0.3)", borderColor: i===active ? accentFrom : "rgba(255,255,255,0.1)", boxShadow: i===active ? `0 0 20px rgba(${glowRgb},0.25)` : "none" }}>
+              <span className="h-6 w-6 rounded-full flex items-center justify-center text-[11px] font-black shrink-0" style={{ background: i===active ? `linear-gradient(135deg, ${accentFrom}, ${accentTo})` : "rgba(255,255,255,0.08)", color: i===active ? "#fff" : "rgba(255,255,255,0.4)" }}>
+                {it.badge ? <Sparkles className="h-3 w-3" /> : i + 1}
+              </span>
+              <span className="text-xs font-semibold leading-tight line-clamp-2" style={{ color: i===active ? "#fff" : "rgba(255,255,255,0.5)" }}>{it.label}</span>
+            </button>
+          ))}
+        </div>
+        <button onClick={() => scroll(1)} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 rounded-full bg-black/80 border border-white/15 flex items-center justify-center hover:bg-white/10 transition shadow-lg">
+          <ChevronRight className="h-4 w-4 text-white" />
+        </button>
+      </div>
+
+      <div key={active} className="animate-in fade-in duration-300">
+        <VideoBlock item={items[active]} author={author} accentFrom={accentFrom} accentTo={accentTo} glowRgb={glowRgb} />
+      </div>
+    </div>
+  );
+}
+
 function PdfCard({ mat, accentFrom, accentTo, glowRgb }: { mat: PdfLocal|PdfDrive; accentFrom: string; accentTo: string; glowRgb: string }) {
   const [open, setOpen] = useState(false);
   const src = mat.kind==="pdf-local" ? mat.src : `https://drive.google.com/file/d/${(mat as PdfDrive).fileId}/preview`;
@@ -760,24 +825,33 @@ export default function CourseDetailPage() {
   const { courseId } = (useParams() ?? {}) as { courseId: string };
   const base = COURSES.find((c) => c.id === courseId);
   const detail = DETAILS[courseId];
-  if (!base || !detail) return notFound();
 
-  const hasVideo = !!detail.overviewVideo;
   const [tab, setTab] = useState<Tab>("overview");
   const [authorImg, setAuthorImg] = useState<string | null>(null);
-  const chapters = detail.materials.filter(m => m.kind==="chapter") as ChapterMat[];
-  const pdfs = detail.materials.filter(m => m.kind==="pdf-local"||m.kind==="pdf-drive") as (PdfLocal|PdfDrive)[];
+  const chapters = (detail?.materials.filter(m => m.kind==="chapter") ?? []) as ChapterMat[];
+  const pdfs = (detail?.materials.filter(m => m.kind==="pdf-local"||m.kind==="pdf-drive") ?? []) as (PdfLocal|PdfDrive)[];
+
+  // Every video for this course — the overview/spotlight video first, then
+  // any chapter that has its own video — browsed as one combined "Videos" tab.
+  const videoItems: VideoItem[] = [
+    ...(detail?.overviewVideo ? [{ label: detail.overviewVideo.label, video: detail.overviewVideo, badge: base?.isSpotlight ? "Spotlight" : undefined }] : []),
+    ...chapters.filter((c): c is ChapterMat & { video: VideoLocal | VideoDrive } => !!c.video)
+      .map((c) => ({ label: `Ch ${c.num} — ${c.title}`, video: c.video })),
+  ];
+  const hasVideo = videoItems.length > 0;
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }); }, [courseId]);
 
   // Fetch Clerk profile picture if a clerkUserId is set
   useEffect(() => {
-    if (!base.clerkUserId) return;
+    if (!base?.clerkUserId) return;
     fetch(`/api/tutor-avatar/${base.clerkUserId}`)
       .then(r => r.json())
       .then(d => { if (d.imageUrl) setAuthorImg(d.imageUrl); })
       .catch(() => {});
-  }, [base.clerkUserId]);
+  }, [base?.clerkUserId]);
+
+  if (!base || !detail) return notFound();
 
   return (
     <div className="min-h-screen text-white">
@@ -875,7 +949,8 @@ export default function CourseDetailPage() {
         <div className="max-w-5xl mx-auto px-5 sm:px-8 flex gap-1">
           {(["overview","materials"] as Tab[]).map((t) => (
             <button key={t} onClick={() => setTab(t)} className={`relative px-5 py-4 text-sm font-semibold capitalize transition-colors ${tab===t ? "text-white" : "text-white/40 hover:text-white/70"}`}>
-              {t}
+              {t==="overview" ? (hasVideo ? "Videos" : "Overview") : t}
+              {t==="overview" && videoItems.length > 0 && <span className="ml-1.5 text-[10px] rounded-full px-1.5 py-0.5 font-bold" style={{ background:`${base.accentFrom}33`, color:base.accentFrom }}>{videoItems.length}</span>}
               {t==="materials" && detail.materials.length > 0 && <span className="ml-1.5 text-[10px] rounded-full px-1.5 py-0.5 font-bold" style={{ background:`${base.accentFrom}33`, color:base.accentFrom }}>{detail.materials.length}</span>}
               {tab===t && <span className="absolute bottom-0 inset-x-0 h-0.5 rounded-full" style={{ background:`linear-gradient(90deg, ${base.accentFrom}, ${base.accentTo})` }} />}
             </button>
@@ -885,29 +960,11 @@ export default function CourseDetailPage() {
 
       <div className="max-w-5xl mx-auto px-5 sm:px-8 py-10 space-y-10">
 
-        {/* OVERVIEW — video if exists, placeholder otherwise */}
+        {/* VIDEOS (was "Overview") — every video for the course, browsable by chapter */}
         {tab==="overview" && (
-          detail.overviewVideo ? (
+          videoItems.length > 0 ? (
             <div className="space-y-6">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ background:`linear-gradient(135deg,${base.accentFrom},${base.accentTo})` }}><Video className="h-4 w-4 text-white" /></div>
-                  <div>
-                    <h2 className="font-bold text-white text-lg leading-none">{detail.overviewVideo.label}</h2>
-                    <p className="text-xs text-white/40 mt-0.5">by {base.author}</p>
-                  </div>
-                  {base.isSpotlight && <span className="ml-auto text-xs font-bold text-amber-300 border border-amber-400/30 bg-amber-400/10 rounded-full px-3 py-1">Spotlight</span>}
-                </div>
-                {detail.overviewVideo.kind==="video-local" ? (
-                  <video controls className="w-full rounded-2xl border border-white/10 bg-black" style={{ boxShadow:`0 0 60px rgba(${base.glowRgb},0.25)` }}>
-                    <source src={(detail.overviewVideo as VideoLocal).src} type="video/mp4" />
-                  </video>
-                ) : (
-                  <div className="relative rounded-2xl overflow-hidden border border-white/10" style={{ paddingTop:"56.25%", boxShadow:`0 0 60px rgba(${base.glowRgb},0.25)` }}>
-                    <iframe src={`https://drive.google.com/file/d/${(detail.overviewVideo as VideoDrive).fileId}/preview`} className="absolute inset-0 w-full h-full" allow="autoplay" allowFullScreen title={detail.overviewVideo.label} />
-                  </div>
-                )}
-              </div>
+              <VideoChapterSlider items={videoItems} author={base.author} accentFrom={base.accentFrom} accentTo={base.accentTo} glowRgb={base.glowRgb} />
               {detail.driveFolder && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">

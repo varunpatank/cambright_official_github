@@ -16,13 +16,14 @@ import {
 import { StarsBackground } from "@/components/ui/shooting-stars";
 import { StarryBackground } from "@/components/ui/starry-background";
 import { Cover } from "@/components/ui/cover";
-import Link from "next/link";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import FollowButton from "../profiles/[name]/_components/FollowButton";
+import GiveXpButton from "../profiles/[name]/_components/givexp";
 
 interface LeaderboardUser {
   id: string;
@@ -55,6 +56,85 @@ interface LeaderboardResponse {
 export const dynamic = "force-dynamic";
 // export const maxDuration = 300;
 
+function ProfileModal({
+  profile,
+  currentUserId,
+  currentUserXp,
+  tutorIds,
+  teamIds,
+  boardIds,
+  verifiedIds,
+  onClose,
+}: {
+  profile: LeaderboardUser;
+  currentUserId?: string;
+  currentUserXp: number;
+  tutorIds: string[];
+  teamIds: string[];
+  boardIds: string[];
+  verifiedIds: string[];
+  onClose: () => void;
+}) {
+  const isSelf = profile.userId === currentUserId;
+  const isFounder = teamIds.includes(profile.userId);
+  const isBoard = !isFounder && boardIds.includes(profile.userId);
+  const isTutor = !isFounder && !isBoard && tutorIds.includes(profile.userId);
+  const isVerified = !isFounder && !isBoard && !isTutor && verifiedIds.includes(profile.userId);
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex justify-center items-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-n-7 border border-white/10 rounded-2xl p-8 max-w-md w-full relative shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all text-lg"
+        >
+          ✕
+        </button>
+        <div className="flex flex-col items-center text-center">
+          <div className="w-24 h-24 rounded-full overflow-hidden mb-4 ring-2 ring-purple-500/60">
+            <Image
+              src={profile.imageUrl || "/default-avatar.png"}
+              alt={profile.name}
+              width={96}
+              height={96}
+              className="object-cover w-full h-full"
+            />
+          </div>
+          <h3 className="text-xl font-bold text-white">{profile.name}</h3>
+          <p className="text-sm text-purple-400 font-medium mt-0.5">{profile.XP} XP</p>
+
+          {(isFounder || isBoard || isTutor || isVerified) && (
+            <div className="flex flex-wrap gap-1.5 justify-center mt-3">
+              {isFounder && <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">Founder</span>}
+              {isBoard && <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">Board</span>}
+              {isTutor && <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">Volunteer</span>}
+              {isVerified && <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">Verified</span>}
+            </div>
+          )}
+
+          <div className="flex items-center gap-4 mt-4 text-xs text-white/50">
+            <span><strong className="text-white/80">{profile.followers}</strong> Followers</span>
+            <span><strong className="text-white/80">{profile.following}</strong> Following</span>
+          </div>
+
+          {!isSelf && currentUserId && (
+            <div className="flex gap-3 mt-5">
+              <FollowButton userId={profile.userId} currentUserId={currentUserId} />
+              <GiveXpButton userIdx={profile.userId} userXXP={currentUserXp} />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const LeaderBoardPage = () => {
   const { user, isLoaded } = useUser(); // Logged-in user
 
@@ -64,12 +144,10 @@ const LeaderBoardPage = () => {
     clerkUserCount: number | string;
     databaseUserCount: number;
   } | null>(null);
-  const [followingState, setFollowingState] = useState<Map<string, boolean>>(
-    new Map()
-  );
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [rankDelta, setRankDelta] = useState(0);
+  const [selectedProfile, setSelectedProfile] = useState<LeaderboardUser | null>(null);
   const previousRankRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -130,85 +208,6 @@ const LeaderBoardPage = () => {
 
     previousRankRef.current = currentUserRank;
   }, [currentUserRank]);
-
-  // Function to handle XP increment
-  const handleXPIncrement = async () => {
-    if (!user?.id) return;
-
-    try {
-      const response = await fetch("/api/update-xp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: user.id,
-        }),
-      });
-
-      if (response.ok) {
-        const updatedUser = await response.json();
-        setLeaderboard((prevLeaderboard) =>
-          prevLeaderboard.map((leaderboardUser) =>
-            leaderboardUser.userId === updatedUser.userId
-              ? { ...leaderboardUser, XP: updatedUser.XP }
-              : leaderboardUser
-          )
-        );
-      } else {
-        console.error("Failed to increment XP");
-      }
-    } catch (error) {
-      console.error("Error incrementing XP:", error);
-    }
-  };
-
-  const handleFollowToggle = async (
-    followedUserId: string,
-    isFollowing: boolean
-  ) => {
-    const action = isFollowing ? "unfollow" : "follow";
-
-    const response = await fetch("/api/follow", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        followedUserId,
-        action,
-      }),
-    });
-
-    if (response.ok) {
-      console.log(
-        `${
-          action.charAt(0).toUpperCase() + action.slice(1)
-        } action was successful`
-      );
-
-      // Optimistically update the leaderboard state
-      setLeaderboard((prevLeaderboard) =>
-        prevLeaderboard.map((leaderboardUser) =>
-          leaderboardUser.userId === followedUserId
-            ? {
-                ...leaderboardUser,
-                followers: leaderboardUser.followers + (isFollowing ? -1 : 1),
-              }
-            : leaderboardUser
-        )
-      );
-
-      // Toggle the following state
-      setFollowingState((prevState) => {
-        const updatedState = new Map(prevState);
-        updatedState.set(followedUserId, !isFollowing);
-        return updatedState;
-      });
-    } else {
-      console.error("Failed to follow/unfollow user");
-    }
-  };
 
   if (!isLoaded) {
     return <LoadingOverlay />;
@@ -317,9 +316,9 @@ const LeaderBoardPage = () => {
                     {leaderboardUser.id.startsWith('new-') ? (
                       <span>{leaderboardUser.name}</span>
                     ) : (
-                      <Link href={`/profiles/${leaderboardUser.name}`}>
+                      <button onClick={() => setSelectedProfile(leaderboardUser)} className="hover:underline">
                         {leaderboardUser.name}
-                      </Link>
+                      </button>
                     )}
                     {tutorIds.includes(leaderboardUser.userId) &&
                       !teamIds.includes(leaderboardUser.userId) &&
@@ -434,11 +433,11 @@ const LeaderBoardPage = () => {
                         {leaderboardUser.id.startsWith('new-') ? (
                           <span className="text-lg font-semibold">{leaderboardUser.name}</span>
                         ) : (
-                          <Link href={`/profiles/${leaderboardUser.name}`}>
+                          <button onClick={() => setSelectedProfile(leaderboardUser)} className="hover:underline">
                             <span className="text-lg font-semibold">
                               {leaderboardUser.name}
                             </span>
-                          </Link>
+                          </button>
                         )}
                         {leaderboardUser.userId === user?.id && (
                           <span className="ml-2 rounded-full bg-purple-500/25 border border-purple-400/40 px-2 py-0.5 text-[10px] uppercase tracking-wider text-purple-200">
@@ -503,6 +502,18 @@ const LeaderBoardPage = () => {
         )}{" "}
       </div>
       </div>
+      {selectedProfile && (
+        <ProfileModal
+          profile={selectedProfile}
+          currentUserId={user?.id}
+          currentUserXp={currentUserEntry?.XP ?? 0}
+          tutorIds={tutorIds}
+          teamIds={teamIds}
+          boardIds={boardIds}
+          verifiedIds={verifiedIds}
+          onClose={() => setSelectedProfile(null)}
+        />
+      )}
     </TooltipProvider>
   );
 };

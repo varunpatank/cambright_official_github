@@ -1,7 +1,6 @@
 // Spotlight / preview video file ID from the all-videos Drive folder:
 // https://drive.google.com/drive/folders/1CkPFYQ62ncIyPm1xxQmTobyoa41n4-mw
-// TODO: replace SPOTLIGHT_VIDEO_ID with the specific preview video file ID from that folder
-export const SPOTLIGHT_VIDEO_ID = "1BW2YvuoStn5ePfDmTrlgfQZQ0XZbw7Oh"; // placeholder – update with math preview file ID
+export const SPOTLIGHT_VIDEO_ID = "1G-j-GZTQk-p4aNsUAfFXiQ-73MX9CJYH";
 export const ALL_VIDEOS_FOLDER = "https://drive.google.com/drive/folders/1CkPFYQ62ncIyPm1xxQmTobyoa41n4-mw";
 
 export interface CourseLink {

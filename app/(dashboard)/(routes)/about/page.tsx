@@ -58,6 +58,14 @@ const founders: User[] = [
     socialLinks: {},
     avatar: "/ellie.png",
   },
+  {
+    name: "Arunima",
+    role: "Marketing",
+    bio: "I love helping students reach their full potential! Outside of academia, I love animals and drawing!",
+    tags: ["Co-Founder", "Marketing"],
+    socialLinks: { },
+    avatar: "/aru.webp",
+  },
 ];
 
 const board: User[] = [
@@ -204,7 +212,7 @@ const MemberCard = ({
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/[0.08] hover:border-purple-500/40 hover:bg-white/[0.08] transition-all group text-center w-full hover:-translate-y-0.5"
+      className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 rounded-xl bg-gradient-to-b from-white/[0.06] to-white/[0.02] border border-white/[0.08] hover:border-purple-500/40 hover:bg-white/[0.08] transition-all group text-center hover:-translate-y-0.5"
     >
       <div
         className={`${avatarSize} rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-purple-500/60 transition-all flex-shrink-0`}
@@ -256,7 +264,7 @@ const AboutPage = () => {
           <div className="flex justify-center mb-4">
             <button
               onClick={() => setSelectedUser(founders[0])}
-              className="flex flex-col items-center gap-3 p-6 rounded-2xl bg-purple-500/10 border border-purple-500/25 hover:bg-purple-500/15 hover:border-purple-500/40 transition-all group w-52"
+              className="flex flex-col items-center gap-3 p-5 rounded-2xl bg-purple-500/10 border border-purple-500/25 hover:bg-purple-500/15 hover:border-purple-500/40 transition-all group w-40 sm:w-44"
             >
               <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-purple-500/60 group-hover:ring-purple-400 transition-all">
                 <Image
@@ -277,9 +285,11 @@ const AboutPage = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="flex flex-wrap items-stretch justify-center gap-3">
             {founders.slice(1).map((user, i) => (
-              <MemberCard key={i} user={user} size="md" onClick={() => setSelectedUser(user)} />
+              <div key={i} className="w-32 sm:w-36">
+                <MemberCard user={user} size="md" onClick={() => setSelectedUser(user)} />
+              </div>
             ))}
           </div>
         </section>
@@ -289,9 +299,11 @@ const AboutPage = () => {
             <span className="w-1 h-6 bg-cyan-500 rounded-full" />
             <h2 className="text-xl font-bold text-white">Our Board</h2>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div className="flex flex-wrap items-stretch justify-center gap-3">
             {board.map((user, i) => (
-              <MemberCard key={i} user={user} size="md" onClick={() => setSelectedUser(user)} />
+              <div key={i} className="w-32 sm:w-36">
+                <MemberCard user={user} size="md" onClick={() => setSelectedUser(user)} />
+              </div>
             ))}
           </div>
         </section>
@@ -301,9 +313,11 @@ const AboutPage = () => {
             <span className="w-1 h-6 bg-green-500 rounded-full" />
             <h2 className="text-xl font-bold text-white">Volunteers</h2>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="flex flex-wrap items-stretch justify-center gap-3">
             {volunteers.map((user, i) => (
-              <MemberCard key={i} user={user} size="sm" onClick={() => setSelectedUser(user)} />
+              <div key={i} className="w-32 sm:w-36">
+                <MemberCard user={user} size="md" onClick={() => setSelectedUser(user)} />
+              </div>
             ))}
           </div>
         </section>
