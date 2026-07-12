@@ -27,10 +27,10 @@ interface User {
 
 const founders: User[] = [
   {
-    name: "Varun P.",
-    role: "Head of Operations",
+    name: "Varun Patankar",
+    role: "Head of CamBright",
     bio: "Lifelong Football fan | Avid Badminton Coach & Player | App Development Enthusiast | Cambridge Glazer",
-    tags: ["Co-Founder", "Head of Operations"],
+    tags: ["Co-Founder", "Head of CamBright"],
     socialLinks: { },
     avatar: "/varun.png",
   },
@@ -117,6 +117,14 @@ const board: User[] = [
     socialLinks: { },
     avatar: "/daru.png",
   },
+  {
+    name: "Jonathan K",
+    role: "Courses Manager",
+    bio: "",
+    tags: ["Board Member", "Courses Manager"],
+    socialLinks: {},
+    avatar: "/user1.png",
+  },
 ];
 
 const volunteers: User[] = [
@@ -149,7 +157,9 @@ const tagColors: Record<string, string> = {
   "Co-Founder": "bg-purple-500/20 text-purple-300 border border-purple-500/30",
   "Head of Tech": "bg-blue-500/20 text-blue-300 border border-blue-500/30",
   "Head of Operations": "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30",
+  "Head of CamBright": "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30",
   "Head of Business": "bg-green-500/20 text-green-300 border border-green-500/30",
+  "Courses Manager": "bg-teal-500/20 text-teal-300 border border-teal-500/30",
   Designer: "bg-pink-500/20 text-pink-300 border border-pink-500/30",
   Marketing: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
   Developer: "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30",
