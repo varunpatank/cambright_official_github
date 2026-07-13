@@ -35,8 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# ignore cursor
+# large media, keep out of git history
 public/spotlight_course/spotligt.mp4
+
 /.cursor
 .cursorignore
 # .cursorrules

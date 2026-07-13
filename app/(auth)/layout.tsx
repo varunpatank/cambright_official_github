@@ -7,7 +7,7 @@ import { StarsBackground } from "@/components/ui/shooting-stars";
 
 const AuthLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="h-full flex items-center justify-center">
+    <div className="min-h-screen h-full flex items-center justify-center overflow-y-auto py-10 px-4">
       <StarsBackground />
       {children}
     </div>

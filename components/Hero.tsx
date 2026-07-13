@@ -130,6 +130,11 @@ const Hero = ({ onLaunch }: HeroProps) => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-cyan-300">Zero Cost.</span>
             </p>
 
+            <p className="text-center text-sm sm:text-base font-semibold text-white/45 mt-2 px-4 sm:px-0 animate-in fade-in duration-1000" style={{ animationDelay: "450ms", animationFillMode: "both" }}>
+              Built STEM-first — Maths, Physics, Chemistry, Biology, Computer Science{" "}
+              <span className="text-white/30">&mdash; and more subjects besides.</span>
+            </p>
+
             <div className="flex flex-row justify-center mt-5 mb-2 w-full max-w-sm sm:max-w-none sm:w-auto px-6 sm:px-0">
               <div className="scale-110 sm:scale-125">
                 <MagicButton width="56" title="Launch" icon={<Rocket className="h-5 w-5" />} position="right" handleClick={onLaunch} otherClasses="text-base sm:text-lg tracking-wide" />

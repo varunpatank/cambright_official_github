@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
-import { Mail, Users, ArrowRight, FileText, Trophy, Brain, BookOpen, Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
+import { Mail, Users, ArrowRight, FileText, Trophy, Brain, BookOpen, Sparkles, ChevronLeft, ChevronRight, Calculator, Atom, FlaskConical, Dna, Cpu, Languages, Landmark } from "lucide-react";
 import Hero from "@/components/Hero";
 import { COURSES, SPOTLIGHT_VIDEO_ID } from "./(dashboard)/(routes)/tutoring-program/_data";
 
@@ -18,6 +18,73 @@ const SHOWCASE_VIDEO_IDS: Record<string, string> = {
   "biology-igcse": "1BW2YvuoStn5ePfDmTrlgfQZQ0XZbw7Oh",
   "chemistry-igcse": "1yGhT6VQFMkPM4-H9I46wfjOfQYcAB2xD",
 };
+
+const STEM_SUBJECTS = [
+  { label: "Mathematics", icon: Calculator, color: "#22d3ee" },
+  { label: "Additional Mathematics", icon: Calculator, color: "#a78bfa" },
+  { label: "Physics", icon: Atom, color: "#60a5fa" },
+  { label: "Chemistry", icon: FlaskConical, color: "#fb923c" },
+  { label: "Biology", icon: Dna, color: "#34d399" },
+  { label: "Computer Science", icon: Cpu, color: "#f472b6" },
+];
+
+const OTHER_SUBJECTS = [
+  { label: "English & Literature", icon: BookOpen },
+  { label: "Chinese (Mandarin)", icon: Languages },
+  { label: "Economics & Business", icon: Landmark },
+  { label: "Geography", icon: FileText },
+];
+
+function SubjectsSection() {
+  return (
+    <section className="mt-8 md:mt-10">
+      <div className="mb-4 flex items-center gap-2 px-1">
+        <Atom className="h-4 w-4 text-cyan-300" />
+        <h2 className="text-sm font-bold uppercase tracking-widest text-white/40">Subjects We Cover</h2>
+      </div>
+
+      <div className="rounded-3xl border border-cyan-400/20 bg-black/30 p-5 md:p-7" style={{ boxShadow: "0 0 50px rgba(34,211,238,0.08)" }}>
+        <div className="flex flex-wrap items-center gap-2 md:gap-2.5">
+          <span className="mr-1 rounded-full border border-cyan-400/40 bg-cyan-400/15 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-cyan-300">
+            STEM Focus
+          </span>
+          {STEM_SUBJECTS.map((s) => (
+            <span
+              key={s.label}
+              className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-bold text-white/85"
+              style={{ borderColor: `${s.color}44`, background: `${s.color}14` }}
+            >
+              <s.icon className="h-3.5 w-3.5" style={{ color: s.color }} />
+              {s.label}
+            </span>
+          ))}
+        </div>
+
+        <div className="my-5 h-px w-full bg-white/[0.07]" />
+
+        <div className="flex flex-wrap items-center gap-2 md:gap-2.5">
+          <span className="mr-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-white/50">
+            + More Subjects
+          </span>
+          {OTHER_SUBJECTS.map((s) => (
+            <span
+              key={s.label}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-sm font-semibold text-white/60"
+            >
+              <s.icon className="h-3.5 w-3.5 text-white/40" />
+              {s.label}
+            </span>
+          ))}
+        </div>
+
+        <p className="mt-5 text-sm text-white/50">
+          Deep, exam-focused STEM courses — Maths, Add. Maths, Physics, Chemistry, Biology, Computer Science —
+          plus growing coverage across the humanities and languages, all under one free platform.
+        </p>
+      </div>
+    </section>
+  );
+}
 
 const FEATURE_CARDS = [
   { title: "Past Papers", desc: "Every session, every year.", href: "/past-papers", icon: FileText, color: "#38bdf8" },
@@ -234,8 +301,9 @@ function VideoOverlay({ stage, videoRef, onFinish }: VideoOverlayProps) {
         preload="auto"
         onEnded={onFinish}
         onLoadedMetadata={(e) => { e.currentTarget.playbackRate = INTRO_PLAYBACK_RATE; }}
+        className="object-contain md:object-cover"
         style={{
-          position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover",
+          position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
           opacity: active ? 1 : 0,
           transform: active ? "scale(1)" : "scale(1.04)",
           transition: "opacity 1.1s ease, transform 1.4s ease",
@@ -295,6 +363,8 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 pb-12 md:px-6">
 
           <Hero onLaunch={handleLaunch} />
+
+          <SubjectsSection />
 
           <SpotlightCourses />
 

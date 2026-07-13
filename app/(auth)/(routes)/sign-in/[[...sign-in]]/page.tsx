@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SignIn, useSignIn } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
 import { Eye } from "lucide-react";
 
 // Fixed credentials for a shared, read-only-feeling "just looking around"
@@ -13,7 +12,6 @@ const VISITOR_PASSWORD = "visitor!!1";
 
 function VisitorLoginButton() {
   const { isLoaded, signIn, setActive } = useSignIn();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,7 +27,11 @@ function VisitorLoginButton() {
       });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        router.push("/dashboard");
+        // A client-side router.push() here can race Clerk's session cookie
+        // propagating to the server: middleware sees "no session" for a beat,
+        // bounces back to /sign-in, then the real navigation lands — a visible
+        // flash. A full navigation waits for the cookie to be set first.
+        window.location.href = "/dashboard";
       } else {
         setError("Visitor login is temporarily unavailable — please sign in below instead.");
       }
@@ -68,10 +70,49 @@ function VisitorLoginButton() {
 }
 
 export default function Page() {
+  const [showSignIn, setShowSignIn] = useState(false);
+
+  useEffect(() => {
+    // Give the visitor box's own pop-in a moment to land, then grow the
+    // sign-in box open. Both live in a vertically-centered flex column, so
+    // as the sign-in box's height expands the whole group re-centers —
+    // reading as the visitor box gliding upward while sign-in fades in
+    // beneath it, one continuous motion instead of two separate pops.
+    const timer = setTimeout(() => setShowSignIn(true), 350);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="flex flex-col items-center">
-      <VisitorLoginButton />
-      <SignIn />
+    <div className="flex w-full flex-col items-center">
+      <div
+        style={{
+          animation: "visitor-pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both",
+        }}
+      >
+        <VisitorLoginButton />
+      </div>
+      <div
+        style={{
+          maxHeight: showSignIn ? 900 : 0,
+          opacity: showSignIn ? 1 : 0,
+          overflow: "hidden",
+          transition: "max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.9s ease 0.15s",
+        }}
+      >
+        <SignIn />
+      </div>
+      <style jsx>{`
+        @keyframes visitor-pop-in {
+          0% {
+            opacity: 0;
+            transform: scale(0.85) translateY(-8px);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }
