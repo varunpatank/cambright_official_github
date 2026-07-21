@@ -23,17 +23,12 @@ interface HeroProps {
   onLaunch: () => void;
 }
 
-interface CommunityStats {
-  totalUsers: number | null;
-  activeUsers: number | null;
-}
-
-// Same numbers as the leaderboard page's "Total Users" / "Active Users" —
-// both this and the leaderboard read from the same Clerk-backed queries
-// (see lib/clerk-stats.ts), just through this public, unauthenticated
-// endpoint instead of the leaderboard's own route. No hardcoded stats here.
-function useCommunityStats(): CommunityStats {
-  const [stats, setStats] = useState<CommunityStats>({ totalUsers: null, activeUsers: null });
+// Only "Active Users" is fetched dynamically — from the same Clerk-backed
+// query the leaderboard page uses (see lib/clerk-stats.ts), via this public,
+// unauthenticated endpoint. "Total Users" is a static marketing figure, not
+// pulled live.
+function useActiveUsers(): number | null {
+  const [activeUsers, setActiveUsers] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,13 +39,10 @@ function useCommunityStats(): CommunityStats {
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
-        setStats({
-          totalUsers: typeof data.totalUsers === "number" ? data.totalUsers : null,
-          activeUsers: typeof data.activeUsers === "number" ? data.activeUsers : null,
-        });
+        setActiveUsers(typeof data.activeUsers === "number" ? data.activeUsers : null);
       } catch {
         // Keep whatever we last had (or the loading state) rather than
-        // falling back to a made-up number.
+        // falling back to a made-up number — the next interval retries.
       }
     };
 
@@ -62,11 +54,11 @@ function useCommunityStats(): CommunityStats {
     };
   }, []);
 
-  return stats;
+  return activeUsers;
 }
 
 const Hero = ({ onLaunch }: HeroProps) => {
-  const { totalUsers, activeUsers } = useCommunityStats();
+  const activeUsers = useActiveUsers();
 
   const scrollToNextSection = () => {
     const nextSection = document.querySelector("#typer") as HTMLElement;
@@ -194,15 +186,19 @@ const Hero = ({ onLaunch }: HeroProps) => {
             <div className="w-full bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-3xl px-4 py-5 sm:px-6 sm:py-5">
               <div className="grid grid-cols-2 gap-y-5 gap-x-2 text-center sm:grid-cols-4 sm:gap-4">
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-cyan-400 leading-none">
-                    {totalUsers !== null ? totalUsers.toLocaleString() : "—"}
-                  </span>
+                  <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-cyan-400 leading-none">2,300+</span>
                   <span className="text-xs sm:text-sm text-white/60 font-medium mt-2">Total Users</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-emerald-400 leading-none">
-                    {activeUsers !== null ? activeUsers.toLocaleString() : "—"}
-                  </span>
+                  {activeUsers !== null ? (
+                    <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-emerald-400 leading-none">
+                      {activeUsers.toLocaleString()}
+                    </span>
+                  ) : (
+                    <span className="flex h-[1.2em] items-center py-1 sm:py-1.5" role="status" aria-label="Loading active users">
+                      <span className="h-5 w-5 sm:h-7 sm:w-7 rounded-full border-2 border-emerald-400/25 border-t-emerald-400 animate-spin" />
+                    </span>
+                  )}
                   <span className="text-xs sm:text-sm text-white/60 font-medium mt-2">Active Users</span>
                 </div>
                 <div className="flex flex-col items-center">

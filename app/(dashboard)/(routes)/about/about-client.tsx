@@ -33,6 +33,14 @@ const tagColors: Record<string, string> = {
   "Admin Tutor": "bg-red-500/20 text-red-300 border border-red-500/30",
   Staff: "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30",
   "Board Member": "bg-sky-500/20 text-sky-300 border border-sky-500/30",
+  "Marketing Volunteer": "bg-green-500/20 text-green-300 border border-green-500/30",
+  "Tutor Volunteer": "bg-sky-500/20 text-sky-300 border border-sky-500/30",
+  "Discord Mod": "bg-violet-500/20 text-violet-300 border border-violet-500/30",
+  "Paper Volunteer": "bg-amber-500/20 text-amber-300 border border-amber-500/30",
+  "Notes Volunteer": "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30",
+  "Data Volunteer": "bg-purple-500/20 text-purple-300 border border-purple-500/30",
+  Advisor: "bg-rose-400/20 text-rose-200 border border-rose-400/30",
+  "Tech Team": "bg-red-500/20 text-red-300 border border-red-500/30",
 };
 
 const getTagColor = (tag: string) =>
@@ -126,10 +134,14 @@ const MemberCard = ({
   );
 };
 
+// Bio and tags are rendered unconditionally with a fixed line-clamp / min-height
+// (rather than only appearing when present) so every card in a row — e.g. the
+// Directors tier — ends up the same height no matter how long one person's
+// bio is or how many tags they have relative to the others.
 const FeaturedMemberCard = ({ user, accent, onClick }: { user: User; accent: string; onClick: () => void }) => (
   <button
     onClick={onClick}
-    className={`w-full max-w-sm rounded-2xl border ${accent} bg-white/[0.04] p-5 text-center transition-all hover:-translate-y-1 hover:bg-white/[0.06]`}
+    className={`flex h-full w-full max-w-sm flex-col items-center rounded-2xl border ${accent} bg-white/[0.04] p-5 text-center transition-all hover:-translate-y-1 hover:bg-white/[0.06]`}
   >
     <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full ring-2 ring-white/15">
       <Image src={user.avatar} alt={user.name} width={96} height={96} className="h-full w-full object-cover" />
@@ -137,16 +149,14 @@ const FeaturedMemberCard = ({ user, accent, onClick }: { user: User; accent: str
     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Featured Role</p>
     <h3 className="mt-2 text-xl font-bold text-white">{user.name}</h3>
     <p className="mt-1 text-sm font-medium text-cyan-300">{user.role}</p>
-    {user.tags.length > 0 && (
-      <div className="mt-3 flex flex-wrap justify-center gap-1.5">
-        {user.tags.map((tag, index) => (
-          <span key={`${user.name}-featured-${tag}-${index}`} className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTagColor(tag)}`}>
-            {tag}
-          </span>
-        ))}
-      </div>
-    )}
-    {user.bio && <p className="mt-4 text-sm leading-relaxed text-gray-400">{user.bio}</p>}
+    <div className="mt-3 flex min-h-[2.25rem] flex-wrap content-start justify-center gap-1.5">
+      {user.tags.map((tag, index) => (
+        <span key={`${user.name}-featured-${tag}-${index}`} className={`h-fit px-2.5 py-0.5 rounded-full text-xs font-medium ${getTagColor(tag)}`}>
+          {tag}
+        </span>
+      ))}
+    </div>
+    <p className="mt-4 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-gray-400">{user.bio}</p>
   </button>
 );
 
