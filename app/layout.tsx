@@ -54,7 +54,14 @@ export default function RootLayout({
               first load and starts noticeably faster. */}
           <link rel="preconnect" href="https://drive.google.com" />
           <link rel="preconnect" href="https://docs.google.com" crossOrigin="" />
+          <link rel="preconnect" href="https://drive.usercontent.google.com" />
+          <link rel="preconnect" href="https://www.gstatic.com" crossOrigin="" />
+          <link rel="preconnect" href="https://ssl.gstatic.com" crossOrigin="" />
+          <link rel="preconnect" href="https://accounts.google.com" />
+          <link rel="preconnect" href="https://apis.google.com" />
           <link rel="dns-prefetch" href="https://drive.google.com" />
+          <link rel="dns-prefetch" href="https://drive.usercontent.google.com" />
+          <link rel="dns-prefetch" href="https://www.gstatic.com" />
         </head>
         <body className={inter.className} suppressHydrationWarning={true}>
           {/* <ContextMenu> */}

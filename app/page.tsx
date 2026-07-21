@@ -136,6 +136,9 @@ function SpotlightCourses() {
               allow="autoplay"
               allowFullScreen
               title={`${c.title} preview`}
+              loading="eager"
+              // @ts-expect-error fetchPriority isn't in React's iframe typings yet
+              fetchpriority={i === active ? "high" : "auto"}
               onLoad={() => markLoaded(c.id)}
             />
           ))}

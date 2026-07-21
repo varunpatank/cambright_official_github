@@ -534,6 +534,21 @@ const CHEM_CHAPTERS: ChapterMat[] = [
   },
 ];
 
+const PHYSICS_CHAPTERS: ChapterMat[] = [
+  {
+    kind: "chapter",
+    num: "1",
+    title: "Geometric Optics",
+    video: { kind: "video-drive", label: "Ch 1 — Geometric Optics", fileId: "1leM7iyiDra9ZRUnohMjnqK-njwNWvB5Z" },
+  },
+  {
+    kind: "chapter",
+    num: "2",
+    title: "Electric Field and Charges",
+    video: { kind: "video-drive", label: "Ch 2 — Electric Field and Charges", fileId: "1dl_CuFpvO9TASKTDYYx6e8DobIlnI1iO" },
+  },
+];
+
 const SC: ChapterMat[] = [
   { kind:"chapter", num:"1",  title:"Functions",                           img:"/spotlight_course/Ch%201%20-%20Functions.png",                                            pdf:"/spotlight_course/Ch%201%20-%20Functions.pdf" },
   { kind:"chapter", num:"2",  title:"Quadratic Functions",                  img:"/spotlight_course/Ch%202%20-%20Quadratic%20Functions.png",                                pdf:"/spotlight_course/Ch%202%20-%20Quadratic%20Functions.pdf",                                video:{ kind:"video-drive", label:"Ch 2 — Quadratic Functions", fileId:"1NqNdQ9aVgqOb6sFeoSf5IDvjP8Tnr3sV" } },
@@ -569,6 +584,10 @@ const DETAILS: Record<string, CourseDetail> = {
   "math-0580-unit-2": {
     description: "Cambridge IGCSE Mathematics 0580 Unit 2 by A.S. Full interactive notes for all 9 chapters with key facts, formulas, exam tips and solved past papers.",
     materials: [...MATH_CHAPTERS],
+  },
+  "physics-igcse": {
+    description: "Two IGCSE Physics practice FRQ (free-response question) walkthroughs by Vaishnav Bourempeta — Practice FRQ 1: Geometric Optics, and Practice FRQ 2: Electric Field and Charges.",
+    materials: [...PHYSICS_CHAPTERS],
   },
   "biology-igcse": {
     description: "Full IGCSE Biology notes by Miki — cells, molecules, enzymes, transport in plants and more. Everything you need to crush the biology exam!",
@@ -776,7 +795,17 @@ function VideoBlock({ item, author, accentFrom, accentTo, glowRgb }: { item: Vid
       ) : (
         <div className="relative rounded-2xl overflow-hidden border border-white/10" style={{ paddingTop:"56.25%", boxShadow:`0 0 60px rgba(${glowRgb},0.25)` }}>
           {!loaded && <VideoLoadingOverlay />}
-          <iframe src={`https://drive.google.com/file/d/${(item.video as VideoDrive).fileId}/preview`} className="absolute inset-0 w-full h-full" allow="autoplay" allowFullScreen title={item.label} onLoad={() => setLoaded(true)} />
+          <iframe
+            src={`https://drive.google.com/file/d/${(item.video as VideoDrive).fileId}/preview`}
+            className="absolute inset-0 w-full h-full"
+            allow="autoplay"
+            allowFullScreen
+            title={item.label}
+            loading="eager"
+            // @ts-expect-error fetchPriority isn't in React's iframe typings yet
+            fetchpriority="high"
+            onLoad={() => setLoaded(true)}
+          />
         </div>
       )}
     </div>

@@ -93,13 +93,22 @@ export default function Page() {
       </div>
       <div
         style={{
-          maxHeight: showSignIn ? 900 : 0,
+          display: "grid",
+          width: "100%",
+          gridTemplateRows: showSignIn ? "1fr" : "0fr",
           opacity: showSignIn ? 1 : 0,
-          overflow: "hidden",
-          transition: "max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.9s ease 0.15s",
+          transition: "grid-template-rows 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease",
         }}
       >
-        <SignIn />
+        {/* min-height: 0 is required for the grid-rows trick — without it the
+            row refuses to shrink below its content's intrinsic height, and
+            the collapse/expand doesn't animate at all. SignIn is mounted
+            immediately (just visually collapsed) so Clerk's own async load
+            happens in the background during the visitor pop-in, instead of
+            only starting once this box is revealed. */}
+        <div style={{ overflow: "hidden", minHeight: 0 }}>
+          <SignIn />
+        </div>
       </div>
       <style jsx>{`
         @keyframes visitor-pop-in {

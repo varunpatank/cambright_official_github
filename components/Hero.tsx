@@ -1,5 +1,8 @@
 // v0.0.01 salah
 
+"use client";
+
+import { useEffect, useState } from "react";
 import MagicButton from "./MagicButton";
 import { TextGenerateEffect } from "./ui/TextGenerateEffect";
 import Image from "next/image";
@@ -15,12 +18,56 @@ import { FaMouse } from "react-icons/fa";
 import { BackgroundBeams } from "./ui/background-beams";
 import { StarsBackground } from "./ui/shooting-stars";
 import { Banner } from "./banner";
-import { AnimatedCounter } from "./ui/AnimatedCounter";
 
 interface HeroProps {
   onLaunch: () => void;
 }
+
+interface CommunityStats {
+  totalUsers: number | null;
+  activeUsers: number | null;
+}
+
+// Same numbers as the leaderboard page's "Total Users" / "Active Users" —
+// both this and the leaderboard read from the same Clerk-backed queries
+// (see lib/clerk-stats.ts), just through this public, unauthenticated
+// endpoint instead of the leaderboard's own route. No hardcoded stats here.
+function useCommunityStats(): CommunityStats {
+  const [stats, setStats] = useState<CommunityStats>({ totalUsers: null, activeUsers: null });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/community-stats", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        setStats({
+          totalUsers: typeof data.totalUsers === "number" ? data.totalUsers : null,
+          activeUsers: typeof data.activeUsers === "number" ? data.activeUsers : null,
+        });
+      } catch {
+        // Keep whatever we last had (or the loading state) rather than
+        // falling back to a made-up number.
+      }
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  return stats;
+}
+
 const Hero = ({ onLaunch }: HeroProps) => {
+  const { totalUsers, activeUsers } = useCommunityStats();
+
   const scrollToNextSection = () => {
     const nextSection = document.querySelector("#typer") as HTMLElement;
     if (nextSection) {
@@ -119,48 +166,52 @@ const Hero = ({ onLaunch }: HeroProps) => {
         <div className="w-full max-w-[92vw] md:max-w-4xl flex flex-col items-center justify-center">
           {/* Tight group: logo → tagline → description → button */}
           <div className="flex flex-col items-center w-full">
-            <Image src={"/logo-clean.png"} alt="CamBright" height={180} width={768} className="object-contain drop-shadow-[0_0_90px_rgba(139,92,246,0.5)] w-full max-w-[500px] sm:max-w-[600px] md:max-w-[768px]" />
+            <Image src={"/logo-clean.png"} alt="CamBright" height={150} width={640} className="object-contain drop-shadow-[0_0_90px_rgba(139,92,246,0.5)] w-full max-w-[420px] sm:max-w-[500px] md:max-w-[640px]" />
 
-            <p className="uppercase tracking-[0.3em] text-sm text-center text-white/50 font-sora font-semibold -mt-2">
+            <p className="uppercase tracking-[0.3em] text-xs text-center text-white/50 font-sora font-semibold -mt-2">
               CamBright IGCSE LLC
             </p>
 
-            <p className="text-center text-lg sm:text-2xl md:text-3xl font-bold font-sora text-white/85 leading-snug whitespace-normal sm:whitespace-nowrap mt-2 px-4 sm:px-0 animate-in fade-in duration-1000" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
+            <p className="text-center text-base sm:text-xl md:text-2xl font-bold font-sora text-white/85 leading-snug whitespace-normal sm:whitespace-nowrap mt-2 px-4 sm:px-0 animate-in fade-in duration-1000" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
               Courses &middot; Past Papers &middot; Flashcards &middot;{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-cyan-300">Zero Cost.</span>
             </p>
 
-            <p className="text-center text-sm sm:text-base font-semibold text-white/45 mt-2 px-4 sm:px-0 animate-in fade-in duration-1000" style={{ animationDelay: "450ms", animationFillMode: "both" }}>
+            <p className="text-center text-xs sm:text-sm font-semibold text-white/45 mt-2 px-4 sm:px-0 animate-in fade-in duration-1000" style={{ animationDelay: "450ms", animationFillMode: "both" }}>
               Built STEM-first — Maths, Physics, Chemistry, Biology, Computer Science{" "}
               <span className="text-white/30">&mdash; and more subjects besides.</span>
             </p>
 
-            <div className="flex flex-row justify-center mt-5 mb-2 w-full max-w-sm sm:max-w-none sm:w-auto px-6 sm:px-0">
-              <div className="scale-110 sm:scale-125">
-                <MagicButton width="56" title="Launch" icon={<Rocket className="h-5 w-5" />} position="right" handleClick={onLaunch} otherClasses="text-base sm:text-lg tracking-wide" />
+            <div className="flex flex-row justify-center mt-4 mb-2 w-full max-w-sm sm:max-w-none sm:w-auto px-6 sm:px-0">
+              <div className="scale-100 sm:scale-110">
+                <MagicButton width="56" title="Launch" icon={<Rocket className="h-5 w-5" />} position="right" handleClick={onLaunch} otherClasses="text-sm sm:text-base tracking-wide" />
               </div>
             </div>
           </div>
 
           {/* Gap then stats */}
-          <div className="w-full mt-10 md:mt-16">
-            <div className="w-full bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-3xl px-4 py-6 sm:px-8 sm:py-7">
-              <div className="grid grid-cols-2 gap-y-6 gap-x-2 text-center sm:grid-cols-4 sm:gap-4">
+          <div className="w-full mt-8 md:mt-12">
+            <div className="w-full bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-sm border border-slate-700/50 rounded-3xl px-4 py-5 sm:px-6 sm:py-5">
+              <div className="grid grid-cols-2 gap-y-5 gap-x-2 text-center sm:grid-cols-4 sm:gap-4">
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl sm:text-5xl md:text-6xl font-bold text-cyan-400 leading-none">2000+</span>
-                  <span className="text-xs sm:text-base text-white/60 font-medium mt-2">Total Users</span>
+                  <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-cyan-400 leading-none">
+                    {totalUsers !== null ? totalUsers.toLocaleString() : "—"}
+                  </span>
+                  <span className="text-xs sm:text-sm text-white/60 font-medium mt-2">Total Users</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <AnimatedCounter baseValue={156} className="text-3xl sm:text-5xl md:text-6xl font-bold text-emerald-400 leading-none" />
-                  <span className="text-xs sm:text-base text-white/60 font-medium mt-2">Active Users</span>
+                  <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-emerald-400 leading-none">
+                    {activeUsers !== null ? activeUsers.toLocaleString() : "—"}
+                  </span>
+                  <span className="text-xs sm:text-sm text-white/60 font-medium mt-2">Active Users</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl sm:text-5xl md:text-6xl font-bold text-violet-400 leading-none">5+</span>
-                  <span className="text-xs sm:text-base text-white/60 font-medium mt-2">Partner Schools</span>
+                  <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-violet-400 leading-none">5+</span>
+                  <span className="text-xs sm:text-sm text-white/60 font-medium mt-2">Partner Schools</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <span className="text-3xl sm:text-5xl md:text-6xl font-bold text-purple-400 leading-none">100%</span>
-                  <span className="text-xs sm:text-base text-white/60 font-medium mt-2">Free</span>
+                  <span className="text-2xl sm:text-4xl md:text-5xl font-bold text-purple-400 leading-none">100%</span>
+                  <span className="text-xs sm:text-sm text-white/60 font-medium mt-2">Free</span>
                 </div>
               </div>
             </div>

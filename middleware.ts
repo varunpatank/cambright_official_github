@@ -14,6 +14,7 @@ const isPublicRoute = createRouteMatcher([
   '/api/webhooks(.*)',
   '/api/health(.*)',
   '/api/assets(.*)',
+  '/api/community-stats(.*)',
   '/home(.*)',
   // static files in /public
   '/(.*)\\.mp4',
