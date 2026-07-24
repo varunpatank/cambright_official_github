@@ -1,80 +1,118 @@
 // lib/community-stats-cache.ts
 //
-// Shared, resilient cache for the site-wide user counts (total / active today
-// / new today). Both /api/leaderboard and /api/community-stats read through
-// THIS module rather than each running their own Clerk scan, which gives us
-// three properties that fixed the leaderboard's 500s and its wrong "Total
-// Users" number:
+// Resilient caches for the site-wide user counts, read by both /api/leaderboard
+// and /api/community-stats so the two surfaces never drift. Split into two
+// independent single-flight caches with DIFFERENT refresh rates:
 //
-//   1. Single-flight — no matter how many tabs poll /api/leaderboard every 5s,
-//      at most ONE Clerk scan runs at a time. Concurrent callers await the same
-//      in-flight promise instead of each launching their own (the old code had
-//      no such guard, so a cold cache let a dozen concurrent polls each kick off
-//      a full Clerk directory walk, exhausting the DB/Clerk connection budget).
-//   2. Stale-while-revalidate — once we have any numbers, callers get them
-//      instantly while a refresh happens in the background. Nobody ever waits on
-//      Clerk on the hot path.
-//   3. Last-known-good retention — if Clerk momentarily fails, we keep serving
-//      the previous good numbers instead of dropping to a wrong fallback. This
-//      was the cause of "Total Users is completely wrong": a transient Clerk
-//      error made the old code fall back to the DB row count.
+//   • Signup count — clerk.users.getCount(), one cheap call. Refreshed on a
+//     short cycle so "Total Users" tracks new Clerk signups in near-real-time.
+//   • Activity (active-in-30d / new-today) — each a paginated directory scan, so
+//     comparatively expensive. Refreshed on a longer cycle.
+//
+// Both use the same pattern: single-flight (concurrent callers share one fetch),
+// stale-while-revalidate (never block on Clerk once a value exists), and
+// last-known-good retention (a transient Clerk failure keeps serving the last
+// real value instead of a wrong one).
 import { clerkClient } from "@clerk/nextjs/server";
-import { getCommunityStats, type CommunityStats } from "@/lib/clerk-stats";
+import {
+  getClerkSignupCount,
+  getClerkActivity,
+  type ClerkActivity,
+  type CommunityStats,
+} from "@/lib/clerk-stats";
 
-// Serve cached numbers without refreshing while younger than this.
-const FRESH_MS = 60_000;
-// Past this age we still serve the stale value but trigger a background refresh.
-// (There is no hard "block and wait" ceiling — we always prefer returning a
-// real, if old, number over making the caller wait on Clerk.)
-const STALE_REFRESH_MS = 60_000;
+// --- signup count (fast cycle) ---------------------------------------------
+// Matched to the leaderboard client's 5s poll so Total Users reflects a new
+// Clerk signup within a poll or two. getCount() is a single cheap call and
+// single-flighted here, so even at this cadence only one runs per window
+// regardless of how many tabs/users are polling — negligible Clerk load.
+const COUNT_FRESH_MS = 5_000;
+let countCache: { value: number; timestamp: number } | null = null;
+let countInFlight: Promise<number | null> | null = null;
 
-let lastGood: { stats: CommunityStats; timestamp: number } | null = null;
-let inFlight: Promise<CommunityStats> | null = null;
-
-async function refresh(): Promise<CommunityStats> {
+async function refreshCount(): Promise<number | null> {
   const clerk = await clerkClient();
-  // Pass the last-good stats so per-count failures inside getCommunityStats
-  // fall back to the previous real value rather than 0.
-  const stats = await getCommunityStats(clerk, lastGood?.stats);
-  lastGood = { stats, timestamp: Date.now() };
-  return stats;
+  const value = await getClerkSignupCount(clerk);
+  if (typeof value === "number") {
+    countCache = { value, timestamp: Date.now() };
+  }
+  return value;
 }
 
-function refreshSingleFlight(): Promise<CommunityStats> {
-  if (!inFlight) {
-    inFlight = refresh().finally(() => {
-      inFlight = null;
+function refreshCountSingleFlight(): Promise<number | null> {
+  if (!countInFlight) {
+    countInFlight = refreshCount().finally(() => {
+      countInFlight = null;
     });
   }
-  return inFlight;
+  return countInFlight;
+}
+
+async function getCachedSignupCount(): Promise<number | null> {
+  const age = countCache ? Date.now() - countCache.timestamp : Infinity;
+  if (countCache && age < COUNT_FRESH_MS) {
+    return countCache.value;
+  }
+  if (countCache) {
+    // Stale: serve immediately, refresh in the background so the next read is fresh.
+    void refreshCountSingleFlight().catch(() => {});
+    return countCache.value;
+  }
+  // Cold: wait on the shared refresh; keep last-good (none yet) on failure.
+  try {
+    return await refreshCountSingleFlight();
+  } catch {
+    return countCache ? (countCache as { value: number }).value : null;
+  }
+}
+
+// --- activity windows (slow cycle) -----------------------------------------
+const ACTIVITY_FRESH_MS = 60_000;
+let activityCache: { value: ClerkActivity; timestamp: number } | null = null;
+let activityInFlight: Promise<ClerkActivity> | null = null;
+
+async function refreshActivity(): Promise<ClerkActivity> {
+  const clerk = await clerkClient();
+  const value = await getClerkActivity(clerk, activityCache?.value);
+  activityCache = { value, timestamp: Date.now() };
+  return value;
+}
+
+function refreshActivitySingleFlight(): Promise<ClerkActivity> {
+  if (!activityInFlight) {
+    activityInFlight = refreshActivity().finally(() => {
+      activityInFlight = null;
+    });
+  }
+  return activityInFlight;
+}
+
+async function getCachedActivity(): Promise<ClerkActivity> {
+  const age = activityCache ? Date.now() - activityCache.timestamp : Infinity;
+  if (activityCache && age < ACTIVITY_FRESH_MS) {
+    return activityCache.value;
+  }
+  if (activityCache) {
+    void refreshActivitySingleFlight().catch(() => {});
+    return activityCache.value;
+  }
+  try {
+    return await refreshActivitySingleFlight();
+  } catch {
+    return activityCache?.value ?? { activeUsers: 0, newUsersToday: 0 };
+  }
 }
 
 /**
- * Returns the site-wide community stats, never throwing and never blocking on
- * Clerk once an initial value exists. Safe to call on every request.
+ * Combined community stats, never throwing and never blocking on Clerk once an
+ * initial value exists. `clerkTotalUsers` refreshes on the fast cycle; the
+ * activity windows on the slow one.
  */
 export async function getCachedCommunityStats(): Promise<CommunityStats> {
-  const age = lastGood ? Date.now() - lastGood.timestamp : Infinity;
-
-  if (lastGood && age < FRESH_MS) {
-    return lastGood.stats;
-  }
-
-  if (lastGood && age >= STALE_REFRESH_MS) {
-    // Kick off a background refresh but don't wait on it — serve the stale value.
-    void refreshSingleFlight().catch((err) => {
-      console.warn("community-stats background refresh failed:", err);
-    });
-    return lastGood.stats;
-  }
-
-  // Cold start — no numbers yet. Wait on the shared refresh (all concurrent
-  // callers share this one promise), and if even that fails, degrade to zeros
-  // rather than throwing.
-  try {
-    return await refreshSingleFlight();
-  } catch (err) {
-    console.warn("community-stats initial fetch failed:", err);
-    return lastGood?.stats ?? { totalUsers: 0, activeUsers: 0, newUsersToday: 0 };
-  }
+  const [clerkTotalUsers, activity] = await Promise.all([getCachedSignupCount(), getCachedActivity()]);
+  return {
+    clerkTotalUsers,
+    activeUsers: activity.activeUsers,
+    newUsersToday: activity.newUsersToday,
+  };
 }

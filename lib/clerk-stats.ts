@@ -5,7 +5,6 @@
 // exact same numbers, so both call into this module instead of each running
 // their own Clerk queries.
 import type { clerkClient } from "@clerk/nextjs/server";
-import { db } from "@/lib/db";
 
 type Clerk = Awaited<ReturnType<typeof clerkClient>>;
 
@@ -46,50 +45,52 @@ async function countUsersSince(
 }
 
 export interface CommunityStats {
-  /** Total Clerk signups — clerk.users.getCount(), the authoritative total. */
-  totalUsers: number;
+  /**
+   * Clerk's reported signup count (clerk.users.getCount()), or null if that
+   * call failed this round. This is only ONE input to the displayed "Total
+   * Users": the leaderboard combines it with its own reliable DB row count
+   * (see lib/leaderboard-cache.ts), because getCount() can undercount or point
+   * at a different (e.g. test) Clerk instance than the one that owns the rows.
+   */
+  clerkTotalUsers: number | null;
   /** Users with last_active_at within the past 30 days. */
   activeUsers: number;
   /** Users with created_at within the past 24 hours. */
   newUsersToday: number;
 }
 
-// Shared by /api/leaderboard and /api/community-stats — keep any changes to
-// the underlying queries here so the two surfaces can never drift apart.
-//
-// Each of the three counts is fetched independently and, on failure, falls back
-// to the corresponding `previous` value (or 0). This matters because the counts
-// have different reliability: `getCount()` is a single cheap call and almost
-// always succeeds, whereas the `last_active_at`-ordered scan is more fragile. We
-// must never let a failure in one count (e.g. the active-users scan) reject the
-// whole thing and wipe out the authoritative total — that drift was why "Total
-// Users" could show a completely wrong number.
-export async function getCommunityStats(
+// Clerk's live total signup count — a single, cheap Backend API call. This is
+// the number that must update in near-real-time as people sign up, so it's
+// cached on a short cycle of its own (see lib/community-stats-cache.ts), apart
+// from the far more expensive activity scans below. Returns null on failure so
+// the caller can keep its last-good value rather than showing a wrong number.
+export async function getClerkSignupCount(clerk: Clerk): Promise<number | null> {
+  try {
+    return await clerk.users.getCount();
+  } catch (error) {
+    console.warn("clerk.users.getCount() failed:", error);
+    return null;
+  }
+}
+
+export interface ClerkActivity {
+  activeUsers: number;
+  newUsersToday: number;
+}
+
+// The activity windows (active in last 30 days, new in last 24h) each require a
+// paginated scan of Clerk's directory, so they're comparatively expensive and
+// cached on a longer cycle than the signup count. Each degrades to `previous`
+// on failure so one scan failing can't zero out the other.
+export async function getClerkActivity(
   clerk: Clerk,
-  previous?: CommunityStats
-): Promise<CommunityStats> {
+  previous?: ClerkActivity
+): Promise<ClerkActivity> {
   const now = Date.now();
   const oneDayMs = 24 * 60 * 60 * 1000;
   const thirtyDaysMs = 30 * oneDayMs;
 
-  const [clerkTotal, dbUserCount, newUsersToday, activeUsers] = await Promise.all([
-    clerk.users.getCount().catch((error) => {
-      console.warn("clerk.users.getCount() failed:", error);
-      return previous?.totalUsers ?? 0;
-    }),
-    // Every real, authenticated user gets a userModel row (created on their
-    // first leaderboard/heartbeat request), so this is a reliable floor on the
-    // real user base. We take the MAX of it and Clerk's count as "Total Users"
-    // because the two can legitimately diverge — most sharply when the app is
-    // pointed at a Clerk *test* instance (few users) while the database holds
-    // the real/production user rows. In that case Clerk's getCount() reports a
-    // tiny number (this was the "total user count is completely wrong" bug);
-    // the DB count reflects reality. In a normal live deployment the two track
-    // each other and the max is simply whichever is momentarily ahead.
-    db.userModel.count().catch((error) => {
-      console.warn("db.userModel.count() failed:", error);
-      return 0;
-    }),
+  const [newUsersToday, activeUsers] = await Promise.all([
     countUsersSince(clerk, "created_at", now - oneDayMs, (u) => u.createdAt).catch((error) => {
       console.warn("new-users-today count failed:", error);
       return previous?.newUsersToday ?? 0;
@@ -102,7 +103,5 @@ export async function getCommunityStats(
     ),
   ]);
 
-  const totalUsers = Math.max(clerkTotal, dbUserCount);
-
-  return { totalUsers, activeUsers, newUsersToday };
+  return { activeUsers, newUsersToday };
 }

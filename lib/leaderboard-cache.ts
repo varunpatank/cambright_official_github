@@ -82,27 +82,42 @@ function toRow(user: {
   };
 }
 
+// The first DB query against a cold connection can transiently fail under load;
+// a couple of short retries prevent that from surfacing as an empty (0/0/0)
+// leaderboard on the very first request after a new sign-in / server start.
+async function findUsersWithRetry(retries = 3) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await db.userModel.findMany({
+        select: {
+          id: true,
+          userId: true,
+          name: true,
+          imageUrl: true,
+          email: true,
+          followers: true,
+          following: true,
+          biog: true,
+          XP: true,
+          websiteSeconds: true,
+          createdAt: true,
+        },
+      });
+    } catch (error) {
+      lastError = error;
+      if (attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 150 * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function compute(): Promise<LeaderboardBody> {
   // Run the (cheap, DB-only) row query and the (cached, non-blocking) community
   // stats concurrently. getCachedCommunityStats never throws.
-  const [users, stats] = await Promise.all([
-    db.userModel.findMany({
-      select: {
-        id: true,
-        userId: true,
-        name: true,
-        imageUrl: true,
-        email: true,
-        followers: true,
-        following: true,
-        biog: true,
-        XP: true,
-        websiteSeconds: true,
-        createdAt: true,
-      },
-    }),
-    getCachedCommunityStats(),
-  ]);
+  const [users, stats] = await Promise.all([findUsersWithRetry(), getCachedCommunityStats()]);
 
   const rows = users.map(toRow).sort((a, b) => {
     if (b.XP !== a.XP) return b.XP - a.XP;
@@ -110,10 +125,20 @@ async function compute(): Promise<LeaderboardBody> {
     return a.name.localeCompare(b.name);
   });
 
+  // "Total Users" is derived from the row count we JUST fetched reliably (same
+  // query that fills the board), maxed with Clerk's reported signup count. Using
+  // rows.length as the base — rather than a separate db.count() call — is what
+  // makes the number correct on the very first response: the separate count
+  // query could transiently fail on a cold connection and, swallowed to 0, made
+  // the total flicker to the wrong Clerk-only number for ~a minute. rows.length
+  // can't disagree with the board that's being rendered from the same data.
+  const clerkTotal = stats.clerkTotalUsers ?? 0;
+  const total = Math.max(rows.length, clerkTotal);
+
   const body: LeaderboardBody = {
     leaderboard: rows,
-    total: stats.totalUsers,
-    clerkUserCount: stats.totalUsers,
+    total,
+    clerkUserCount: clerkTotal,
     databaseUserCount: rows.length,
     newUsersTodayCount: stats.newUsersToday,
     activeUsersCount: stats.activeUsers,

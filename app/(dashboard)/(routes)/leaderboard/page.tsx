@@ -195,6 +195,15 @@ const LeaderBoardPage = () => {
         });
         if (response.ok) {
           const data: LeaderboardResponse = await response.json();
+          // A transient cold-start response can come back empty (no rows /
+          // total 0). Don't paint that — it would flash "0 0 0" and an empty
+          // board before self-correcting. Keep showing the loading state (or
+          // the previous good data) until a real payload arrives on the next
+          // 5s poll.
+          const hasRealData = Array.isArray(data.leaderboard) && data.leaderboard.length > 0;
+          if (!hasRealData) {
+            return;
+          }
           setLeaderboard(data.leaderboard);
           setLastUpdated(new Date());
           setLeaderboardStats({
@@ -204,9 +213,6 @@ const LeaderBoardPage = () => {
             newUsersTodayCount: data.newUsersTodayCount,
             activeUsersCount: data.activeUsersCount,
           });
-          // Only clear loading once data has actually arrived — an early
-          // retry (e.g. a cold-start db connection) shouldn't flash an
-          // empty board before the next poll fills it in.
           setLoading(false);
         } else {
           console.error("Failed to fetch leaderboard data");
