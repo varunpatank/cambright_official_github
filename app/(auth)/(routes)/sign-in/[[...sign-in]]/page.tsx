@@ -86,7 +86,7 @@ export default function Page() {
     <div className="flex w-full flex-col items-center">
       <div
         style={{
-          animation: "visitor-pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both",
+          animation: "visitor-pop-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both",
         }}
       >
         <VisitorLoginButton />
@@ -97,7 +97,7 @@ export default function Page() {
           width: "100%",
           gridTemplateRows: showSignIn ? "1fr" : "0fr",
           opacity: showSignIn ? 1 : 0,
-          transition: "grid-template-rows 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease",
+          transition: "grid-template-rows 0.7s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
         {/* min-height: 0 is required for the grid-rows trick — without it the
@@ -105,8 +105,11 @@ export default function Page() {
             the collapse/expand doesn't animate at all. SignIn is mounted
             immediately (just visually collapsed) so Clerk's own async load
             happens in the background during the visitor pop-in, instead of
-            only starting once this box is revealed. */}
-        <div style={{ overflow: "hidden", minHeight: 0 }}>
+            only starting once this box is revealed. display: flex + justify-center
+            here is what actually centers Clerk's card — without it, the grid
+            cell above stretches to the full 100% width and Clerk's narrower
+            card sits flush against the left edge instead of centered. */}
+        <div style={{ overflow: "hidden", minHeight: 0, display: "flex", justifyContent: "center" }}>
           <SignIn />
         </div>
       </div>
@@ -114,7 +117,7 @@ export default function Page() {
         @keyframes visitor-pop-in {
           0% {
             opacity: 0;
-            transform: scale(0.85) translateY(-8px);
+            transform: scale(0.94) translateY(-6px);
           }
           100% {
             opacity: 1;

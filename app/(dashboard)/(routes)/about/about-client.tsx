@@ -134,32 +134,6 @@ const MemberCard = ({
   );
 };
 
-// Bio and tags are rendered unconditionally with a fixed line-clamp / min-height
-// (rather than only appearing when present) so every card in a row — e.g. the
-// Directors tier — ends up the same height no matter how long one person's
-// bio is or how many tags they have relative to the others.
-const FeaturedMemberCard = ({ user, accent, onClick }: { user: User; accent: string; onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className={`flex h-full w-full max-w-sm flex-col items-center rounded-2xl border ${accent} bg-white/[0.04] p-5 text-center transition-all hover:-translate-y-1 hover:bg-white/[0.06]`}
-  >
-    <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full ring-2 ring-white/15">
-      <Image src={user.avatar} alt={user.name} width={96} height={96} className="h-full w-full object-cover" />
-    </div>
-    <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Featured Role</p>
-    <h3 className="mt-2 text-xl font-bold text-white">{user.name}</h3>
-    <p className="mt-1 text-sm font-medium text-cyan-300">{user.role}</p>
-    <div className="mt-3 flex min-h-[2.25rem] flex-wrap content-start justify-center gap-1.5">
-      {user.tags.map((tag, index) => (
-        <span key={`${user.name}-featured-${tag}-${index}`} className={`h-fit px-2.5 py-0.5 rounded-full text-xs font-medium ${getTagColor(tag)}`}>
-          {tag}
-        </span>
-      ))}
-    </div>
-    <p className="mt-4 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-gray-400">{user.bio}</p>
-  </button>
-);
-
 const RosterGrid = ({
   title,
   description,
@@ -267,10 +241,10 @@ export default function AboutClient({ activeTutors }: { activeTutors: User[] }) 
             <span className="w-1 h-6 bg-indigo-500 rounded-full" />
             <h2 className="text-xl font-bold text-white">Directors</h2>
           </div>
-          <div className="flex flex-wrap items-stretch justify-center gap-4">
+          <div className="flex flex-wrap items-stretch justify-center gap-3">
             {directors.map((user) => (
-              <div key={`director-${user.name}`} className="w-full sm:w-80">
-                <FeaturedMemberCard user={user} accent="border-indigo-500/30" onClick={() => setSelectedUser(user)} />
+              <div key={`director-${user.name}`} className="w-32 sm:w-36">
+                <MemberCard user={user} size="md" onClick={() => setSelectedUser(user)} />
               </div>
             ))}
           </div>
