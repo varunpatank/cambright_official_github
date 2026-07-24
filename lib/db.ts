@@ -6,13 +6,29 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
+// Cap connections per Prisma client and give queries a grace period to acquire
+// one, so a burst of concurrent requests can't exhaust Supabase's pooler. Under
+// the old thundering-herd polling this exhaustion surfaced as 500s across
+// unrelated routes (leaderboard AND session-time heartbeat failing together).
+// Appended only when the URL doesn't already specify these, and via plain string
+// concatenation to avoid re-encoding credentials in the connection string.
+const tunePooling = (rawUrl: string | undefined): string | undefined => {
+  if (!rawUrl) return rawUrl;
+  const additions: string[] = [];
+  if (!/[?&]connection_limit=/.test(rawUrl)) additions.push("connection_limit=10");
+  if (!/[?&]pool_timeout=/.test(rawUrl)) additions.push("pool_timeout=20");
+  if (additions.length === 0) return rawUrl;
+  const separator = rawUrl.includes("?") ? "&" : "?";
+  return `${rawUrl}${separator}${additions.join("&")}`;
+};
+
 // Database configuration with connection pooling and performance optimizations
 const createPrismaClient = () => {
   return new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: tunePooling(process.env.DATABASE_URL),
       },
     },
   });

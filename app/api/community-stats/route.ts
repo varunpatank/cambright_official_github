@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { clerkClient } from "@clerk/nextjs/server";
-import { getCommunityStats } from "@/lib/clerk-stats";
+import { getCachedCommunityStats } from "@/lib/community-stats-cache";
 
 // Public, unauthenticated endpoint (see middleware.ts isPublicRoute) that
-// backs the homepage stats bar. It calls the exact same Clerk queries as
-// /api/leaderboard (via lib/clerk-stats.ts) so "Total Users" / "Active Users"
-// on the homepage always match what the leaderboard page shows — no
-// hardcoded numbers here.
+// backs the homepage stats bar. It reads the SAME shared, single-flighted stats
+// cache as /api/leaderboard (lib/community-stats-cache.ts), so "Total Users" /
+// "Active Users" on the homepage always match the leaderboard page, the two
+// surfaces never both trigger a Clerk scan at once, and a transient Clerk error
+// serves the last known-good numbers instead of failing. No hardcoded numbers.
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -16,28 +16,10 @@ const NO_STORE_HEADERS = {
   Expires: "0",
 };
 
-// The homepage doesn't need the leaderboard's 5s live cadence, but repeated
-// visitors hitting this on every load shouldn't each trigger a fresh Clerk
-// scan — a short server-side cache smooths that out.
-let cachedStats: { body: unknown; timestamp: number } | null = null;
-const CACHE_TTL_MS = 60000;
-
 export async function GET() {
-  if (cachedStats && Date.now() - cachedStats.timestamp < CACHE_TTL_MS) {
-    return NextResponse.json(cachedStats.body, { headers: NO_STORE_HEADERS });
-  }
-
-  try {
-    const clerk = await clerkClient();
-    const { totalUsers, activeUsers } = await getCommunityStats(clerk);
-    const body = { totalUsers, activeUsers, timestamp: new Date().toISOString() };
-    cachedStats = { body, timestamp: Date.now() };
-    return NextResponse.json(body, { headers: NO_STORE_HEADERS });
-  } catch (error) {
-    console.error("Error fetching community stats:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch community stats" },
-      { status: 500, headers: NO_STORE_HEADERS }
-    );
-  }
+  const { totalUsers, activeUsers } = await getCachedCommunityStats();
+  return NextResponse.json(
+    { totalUsers, activeUsers, timestamp: new Date().toISOString() },
+    { headers: NO_STORE_HEADERS }
+  );
 }

@@ -1,220 +1,165 @@
 import { NextResponse } from "next/server";
-import { auth, currentUser, clerkClient } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { getInitialSessionSeconds, getInitialXp } from "@/lib/session-time";
-import { getCommunityStats } from "@/lib/clerk-stats";
+import {
+  getCachedLeaderboard,
+  getLastLeaderboard,
+  type LeaderboardBody,
+  type LeaderboardRow,
+} from "@/lib/leaderboard-cache";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// The client polls this endpoint every 5s from every open tab. Cache the
-// computed result briefly so concurrent/rapid polls reuse it instead of
-// each re-querying the DB and re-fetching Clerk data for every row.
-let cachedLeaderboard: { body: unknown; timestamp: number } | null = null;
-const CACHE_TTL_MS = 15000;
+const NO_STORE_HEADERS = {
+  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+  Pragma: "no-cache",
+  Expires: "0",
+};
 
-// Export the GET method
-export async function GET() {
-  // A brand-new user has no row yet, so they'd otherwise only show up via
-  // the "newUsers" fallback below, which depends on Clerk's user-list
-  // endpoint — that has replication lag for just-created accounts, which is
-  // why new signups could wait a minute+ to see themselves. Ensure their row
-  // exists up front so they're picked up by the fast, direct DB path, and
-  // skip the cache this one time so it shows up immediately.
-  let justCreatedUser = false;
-  const { userId: requestingUserId } = auth();
-  if (requestingUserId) {
-    const existing = await db.userModel.findUnique({
-      where: { userId: requestingUserId },
-      select: { id: true },
-    });
-    if (!existing) {
-      const clerkUser = await currentUser();
-      if (clerkUser) {
-        try {
-          await db.userModel.create({
-            data: {
-              userId: clerkUser.id,
-              name: clerkUser.firstName
-                ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
-                : clerkUser.username || "Anonymous",
-              imageUrl: clerkUser.imageUrl || "",
-              email: clerkUser.emailAddresses[0]?.emailAddress || "",
-              followers: 0,
-              following: 0,
-              biog: "",
-              websiteSeconds: getInitialSessionSeconds(clerkUser.id),
-              XP: getInitialXp(clerkUser.id),
-            },
-          });
-          justCreatedUser = true;
-        } catch {
-          // Row was likely created concurrently by another request (e.g. a
-          // session-time heartbeat) — it exists now either way, fine.
-        }
-      }
-    }
+// Make sure the requesting user has a DB row so they appear on the board, and
+// return a minimal row for them if the (single-flighted, possibly-just-stale)
+// cached leaderboard predates their creation — so a brand-new account sees
+// itself immediately instead of waiting for the next refresh. This does at most
+// ONE Clerk call (currentUser) and only on the first request after signup;
+// every later request finds the row and skips it.
+async function ensureRequestingUserRow(userId: string): Promise<LeaderboardRow | null> {
+  const existing = await db.userModel.findUnique({
+    where: { userId },
+    select: {
+      id: true,
+      userId: true,
+      name: true,
+      imageUrl: true,
+      email: true,
+      followers: true,
+      following: true,
+      biog: true,
+      XP: true,
+      websiteSeconds: true,
+      createdAt: true,
+    },
+  });
+  if (existing) {
+    return {
+      ...existing,
+      name: existing.name || "Anonymous",
+      imageUrl: existing.imageUrl || "/default-avatar.png",
+      email: existing.email || "",
+      XP: Math.max(
+        existing.XP,
+        Math.floor((existing.websiteSeconds ?? 0) / 60),
+        getInitialXp(existing.userId)
+      ),
+      websiteSeconds: existing.websiteSeconds ?? 0,
+      createdAt: existing.createdAt.getTime(),
+      clerkData: null,
+    };
   }
 
-  if (!justCreatedUser && cachedLeaderboard && Date.now() - cachedLeaderboard.timestamp < CACHE_TTL_MS) {
-    return NextResponse.json(cachedLeaderboard.body, {
-      headers: {
-        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    });
-  }
+  const clerkUser = await currentUser();
+  if (!clerkUser) return null;
+
+  const name = clerkUser.firstName
+    ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
+    : clerkUser.username || "Anonymous";
+  const imageUrl = clerkUser.imageUrl || "";
+  const email = clerkUser.emailAddresses[0]?.emailAddress || "";
+  const websiteSeconds = getInitialSessionSeconds(clerkUser.id);
+  const XP = getInitialXp(clerkUser.id);
 
   try {
-    const clerk = await clerkClient();
-    // Fetch existing leaderboard users from DB
-    const leaderboard = await db.userModel.findMany({
-      select: {
-        id: true,
-        userId: true,
-        name: true,
-        imageUrl: true,
-        email: true,
-        followers: true,
-        following: true,
-        biog: true,
-        XP: true,
-        createdAt: true,
-        updatedAt: true,
-        websiteSeconds: true,
+    const created = await db.userModel.create({
+      data: {
+        userId: clerkUser.id,
+        name,
+        imageUrl,
+        email,
+        followers: 0,
+        following: 0,
+        biog: "",
+        websiteSeconds,
+        XP,
       },
+      select: { id: true, createdAt: true },
     });
+    return {
+      id: created.id,
+      userId: clerkUser.id,
+      name: name || "Anonymous",
+      imageUrl: imageUrl || "/default-avatar.png",
+      email,
+      followers: 0,
+      following: 0,
+      biog: "",
+      XP,
+      websiteSeconds,
+      createdAt: created.createdAt.getTime(),
+      clerkData: null,
+    };
+  } catch {
+    // Row was created concurrently (e.g. by a session-time heartbeat). It
+    // exists now; the next cache refresh will include it.
+    return null;
+  }
+}
 
-    // Only fetch Clerk data for the users we already have DB rows for — every
-    // real user gets a row created on their first authenticated request (see
-    // above, and lib/initial-account.ts / session-time/heartbeat), so there's
-    // no need to walk Clerk's *entire* directory just to find new signups.
-    // That full-directory pagination was the single biggest source of
-    // latency here, and its cost scaled with total user count.
-    try {
-      const userIds = leaderboard.map((u) => u.userId);
-      const allClerkUsers = [];
-      const idBatchSize = 100;
-      for (let i = 0; i < userIds.length; i += idBatchSize) {
-        const idBatch = userIds.slice(i, i + idBatchSize);
-        const batch = await clerk.users.getUserList({
-          userId: idBatch,
-          limit: idBatchSize,
-        });
-        allClerkUsers.push(...batch.data);
-      }
+// Insert the requesting user's row into the cached body if the cache doesn't
+// already contain it, keeping the XP-desc ordering. Returns a new body object;
+// never mutates the shared cached one.
+function withUser(body: LeaderboardBody, row: LeaderboardRow): LeaderboardBody {
+  if (body.leaderboard.some((u) => u.userId === row.userId)) return body;
+  const leaderboard = [...body.leaderboard, row].sort((a, b) => {
+    if (b.XP !== a.XP) return b.XP - a.XP;
+    if (a.createdAt !== b.createdAt) return a.createdAt - b.createdAt;
+    return a.name.localeCompare(b.name);
+  });
+  return {
+    ...body,
+    leaderboard,
+    databaseUserCount: leaderboard.length,
+  };
+}
 
-      const clerkUsersById = new Map(allClerkUsers.map((u) => [u.id, u]));
+export async function GET() {
+  try {
+    const { userId } = auth();
 
-      // Site-wide counts (total / new today / active) must reflect Clerk's
-      // full user directory, not just the users who happen to have a DB row
-      // yet — otherwise brand-new signups who haven't triggered row-creation
-      // undercount "new users today" relative to what Clerk itself reports.
-      // Shared with /api/community-stats (the homepage's source) so the two
-      // surfaces never report different numbers for the same thing.
-      const {
-        totalUsers: totalClerkUsers,
-        newUsersToday: newUsersTodayCount,
-        activeUsers: activeUsersCount,
-      } = await getCommunityStats(clerk);
+    // Ensure the requester's row exists (cheap) in parallel with reading the
+    // cached board. A failure here must not fail the whole request.
+    const [row, cached] = await Promise.all([
+      userId
+        ? ensureRequestingUserRow(userId).catch((err) => {
+            console.warn("ensureRequestingUserRow failed:", err);
+            return null;
+          })
+        : Promise.resolve(null),
+      getCachedLeaderboard(),
+    ]);
 
-      const enrichedLeaderboard = leaderboard.map((user) => {
-        const clerkUser = clerkUsersById.get(user.userId);
-        const derivedName = clerkUser?.firstName
-          ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
-          : clerkUser?.username || "Anonymous";
-        const seededXp = Math.max(
-          user.XP,
-          Math.floor((user.websiteSeconds ?? 0) / 60),
-          getInitialXp(user.userId)
-        );
-
-        return {
-          id: user.id,
-          userId: user.userId,
-          name: user.name || derivedName,
-          imageUrl: user.imageUrl || clerkUser?.imageUrl || "/default-avatar.png",
-          email: user.email || clerkUser?.emailAddresses?.[0]?.emailAddress || "",
-          followers: user.followers,
-          following: user.following,
-          biog: user.biog,
-          XP: seededXp,
-          websiteSeconds: user.websiteSeconds ?? 0,
-          createdAt: user.createdAt.getTime(),
-          clerkData: clerkUser
-            ? {
-                firstName: clerkUser.firstName,
-                lastName: clerkUser.lastName,
-                username: clerkUser.username,
-                profileImageUrl: clerkUser.imageUrl,
-                lastSignInAt: clerkUser.lastSignInAt,
-                createdAt: clerkUser.createdAt,
-              }
-            : null,
-        };
-      });
-
-      const completeLeaderboard = enrichedLeaderboard.sort((a, b) => {
-        if (b.XP !== a.XP) return b.XP - a.XP;
-        if (a.createdAt !== b.createdAt) return a.createdAt - b.createdAt;
-        return a.name.localeCompare(b.name);
-      });
-
-      const responseBody = {
-        leaderboard: completeLeaderboard,
-        total: totalClerkUsers,
-        clerkUserCount: totalClerkUsers,
-        databaseUserCount: leaderboard.length,
-        newUsersTodayCount,
-        activeUsersCount,
-        timestamp: new Date().toISOString(),
-      };
-      cachedLeaderboard = { body: responseBody, timestamp: Date.now() };
-
-      return NextResponse.json(responseBody, {
-        headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      });
-
-    } catch (clerkListError) {
-      console.warn("Could not fetch Clerk users list:", clerkListError);
-      return NextResponse.json(
-        {
-          leaderboard,
-          total: leaderboard.length,
-          clerkUserCount: "Error fetching",
-          databaseUserCount: leaderboard.length,
-          newUsersTodayCount: null,
-          activeUsersCount: null,
-          error: "Could not fetch all Clerk users",
-          timestamp: new Date().toISOString(),
-        },
-        {
-          headers: {
-            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-            Pragma: "no-cache",
-            Expires: "0",
-          },
-        }
-      );
-    }
-
+    const body = row ? withUser(cached, row) : cached;
+    return NextResponse.json(body, { headers: NO_STORE_HEADERS });
   } catch (error) {
+    // Absolute last resort: never 500 the leaderboard. Serve the last known
+    // good body if we have one, otherwise an empty-but-valid payload the client
+    // can render (it'll fill in on the next successful poll).
     console.error("Error fetching leaderboard:", error);
+    const fallback = getLastLeaderboard();
+    if (fallback) {
+      return NextResponse.json(fallback, { headers: NO_STORE_HEADERS });
+    }
     return NextResponse.json(
-      { error: "Failed to fetch leaderboard" },
       {
-        status: 500,
-        headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      }
+        leaderboard: [],
+        total: 0,
+        clerkUserCount: 0,
+        databaseUserCount: 0,
+        newUsersTodayCount: 0,
+        activeUsersCount: 0,
+        timestamp: new Date().toISOString(),
+      },
+      { headers: NO_STORE_HEADERS }
     );
   }
 }
