@@ -155,8 +155,8 @@ export async function GET() {
         total: 0,
         clerkUserCount: 0,
         databaseUserCount: 0,
-        newUsersTodayCount: 0,
-        activeUsersCount: 0,
+        newUsersTodayCount: null,
+        activeUsersCount: null,
         timestamp: new Date().toISOString(),
       },
       { headers: NO_STORE_HEADERS }

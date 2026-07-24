@@ -79,6 +79,24 @@ const LeaderboardHeaderBanner = memo(function LeaderboardHeaderBanner() {
   );
 });
 
+// Renders a stat number, or a small spinner (in the tile's own color, via
+// currentColor) while the value is still loading (null). Avoids flashing a
+// misleading "0" before the background Clerk scan returns.
+function StatValue({ value }: { value: number | null }) {
+  if (value === null) {
+    return (
+      <span
+        className="inline-flex h-8 items-center justify-center"
+        role="status"
+        aria-label="Loading"
+      >
+        <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent opacity-60" />
+      </span>
+    );
+  }
+  return <>{value}</>;
+}
+
 function ProfileModal({
   profile,
   currentUserId,
@@ -294,9 +312,11 @@ const LeaderBoardPage = () => {
   // Sourced straight from the API's authoritative Clerk counts (see
   // app/api/leaderboard/route.ts) rather than derived from sortedLeaderboard,
   // which only includes users with a DB row and would undercount relative to
-  // what Clerk itself reports for brand-new signups.
-  const activeUsersCount = leaderboardStats?.activeUsersCount ?? 0;
-  const loginsTodayCount = leaderboardStats?.newUsersTodayCount ?? 0;
+  // what Clerk itself reports for brand-new signups. null = the background Clerk
+  // scan hasn't produced a first value yet → the tile shows a loading spinner
+  // instead of a misleading "0".
+  const activeUsersCount = leaderboardStats?.activeUsersCount ?? null;
+  const loginsTodayCount = leaderboardStats?.newUsersTodayCount ?? null;
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -342,7 +362,7 @@ const LeaderBoardPage = () => {
             )}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
-                <div className="text-2xl font-bold text-cyan-400">{activeUsersCount}</div>
+                <div className="text-2xl font-bold text-cyan-400"><StatValue value={activeUsersCount} /></div>
                 <div className="text-sm text-gray-400">Active Users</div>
               </div>
               <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
@@ -350,7 +370,7 @@ const LeaderBoardPage = () => {
                 <div className="text-sm text-gray-400">Total Users</div>
               </div>
               <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
-                <div className="text-2xl font-bold text-amber-400">{loginsTodayCount}</div>
+                <div className="text-2xl font-bold text-amber-400"><StatValue value={loginsTodayCount} /></div>
                 <div className="text-sm text-gray-400">Logins Today</div>
               </div>
             </div>

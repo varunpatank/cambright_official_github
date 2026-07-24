@@ -48,22 +48,19 @@ function refreshCountSingleFlight(): Promise<number | null> {
   return countInFlight;
 }
 
-async function getCachedSignupCount(): Promise<number | null> {
+function getCachedSignupCount(): number | null {
   const age = countCache ? Date.now() - countCache.timestamp : Infinity;
   if (countCache && age < COUNT_FRESH_MS) {
     return countCache.value;
   }
-  if (countCache) {
-    // Stale: serve immediately, refresh in the background so the next read is fresh.
-    void refreshCountSingleFlight().catch(() => {});
-    return countCache.value;
-  }
-  // Cold: wait on the shared refresh; keep last-good (none yet) on failure.
-  try {
-    return await refreshCountSingleFlight();
-  } catch {
-    return countCache ? (countCache as { value: number }).value : null;
-  }
+  // Cold OR stale: kick off a refresh but NEVER block the caller on Clerk — a
+  // rate-limited live instance can make getCount()/the scans take a long time,
+  // and the leaderboard must not wait on that. Return the last-good value, or
+  // null if we've never fetched (the leaderboard then uses its own DB row count
+  // for the total, so the page still shows an accurate number instantly). The
+  // background refresh populates the cache for the next poll.
+  void refreshCountSingleFlight().catch(() => {});
+  return countCache?.value ?? null;
 }
 
 // --- activity windows (slow cycle) -----------------------------------------
@@ -87,29 +84,29 @@ function refreshActivitySingleFlight(): Promise<ClerkActivity> {
   return activityInFlight;
 }
 
-async function getCachedActivity(): Promise<ClerkActivity> {
+function getCachedActivity(): { activeUsers: number | null; newUsersToday: number | null } {
   const age = activityCache ? Date.now() - activityCache.timestamp : Infinity;
   if (activityCache && age < ACTIVITY_FRESH_MS) {
     return activityCache.value;
   }
-  if (activityCache) {
-    void refreshActivitySingleFlight().catch(() => {});
-    return activityCache.value;
-  }
-  try {
-    return await refreshActivitySingleFlight();
-  } catch {
-    return activityCache?.value ?? { activeUsers: 0, newUsersToday: 0 };
-  }
+  // Same non-blocking policy as the signup count: never make a request wait on
+  // the (expensive, paginated) activity scans. Serve last-good now; the
+  // background refresh fills them in for subsequent polls. Before the first scan
+  // completes there's no value yet, so return null (not 0) — the UI shows a
+  // loading indicator for null rather than a misleading "0".
+  void refreshActivitySingleFlight().catch(() => {});
+  return activityCache?.value ?? { activeUsers: null, newUsersToday: null };
 }
 
 /**
- * Combined community stats, never throwing and never blocking on Clerk once an
- * initial value exists. `clerkTotalUsers` refreshes on the fast cycle; the
- * activity windows on the slow one.
+ * Combined community stats. Fully non-blocking: it NEVER awaits a Clerk call,
+ * so callers (the leaderboard) render instantly from whatever is cached and the
+ * numbers refresh in the background. `clerkTotalUsers` refreshes on the fast
+ * cycle; the activity windows on the slow one.
  */
-export async function getCachedCommunityStats(): Promise<CommunityStats> {
-  const [clerkTotalUsers, activity] = await Promise.all([getCachedSignupCount(), getCachedActivity()]);
+export function getCachedCommunityStats(): CommunityStats {
+  const clerkTotalUsers = getCachedSignupCount();
+  const activity = getCachedActivity();
   return {
     clerkTotalUsers,
     activeUsers: activity.activeUsers,

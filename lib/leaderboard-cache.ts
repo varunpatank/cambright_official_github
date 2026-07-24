@@ -35,8 +35,10 @@ export interface LeaderboardBody {
   total: number;
   clerkUserCount: number;
   databaseUserCount: number;
-  newUsersTodayCount: number;
-  activeUsersCount: number;
+  // null while the (background) Clerk activity scan hasn't produced a first
+  // value yet — the UI renders a loading indicator for null rather than "0".
+  newUsersTodayCount: number | null;
+  activeUsersCount: number | null;
   timestamp: string;
 }
 
@@ -115,9 +117,13 @@ async function findUsersWithRetry(retries = 3) {
 }
 
 async function compute(): Promise<LeaderboardBody> {
-  // Run the (cheap, DB-only) row query and the (cached, non-blocking) community
-  // stats concurrently. getCachedCommunityStats never throws.
-  const [users, stats] = await Promise.all([findUsersWithRetry(), getCachedCommunityStats()]);
+  // Only the DB row query is awaited — it's the sole thing the board actually
+  // needs, and it's fast. Community stats are read from cache synchronously and
+  // never block on Clerk (see getCachedCommunityStats), so a slow/rate-limited
+  // live Clerk instance can't hold up the leaderboard. The total is anchored to
+  // the reliable row count, so it's correct even on the very first render.
+  const users = await findUsersWithRetry();
+  const stats = getCachedCommunityStats();
 
   const rows = users.map(toRow).sort((a, b) => {
     if (b.XP !== a.XP) return b.XP - a.XP;

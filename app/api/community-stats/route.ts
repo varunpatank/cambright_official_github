@@ -17,7 +17,7 @@ const NO_STORE_HEADERS = {
 };
 
 export async function GET() {
-  const { clerkTotalUsers, activeUsers } = await getCachedCommunityStats();
+  const { clerkTotalUsers, activeUsers } = getCachedCommunityStats();
   return NextResponse.json(
     { totalUsers: clerkTotalUsers ?? 0, activeUsers, timestamp: new Date().toISOString() },
     { headers: NO_STORE_HEADERS }

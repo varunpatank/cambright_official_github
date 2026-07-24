@@ -53,10 +53,10 @@ export interface CommunityStats {
    * at a different (e.g. test) Clerk instance than the one that owns the rows.
    */
   clerkTotalUsers: number | null;
-  /** Users with last_active_at within the past 30 days. */
-  activeUsers: number;
-  /** Users with created_at within the past 24 hours. */
-  newUsersToday: number;
+  /** Users active in the last 30 days — null while the first scan is still loading. */
+  activeUsers: number | null;
+  /** Users created in the last 24 hours — null while the first scan is still loading. */
+  newUsersToday: number | null;
 }
 
 // Clerk's live total signup count — a single, cheap Backend API call. This is
