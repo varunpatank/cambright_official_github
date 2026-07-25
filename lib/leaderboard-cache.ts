@@ -13,7 +13,6 @@
 // it makes the row query a single indexed `findMany`.
 import { db } from "@/lib/db";
 import { getInitialXp } from "@/lib/session-time";
-import { getCachedCommunityStats } from "@/lib/community-stats-cache";
 
 export interface LeaderboardRow {
   id: string;
@@ -117,13 +116,12 @@ async function findUsersWithRetry(retries = 3) {
 }
 
 async function compute(): Promise<LeaderboardBody> {
-  // Only the DB row query is awaited — it's the sole thing the board actually
-  // needs, and it's fast. Community stats are read from cache synchronously and
-  // never block on Clerk (see getCachedCommunityStats), so a slow/rate-limited
-  // live Clerk instance can't hold up the leaderboard. The total is anchored to
-  // the reliable row count, so it's correct even on the very first render.
+  // Board = DB rows only, no Clerk. The three Clerk-backed stat tiles are served
+  // separately by /api/community-stats and rendered independently by the client,
+  // so the board never blocks on (or is slowed by) Clerk. The stat fields below
+  // are retained for backward compatibility of the response shape but are no
+  // longer read by the client.
   const users = await findUsersWithRetry();
-  const stats = getCachedCommunityStats();
 
   const rows = users.map(toRow).sort((a, b) => {
     if (b.XP !== a.XP) return b.XP - a.XP;
@@ -131,23 +129,13 @@ async function compute(): Promise<LeaderboardBody> {
     return a.name.localeCompare(b.name);
   });
 
-  // "Total Users" is derived from the row count we JUST fetched reliably (same
-  // query that fills the board), maxed with Clerk's reported signup count. Using
-  // rows.length as the base — rather than a separate db.count() call — is what
-  // makes the number correct on the very first response: the separate count
-  // query could transiently fail on a cold connection and, swallowed to 0, made
-  // the total flicker to the wrong Clerk-only number for ~a minute. rows.length
-  // can't disagree with the board that's being rendered from the same data.
-  const clerkTotal = stats.clerkTotalUsers ?? 0;
-  const total = Math.max(rows.length, clerkTotal);
-
   const body: LeaderboardBody = {
     leaderboard: rows,
-    total,
-    clerkUserCount: clerkTotal,
+    total: rows.length,
+    clerkUserCount: rows.length,
     databaseUserCount: rows.length,
-    newUsersTodayCount: stats.newUsersToday,
-    activeUsersCount: stats.activeUsers,
+    newUsersTodayCount: null,
+    activeUsersCount: null,
     timestamp: new Date().toISOString(),
   };
   lastGood = { body, timestamp: Date.now() };

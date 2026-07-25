@@ -17,9 +17,17 @@ const NO_STORE_HEADERS = {
 };
 
 export async function GET() {
-  const { clerkTotalUsers, activeUsers } = getCachedCommunityStats();
+  const { clerkTotalUsers, activeUsers, newUsersToday } = await getCachedCommunityStats();
+  // totalUsers is Clerk's live getCount() verbatim (null while the first fetch
+  // is still in flight) so the UI matches Clerk exactly and shows a loading
+  // state rather than a misleading 0. Never coerce null → 0 here.
   return NextResponse.json(
-    { totalUsers: clerkTotalUsers ?? 0, activeUsers, timestamp: new Date().toISOString() },
+    {
+      totalUsers: clerkTotalUsers,
+      activeUsers,
+      newUsersToday,
+      timestamp: new Date().toISOString(),
+    },
     { headers: NO_STORE_HEADERS }
   );
 }

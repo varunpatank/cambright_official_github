@@ -192,12 +192,14 @@ const LeaderBoardPage = () => {
   const { user, isLoaded } = useUser(); // Logged-in user
 
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
-  const [leaderboardStats, setLeaderboardStats] = useState<{
-    total: number;
-    clerkUserCount: number | string;
-    databaseUserCount: number;
-    newUsersTodayCount: number | null;
-    activeUsersCount: number | null;
+  // The three stat tiles come from a SEPARATE, lightweight /api/community-stats
+  // poll — not bundled into the heavy 2418-row leaderboard payload — so they
+  // load fast and keep updating independently of the board. Each value is
+  // number | null; null means "still loading" and renders a spinner (never 0).
+  const [communityStats, setCommunityStats] = useState<{
+    totalUsers: number | null;
+    activeUsers: number | null;
+    newUsersToday: number | null;
   } | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -205,6 +207,7 @@ const LeaderBoardPage = () => {
   const [selectedProfile, setSelectedProfile] = useState<LeaderboardUser | null>(null);
   const previousRankRef = useRef<number | null>(null);
 
+  // Board rows (heavy) — polled on its own cadence.
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -213,24 +216,14 @@ const LeaderBoardPage = () => {
         });
         if (response.ok) {
           const data: LeaderboardResponse = await response.json();
-          // A transient cold-start response can come back empty (no rows /
-          // total 0). Don't paint that — it would flash "0 0 0" and an empty
-          // board before self-correcting. Keep showing the loading state (or
-          // the previous good data) until a real payload arrives on the next
-          // 5s poll.
+          // A transient cold-start response can come back empty. Don't paint an
+          // empty board — keep the loading state until a real payload arrives.
           const hasRealData = Array.isArray(data.leaderboard) && data.leaderboard.length > 0;
           if (!hasRealData) {
             return;
           }
           setLeaderboard(data.leaderboard);
           setLastUpdated(new Date());
-          setLeaderboardStats({
-            total: data.total,
-            clerkUserCount: data.clerkUserCount,
-            databaseUserCount: data.databaseUserCount,
-            newUsersTodayCount: data.newUsersTodayCount,
-            activeUsersCount: data.activeUsersCount,
-          });
           setLoading(false);
         } else {
           console.error("Failed to fetch leaderboard data");
@@ -243,6 +236,33 @@ const LeaderBoardPage = () => {
     fetchLeaderboard();
     // Faster refresh cadence so rank changes are visible quickly.
     const interval = setInterval(fetchLeaderboard, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Stat tiles (Total / Active / Logins Today) — Clerk-backed, polled every 5s.
+  // Total is Clerk's getCount() verbatim so it matches Clerk exactly and ticks
+  // up in near-real-time as people sign up. Once a value has loaded we keep it
+  // if a later poll momentarily returns null, so a transient hiccup can't flash
+  // a spinner (or a 0) back over a good number.
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/community-stats", { cache: "no-store" });
+        if (!res.ok) return;
+        const d = await res.json();
+        setCommunityStats((prev) => ({
+          totalUsers: typeof d.totalUsers === "number" ? d.totalUsers : prev?.totalUsers ?? null,
+          activeUsers: typeof d.activeUsers === "number" ? d.activeUsers : prev?.activeUsers ?? null,
+          newUsersToday:
+            typeof d.newUsersToday === "number" ? d.newUsersToday : prev?.newUsersToday ?? null,
+        }));
+      } catch {
+        // keep previous values; next poll retries
+      }
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -309,14 +329,12 @@ const LeaderBoardPage = () => {
   const boardIds =
     process.env.NEXT_PUBLIC_BOARD_IDS?.split(",") || defaultIds.boardIds;
 
-  // Sourced straight from the API's authoritative Clerk counts (see
-  // app/api/leaderboard/route.ts) rather than derived from sortedLeaderboard,
-  // which only includes users with a DB row and would undercount relative to
-  // what Clerk itself reports for brand-new signups. null = the background Clerk
-  // scan hasn't produced a first value yet → the tile shows a loading spinner
-  // instead of a misleading "0".
-  const activeUsersCount = leaderboardStats?.activeUsersCount ?? null;
-  const loginsTodayCount = leaderboardStats?.newUsersTodayCount ?? null;
+  // Straight from Clerk via /api/community-stats. null = still loading → the
+  // tile shows a spinner instead of a misleading "0". Total is Clerk's live
+  // getCount(), so it matches Clerk exactly and updates as people sign up.
+  const totalUsersCount = communityStats?.totalUsers ?? null;
+  const activeUsersCount = communityStats?.activeUsers ?? null;
+  const loginsTodayCount = communityStats?.newUsersToday ?? null;
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -327,8 +345,9 @@ const LeaderBoardPage = () => {
         <LeaderboardHeaderBanner />
         
         <div className="max-w-4xl mx-auto px-6 pb-6">
-        {/* Leaderboard Stats */}
-        {leaderboardStats && (
+        {/* Leaderboard Stats — always rendered so the tiles (with spinners) show
+            immediately, independent of the heavier board data loading below. */}
+        {(
           <div className="mb-8">
             {currentUserRank && currentUserEntry && (
               <div className="mb-4 rounded-2xl border border-purple-400/30 bg-gradient-to-r from-purple-600/20 via-violet-500/15 to-cyan-500/15 p-4">
@@ -366,7 +385,7 @@ const LeaderBoardPage = () => {
                 <div className="text-sm text-gray-400">Active Users</div>
               </div>
               <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
-                <div className="text-2xl font-bold text-purple-400">{leaderboardStats.total}</div>
+                <div className="text-2xl font-bold text-purple-400"><StatValue value={totalUsersCount} /></div>
                 <div className="text-sm text-gray-400">Total Users</div>
               </div>
               <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">

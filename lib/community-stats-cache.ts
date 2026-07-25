@@ -1,18 +1,19 @@
 // lib/community-stats-cache.ts
 //
-// Resilient caches for the site-wide user counts, read by both /api/leaderboard
-// and /api/community-stats so the two surfaces never drift. Split into two
-// independent single-flight caches with DIFFERENT refresh rates:
+// Resilient caches for the site-wide user counts (Total / Active / new-today),
+// read by /api/community-stats and shared so every surface reports the same
+// numbers.
 //
-//   • Signup count — clerk.users.getCount(), one cheap call. Refreshed on a
-//     short cycle so "Total Users" tracks new Clerk signups in near-real-time.
-//   • Activity (active-in-30d / new-today) — each a paginated directory scan, so
-//     comparatively expensive. Refreshed on a longer cycle.
-//
-// Both use the same pattern: single-flight (concurrent callers share one fetch),
-// stale-while-revalidate (never block on Clerk once a value exists), and
-// last-known-good retention (a transient Clerk failure keeps serving the last
-// real value instead of a wrong one).
+// SERVERLESS-SAFE BY DESIGN. This runs on Vercel serverless functions, where any
+// work kicked off AFTER the response is sent (fire-and-forget `void refresh()`)
+// is NOT reliably executed — the function suspends the moment it responds. An
+// earlier version used stale-while-revalidate with a background refresh; on
+// serverless that background refresh never completed, so a cold function
+// instance returned null forever and the numbers never loaded / never updated in
+// production. So these caches REFRESH INLINE: on a cache miss we AWAIT the Clerk
+// fetch within the request and return the fresh value. A short TTL keeps them
+// current; single-flight collapses concurrent refreshes on a warm instance so we
+// never fire duplicate Clerk calls for the same window.
 import { clerkClient } from "@clerk/nextjs/server";
 import {
   getClerkSignupCount,
@@ -21,11 +22,9 @@ import {
   type CommunityStats,
 } from "@/lib/clerk-stats";
 
-// --- signup count (fast cycle) ---------------------------------------------
-// Matched to the leaderboard client's 5s poll so Total Users reflects a new
-// Clerk signup within a poll or two. getCount() is a single cheap call and
-// single-flighted here, so even at this cadence only one runs per window
-// regardless of how many tabs/users are polling — negligible Clerk load.
+// --- signup count (fast) ---------------------------------------------------
+// getCount() is a single cheap call, so a short TTL makes Total Users track new
+// signups closely (client polls every 5s).
 const COUNT_FRESH_MS = 5_000;
 let countCache: { value: number; timestamp: number } | null = null;
 let countInFlight: Promise<number | null> | null = null;
@@ -48,23 +47,24 @@ function refreshCountSingleFlight(): Promise<number | null> {
   return countInFlight;
 }
 
-function getCachedSignupCount(): number | null {
+async function getSignupCount(): Promise<number | null> {
   const age = countCache ? Date.now() - countCache.timestamp : Infinity;
   if (countCache && age < COUNT_FRESH_MS) {
     return countCache.value;
   }
-  // Cold OR stale: kick off a refresh but NEVER block the caller on Clerk — a
-  // rate-limited live instance can make getCount()/the scans take a long time,
-  // and the leaderboard must not wait on that. Return the last-good value, or
-  // null if we've never fetched (the leaderboard then uses its own DB row count
-  // for the total, so the page still shows an accurate number instantly). The
-  // background refresh populates the cache for the next poll.
-  void refreshCountSingleFlight().catch(() => {});
-  return countCache?.value ?? null;
+  // Miss/stale: refresh INLINE (awaited) — see the serverless note above.
+  try {
+    const value = await refreshCountSingleFlight();
+    return typeof value === "number" ? value : countCache?.value ?? null;
+  } catch {
+    return countCache?.value ?? null;
+  }
 }
 
-// --- activity windows (slow cycle) -----------------------------------------
-const ACTIVITY_FRESH_MS = 60_000;
+// --- activity windows (slower) ---------------------------------------------
+// Each is a paginated directory scan (~1-2s), so a slightly longer TTL. Still
+// short enough that Logins Today / Active Users visibly update.
+const ACTIVITY_FRESH_MS = 15_000;
 let activityCache: { value: ClerkActivity; timestamp: number } | null = null;
 let activityInFlight: Promise<ClerkActivity> | null = null;
 
@@ -84,29 +84,27 @@ function refreshActivitySingleFlight(): Promise<ClerkActivity> {
   return activityInFlight;
 }
 
-function getCachedActivity(): { activeUsers: number | null; newUsersToday: number | null } {
+async function getActivity(): Promise<{ activeUsers: number | null; newUsersToday: number | null }> {
   const age = activityCache ? Date.now() - activityCache.timestamp : Infinity;
   if (activityCache && age < ACTIVITY_FRESH_MS) {
     return activityCache.value;
   }
-  // Same non-blocking policy as the signup count: never make a request wait on
-  // the (expensive, paginated) activity scans. Serve last-good now; the
-  // background refresh fills them in for subsequent polls. Before the first scan
-  // completes there's no value yet, so return null (not 0) — the UI shows a
-  // loading indicator for null rather than a misleading "0".
-  void refreshActivitySingleFlight().catch(() => {});
-  return activityCache?.value ?? { activeUsers: null, newUsersToday: null };
+  // Miss/stale: refresh INLINE (awaited).
+  try {
+    return await refreshActivitySingleFlight();
+  } catch {
+    return activityCache?.value ?? { activeUsers: null, newUsersToday: null };
+  }
 }
 
 /**
- * Combined community stats. Fully non-blocking: it NEVER awaits a Clerk call,
- * so callers (the leaderboard) render instantly from whatever is cached and the
- * numbers refresh in the background. `clerkTotalUsers` refreshes on the fast
- * cycle; the activity windows on the slow one.
+ * Combined community stats, fetched from Clerk within the request (serverless-
+ * safe). `clerkTotalUsers` is Clerk's getCount() verbatim; the activity windows
+ * come from directory scans. Any field is null only if that Clerk call has never
+ * succeeded — the UI renders a loading spinner for null, never a 0.
  */
-export function getCachedCommunityStats(): CommunityStats {
-  const clerkTotalUsers = getCachedSignupCount();
-  const activity = getCachedActivity();
+export async function getCachedCommunityStats(): Promise<CommunityStats> {
+  const [clerkTotalUsers, activity] = await Promise.all([getSignupCount(), getActivity()]);
   return {
     clerkTotalUsers,
     activeUsers: activity.activeUsers,
