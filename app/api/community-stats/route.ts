@@ -17,7 +17,7 @@ const NO_STORE_HEADERS = {
 };
 
 export async function GET() {
-  const { clerkTotalUsers, activeUsers, newUsersToday } = await getCachedCommunityStats();
+  const { clerkTotalUsers, activeUsers, newUsersThisMonth } = await getCachedCommunityStats();
   // totalUsers is Clerk's live getCount() verbatim (null while the first fetch
   // is still in flight) so the UI matches Clerk exactly and shows a loading
   // state rather than a misleading 0. Never coerce null → 0 here.
@@ -25,7 +25,7 @@ export async function GET() {
     {
       totalUsers: clerkTotalUsers,
       activeUsers,
-      newUsersToday,
+      newUsersThisMonth,
       timestamp: new Date().toISOString(),
     },
     { headers: NO_STORE_HEADERS }

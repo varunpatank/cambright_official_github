@@ -63,7 +63,7 @@ async function getSignupCount(): Promise<number | null> {
 
 // --- activity windows (slower) ---------------------------------------------
 // Each is a paginated directory scan (~1-2s), so a slightly longer TTL. Still
-// short enough that Logins Today / Active Users visibly update.
+// short enough that New This Month / Active Users visibly update.
 const ACTIVITY_FRESH_MS = 15_000;
 let activityCache: { value: ClerkActivity; timestamp: number } | null = null;
 let activityInFlight: Promise<ClerkActivity> | null = null;
@@ -84,7 +84,7 @@ function refreshActivitySingleFlight(): Promise<ClerkActivity> {
   return activityInFlight;
 }
 
-async function getActivity(): Promise<{ activeUsers: number | null; newUsersToday: number | null }> {
+async function getActivity(): Promise<{ activeUsers: number | null; newUsersThisMonth: number | null }> {
   const age = activityCache ? Date.now() - activityCache.timestamp : Infinity;
   if (activityCache && age < ACTIVITY_FRESH_MS) {
     return activityCache.value;
@@ -93,7 +93,7 @@ async function getActivity(): Promise<{ activeUsers: number | null; newUsersToda
   try {
     return await refreshActivitySingleFlight();
   } catch {
-    return activityCache?.value ?? { activeUsers: null, newUsersToday: null };
+    return activityCache?.value ?? { activeUsers: null, newUsersThisMonth: null };
   }
 }
 
@@ -108,6 +108,6 @@ export async function getCachedCommunityStats(): Promise<CommunityStats> {
   return {
     clerkTotalUsers,
     activeUsers: activity.activeUsers,
-    newUsersToday: activity.newUsersToday,
+    newUsersThisMonth: activity.newUsersThisMonth,
   };
 }

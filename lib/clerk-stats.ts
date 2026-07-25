@@ -55,8 +55,8 @@ export interface CommunityStats {
   clerkTotalUsers: number | null;
   /** Users active in the last 30 days — null while the first scan is still loading. */
   activeUsers: number | null;
-  /** Users created in the last 24 hours — null while the first scan is still loading. */
-  newUsersToday: number | null;
+  /** Accounts created since the start of the current calendar month — null while loading. */
+  newUsersThisMonth: number | null;
 }
 
 // Clerk's live total signup count — a single, cheap Backend API call. This is
@@ -75,25 +75,30 @@ export async function getClerkSignupCount(clerk: Clerk): Promise<number | null> 
 
 export interface ClerkActivity {
   activeUsers: number;
-  newUsersToday: number;
+  newUsersThisMonth: number;
 }
 
-// The activity windows (active in last 30 days, new in last 24h) each require a
-// paginated scan of Clerk's directory, so they're comparatively expensive and
-// cached on a longer cycle than the signup count. Each degrades to `previous`
-// on failure so one scan failing can't zero out the other.
+// The activity windows (active in last 30 days, new this calendar month) each
+// require a paginated scan of Clerk's directory, so they're comparatively
+// expensive and cached on a longer cycle than the signup count. Each degrades to
+// `previous` on failure so one scan failing can't zero out the other.
 export async function getClerkActivity(
   clerk: Clerk,
   previous?: ClerkActivity
 ): Promise<ClerkActivity> {
   const now = Date.now();
-  const oneDayMs = 24 * 60 * 60 * 1000;
-  const thirtyDaysMs = 30 * oneDayMs;
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
 
-  const [newUsersToday, activeUsers] = await Promise.all([
-    countUsersSince(clerk, "created_at", now - oneDayMs, (u) => u.createdAt).catch((error) => {
-      console.warn("new-users-today count failed:", error);
-      return previous?.newUsersToday ?? 0;
+  // Start of the current calendar month (local server time), e.g. Jul 1 00:00.
+  const monthStart = new Date(now);
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+  const monthStartMs = monthStart.getTime();
+
+  const [newUsersThisMonth, activeUsers] = await Promise.all([
+    countUsersSince(clerk, "created_at", monthStartMs, (u) => u.createdAt).catch((error) => {
+      console.warn("new-users-this-month count failed:", error);
+      return previous?.newUsersThisMonth ?? 0;
     }),
     countUsersSince(clerk, "last_active_at", now - thirtyDaysMs, (u) => u.lastActiveAt).catch(
       (error) => {
@@ -103,5 +108,5 @@ export async function getClerkActivity(
     ),
   ]);
 
-  return { activeUsers, newUsersToday };
+  return { activeUsers, newUsersThisMonth };
 }

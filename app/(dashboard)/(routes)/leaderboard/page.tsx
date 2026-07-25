@@ -199,7 +199,7 @@ const LeaderBoardPage = () => {
   const [communityStats, setCommunityStats] = useState<{
     totalUsers: number | null;
     activeUsers: number | null;
-    newUsersToday: number | null;
+    newUsersThisMonth: number | null;
   } | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // Loading state
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -239,7 +239,7 @@ const LeaderBoardPage = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Stat tiles (Total / Active / Logins Today) — Clerk-backed, polled every 5s.
+  // Stat tiles (Total / Active / New This Month) — Clerk-backed, polled every 5s.
   // Total is Clerk's getCount() verbatim so it matches Clerk exactly and ticks
   // up in near-real-time as people sign up. Once a value has loaded we keep it
   // if a later poll momentarily returns null, so a transient hiccup can't flash
@@ -253,8 +253,10 @@ const LeaderBoardPage = () => {
         setCommunityStats((prev) => ({
           totalUsers: typeof d.totalUsers === "number" ? d.totalUsers : prev?.totalUsers ?? null,
           activeUsers: typeof d.activeUsers === "number" ? d.activeUsers : prev?.activeUsers ?? null,
-          newUsersToday:
-            typeof d.newUsersToday === "number" ? d.newUsersToday : prev?.newUsersToday ?? null,
+          newUsersThisMonth:
+            typeof d.newUsersThisMonth === "number"
+              ? d.newUsersThisMonth
+              : prev?.newUsersThisMonth ?? null,
         }));
       } catch {
         // keep previous values; next poll retries
@@ -334,7 +336,7 @@ const LeaderBoardPage = () => {
   // getCount(), so it matches Clerk exactly and updates as people sign up.
   const totalUsersCount = communityStats?.totalUsers ?? null;
   const activeUsersCount = communityStats?.activeUsers ?? null;
-  const loginsTodayCount = communityStats?.newUsersToday ?? null;
+  const newThisMonthCount = communityStats?.newUsersThisMonth ?? null;
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -389,8 +391,8 @@ const LeaderBoardPage = () => {
                 <div className="text-sm text-gray-400">Total Users</div>
               </div>
               <div className="bg-n-7/60 border border-white/10 rounded-2xl p-4">
-                <div className="text-2xl font-bold text-amber-400"><StatValue value={loginsTodayCount} /></div>
-                <div className="text-sm text-gray-400">Logins Today</div>
+                <div className="text-2xl font-bold text-amber-400"><StatValue value={newThisMonthCount} /></div>
+                <div className="text-sm text-gray-400">New This Month</div>
               </div>
             </div>
           </div>
