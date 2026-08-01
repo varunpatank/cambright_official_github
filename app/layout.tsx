@@ -24,9 +24,9 @@ import { QueryProvider } from "@/components/providers/query-provider";
 const inter = Sora({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CamBright | Top Scores & Bright Futures",
+  title: "CamBright | Free & Accessible Platform for Mathematics & Science",
   description:
-    "CamBright | Top Scores & Bright Futures - Free Past papers, study tools, and a community that has got your back!",
+    "CamBright is a free & accessible platform for Mathematics and Science, and other subjects — courses, past papers, flashcards and study tools, all at zero cost.",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",

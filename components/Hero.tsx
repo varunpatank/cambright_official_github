@@ -164,14 +164,14 @@ const Hero = ({ onLaunch }: HeroProps) => {
               CamBright IGCSE LLC
             </p>
 
-            <p className="text-center text-base sm:text-xl md:text-2xl font-bold font-sora text-white/85 leading-snug whitespace-normal sm:whitespace-nowrap mt-2 px-4 sm:px-0 animate-in fade-in duration-1000" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
-              Courses &middot; Past Papers &middot; Flashcards &middot;{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-cyan-300">Zero Cost.</span>
+            <p className="text-center text-base sm:text-xl md:text-2xl font-bold font-sora text-white/85 leading-snug whitespace-normal md:whitespace-nowrap mt-2 px-4 sm:px-0 animate-in fade-in duration-1000" style={{ animationDelay: "300ms", animationFillMode: "both" }}>
+              A Free &amp; Accessible Platform for{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 to-cyan-300">Mathematics &amp; Science.</span>
             </p>
 
             <p className="text-center text-xs sm:text-sm font-semibold text-white/45 mt-2 px-4 sm:px-0 animate-in fade-in duration-1000" style={{ animationDelay: "450ms", animationFillMode: "both" }}>
-              Built STEM-first — Maths, Physics, Chemistry, Biology, Computer Science{" "}
-              <span className="text-white/30">&mdash; and more subjects besides.</span>
+              Courses, past papers, flashcards &amp; study tools{" "}
+              <span className="text-white/30">&mdash; for Mathematics, Science &amp; other subjects.</span>
             </p>
 
             <div className="flex flex-row justify-center mt-4 mb-2 w-full max-w-sm sm:max-w-none sm:w-auto px-6 sm:px-0">
