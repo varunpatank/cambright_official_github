@@ -540,12 +540,69 @@ const PHYSICS_CHAPTERS: ChapterMat[] = [
     num: "1",
     title: "Geometric Optics",
     video: { kind: "video-drive", label: "Ch 1 — Geometric Optics", fileId: "1leM7iyiDra9ZRUnohMjnqK-njwNWvB5Z" },
+    content: {
+      intro: "Light travels in perfectly straight lines called rays. Geometric optics uses those rays to predict exactly where light goes when it bounces off mirrors or bends through glass, water and lenses — the physics hiding inside cameras, spectacles, periscopes and the fibre-optic cables that carry your internet.",
+      facts: [
+        { color: "#3b82f6", title: "The Law of Reflection", body: "Light bounces off a smooth surface so the angle of incidence = angle of reflection, both measured from the NORMAL (the dashed line at 90° to the surface). A plane mirror gives an image that is upright, the same size, laterally inverted and virtual — sitting as far behind the mirror as the object is in front." },
+        { color: "#8b5cf6", title: "Refraction: Light Bends", body: "Crossing into a denser medium (air → glass) light slows down and bends TOWARDS the normal; going into a less dense medium it speeds up and bends AWAY. This is why a straw looks 'broken' at the water's surface and a swimming pool looks shallower than it really is." },
+        { color: "#06b6d4", title: "Refractive Index & Snell's Law", body: "Refractive index n = speed in vacuum ÷ speed in medium (always ≥ 1). Snell's law n = sin i ÷ sin r links the two angles. Water n ≈ 1.33, glass n ≈ 1.5, diamond n ≈ 2.42 — the huge index is exactly why diamonds sparkle so much." },
+        { color: "#10b981", title: "Total Internal Reflection", body: "Beyond a 'critical angle', light hitting a boundary from inside a dense medium reflects COMPLETELY instead of escaping. sin c = 1 ÷ n. This traps light inside optical fibres and reflecting prisms — the trick behind endoscopes, binoculars and high-speed broadband." },
+        { color: "#f59e0b", title: "Converging & Diverging Lenses", body: "A converging (convex) lens bends parallel rays to a single focal point F; a diverging (concave) lens spreads them apart. Where the object sits decides the image: beyond F it's real and inverted (a camera), inside F it's magnified and virtual (a magnifying glass)." },
+      ],
+      formulas: [
+        { label: "Law of reflection", expr: "angle of incidence (i) = angle of reflection (r)" },
+        { label: "Refractive index", expr: "n = sin i / sin r = c(vacuum) / v(medium)" },
+        { label: "Critical angle", expr: "sin c = 1 / n" },
+        { label: "Magnification", expr: "m = image height / object height" },
+      ],
+      keyPoints: [
+        "Always measure angles from the NORMAL — never from the surface itself",
+        "Real images can be caught on a screen; virtual images cannot",
+        "Denser medium → higher n → slower light → more bending",
+        "Total internal reflection needs dense → less dense AND angle > critical angle",
+        "White light splits (disperses) into a spectrum because each colour refracts by a slightly different amount",
+      ],
+      examTips: [
+        "Draw the normal as a dashed line at every boundary before marking any angle",
+        "Name the medium change to justify which way the ray bends (towards/away from the normal)",
+        "For lens ray diagrams always draw the two standard rays: parallel-then-through-F, and straight-through-the-centre",
+        "Label images with all three properties: real/virtual, upright/inverted, enlarged/diminished",
+      ],
+    },
   },
   {
     kind: "chapter",
     num: "2",
     title: "Electric Field and Charges",
     video: { kind: "video-drive", label: "Ch 2 — Electric Field and Charges", fileId: "1dl_CuFpvO9TASKTDYYx6e8DobIlnI1iO" },
+    content: {
+      intro: "Everything around you is built from charged particles — protons (+) locked in the nucleus and electrons (−) whizzing around them. When that charge gets unbalanced, objects attract, repel and wrap themselves in invisible force fields. This chapter runs from a balloon sticking to a wall all the way up to the spark of a lightning bolt.",
+      facts: [
+        { color: "#ef4444", title: "Two Kinds of Charge", body: "Charge is positive or negative, measured in coulombs (C). The golden rule: LIKE charges repel, OPPOSITE charges attract. In solids only electrons move — an object is positive because it LOST electrons and negative because it GAINED them. Protons never leave the nucleus." },
+        { color: "#3b82f6", title: "Conductors vs Insulators", body: "Conductors (metals, graphite) contain free electrons that flow easily, so charge can't build up on them. Insulators (plastic, rubber, glass, hair) hold charge exactly where it lands — which is why you can create static electricity by rubbing them." },
+        { color: "#8b5cf6", title: "Charging by Friction & Induction", body: "Friction transfers electrons: rub a balloon on your hair and the balloon GAINS electrons, becoming negative. Induction rearranges charge with no contact — a charged rod pushes like charges to the far side of a neutral object, so the near side is left with an opposite, attracting charge." },
+        { color: "#10b981", title: "The Electric Field", body: "An electric field is any region where a charge feels a force. We draw it with field lines that point the way a POSITIVE test charge would move: AWAY from + charges and TOWARDS − charges. The closer the lines are packed, the stronger the field." },
+        { color: "#f59e0b", title: "Field Patterns You Must Know", body: "Around a single point charge the field is radial — like spokes on a wheel. Between two parallel charged plates it is uniform — evenly spaced parallel lines. That uniform field is used to accelerate and deflect charged particles in oscilloscopes and inkjet printers." },
+      ],
+      formulas: [
+        { label: "Electric field strength", expr: "E = F / Q   (force per unit charge, in N/C)" },
+        { label: "Uniform field (parallel plates)", expr: "E = V / d" },
+        { label: "Force between charges", expr: "F ∝ (Q1 × Q2) / r²   (bigger charges, weaker with distance²)" },
+      ],
+      keyPoints: [
+        "Only electrons move — protons stay fixed in the nucleus",
+        "Like charges repel, unlike charges attract: the golden rule of electrostatics",
+        "Field lines never cross, and always start on + and end on −",
+        "A neutral object can still be ATTRACTED to a charge, through induction",
+        "Sharp points concentrate charge — the reason lightning conductors are pointed",
+      ],
+      examTips: [
+        "When explaining charging, always say which way the ELECTRONS move — not vaguely 'the charge'",
+        "Draw field arrows pointing away from positive and into negative, and mark the direction clearly",
+        "Uniform field → equally spaced parallel lines; point charge → radial lines",
+        "State the force direction (attract/repel) AND name the rule you're using",
+      ],
+    },
   },
 ];
 
@@ -586,7 +643,7 @@ const DETAILS: Record<string, CourseDetail> = {
     materials: [...MATH_CHAPTERS],
   },
   "physics-igcse": {
-    description: "Two IGCSE Physics practice FRQ (free-response question) walkthroughs by Vaishnav Bourempeta — Practice FRQ 1: Geometric Optics, and Practice FRQ 2: Electric Field and Charges.",
+    description: "IGCSE Physics with Vaishnav Bourempeta — two practice FRQ (free-response) walkthroughs on Geometric Optics and Electric Field & Charges, each paired with full interactive revision notes covering the key facts, formulas and exam tips.",
     materials: [...PHYSICS_CHAPTERS],
   },
   "biology-igcse": {
